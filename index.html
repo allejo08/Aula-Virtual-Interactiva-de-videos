@@ -204,7 +204,7 @@
                     <!-- Lista de Estudiantes Locales -->
                     <div class="col-span-2 glass-card p-8 border border-gray-100">
                         <h3 class="text-xl font-bold text-gray-900 mb-2">Estudiantes Añadidos Manualmente</h3>
-                        <p class="text-sm text-gray-500 mb-6">Estos estudiantes pueden iniciar sesión inmediatamente en esta plataforma.</p>
+                        <p class="text-sm text-gray-500 mb-6">Estos estudiantes pueden iniciar sesión inmediatamente. (Sincronización en segundo plano con Sheets).</p>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left">
                                 <thead class="text-xs text-gray-500 uppercase font-bold border-b border-gray-100 bg-gray-50">
@@ -336,7 +336,9 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN GLOBAL
+        // ==========================================
+        // CONFIGURACIÓN GLOBAL Y VARIABLES DE ESTADO
+        // ==========================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfZCYVzDmmeRguhLvzeC-bWiHsNdnf81Aiah0k-6OnSOb408pv1mzuucjEMafP1wD_/exec';
         const LISTA_GRADOS = ["6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
         
@@ -347,44 +349,184 @@
         let baseActividades = JSON.parse(localStorage.getItem('cafelab_actividades')) || [];
         let baseEstudiantes = JSON.parse(localStorage.getItem('cafelab_estudiantes')) || [];
 
-        // FUNCIÓN A PRUEBA DE FALLOS PARA EXTRAER YOUTUBE ID
+        // ==========================================
+        // UTILIDADES DE SEGURIDAD (ESCUDO XSS)
+        // ==========================================
+        window.escapeHTML = function(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        };
+
+        // NAVEGACIÓN Y CIERRE DE SESIÓN
+        window.cerrarSesion = function() {
+            sessionStorage.clear();
+            document.getElementById('form-estudiante').reset(); document.getElementById('form-docente').reset();
+            document.getElementById('panel-estudiante').classList.add('hidden'); document.getElementById('panel-estudiante').classList.remove('flex');
+            document.getElementById('panel-docente').classList.add('hidden'); document.getElementById('panel-docente').classList.remove('flex');
+            document.getElementById('login-panel').classList.remove('hidden'); document.getElementById('login-panel').classList.add('flex');
+            document.getElementById('form-estudiante').classList.add('hidden'); document.getElementById('form-docente').classList.add('hidden');
+            try { if (player && typeof player.stopVideo === 'function') player.stopVideo(); } catch(e){}
+        };
+
+        window.volverDashboardEstudiante = function() {
+            try { if (player && typeof player.pauseVideo === 'function') player.pauseVideo(); } catch(e) {}
+            document.getElementById('vista-reproductor').classList.add('hidden'); document.getElementById('vista-reproductor').classList.remove('flex');
+            document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.add('flex');
+            construirDashboardEstudiante(gradoEstudianteActual);
+        };
+
+        window.mostrarVistaDocente = function(idVista) {
+            document.querySelectorAll('.view-docente').forEach(v => v.classList.add('hidden'));
+            document.getElementById(idVista).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-500', 'text-white');
+                btn.classList.add('bg-transparent', 'text-gray-400');
+            });
+            
+            let btnId = idVista === 'vista-dashboard' ? 'nav-dashboard' : (idVista === 'vista-estudiantes' ? 'nav-estudiantes' : 'nav-actividad');
+            if(idVista !== 'vista-reportes') {
+                document.getElementById(btnId).classList.add('bg-blue-500', 'text-white');
+                document.getElementById(btnId).classList.remove('text-gray-400', 'bg-transparent');
+            }
+        };
+
+        // FUNCIONES DE ACTIVIDADES (ELIMINAR, EDITAR, ESTADO)
+        window.eliminarActividad = function(idActividad) {
+            if(confirm("¿Estás seguro de eliminar esta actividad permanentemente?")) {
+                baseActividades = baseActividades.filter(a => a.id !== idActividad);
+                localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
+                window.renderDashboardDocente();
+            }
+        };
+
+        window.toggleEstadoActividad = function(idActividad) {
+            const index = baseActividades.findIndex(a => a.id === idActividad);
+            if (index > -1) {
+                baseActividades[index].estado = baseActividades[index].estado === 'Activa' ? 'Desactivada' : 'Activa';
+                localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
+                window.renderDashboardDocente(); 
+            }
+        };
+
+        window.editarActividad = function(idActividad) {
+            const act = baseActividades.find(a => a.id === idActividad);
+            if(!act) return;
+            
+            idActividadEditando = act.id;
+            document.getElementById('titulo-formulario-actividad').innerText = "Editar Actividad Interactiva";
+            document.getElementById('btn-submit-actividad').innerText = "Actualizar Actividad";
+
+            document.getElementById('grado-destino').value = act.grados[0];
+            document.getElementById('url-video').value = `https://youtube.com/watch?v=${act.videoId}`;
+            document.getElementById('titulo-clase').value = act.titulo;
+            document.getElementById('objetivo-actividad').value = act.objetivo || "";
+            document.getElementById('descripcion-actividad').value = act.descripcion || "";
+
+            const cont = document.getElementById('contenedor-preguntas');
+            cont.innerHTML = '';
+            act.preguntas.forEach(p => {
+                window.crearBloquePregunta(p.tiempo, p.texto, p.opciones.join(', '), p.correcta);
+            });
+
+            window.mostrarVistaDocente('vista-actividad');
+        };
+
+        // REPORTES INTERACTIVOS HTML
+        window.generarReporteGlobal = function() {
+            document.getElementById('titulo-vista-reporte').innerText = "Reporte Global de Plataforma";
+            const tbody = document.getElementById('tabla-datos-reporte');
+            tbody.innerHTML = '';
+            
+            let hasData = false;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('nota_')) {
+                    hasData = true;
+                    const raw = key.replace('nota_', '');
+                    const estId = window.escapeHTML(raw.split('_ACT_')[0]);
+                    const actId = window.escapeHTML('ACT_' + raw.split('_ACT_')[1]);
+                    const val = window.escapeHTML(localStorage.getItem(key));
+                    
+                    const nombreAct = window.escapeHTML(baseActividades.find(a => a.id === actId)?.titulo || actId);
+                    const numVal = parseFloat(val);
+                    const color = numVal >= 3.0 ? 'text-green-600' : 'text-red-500';
+
+                    tbody.innerHTML += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="px-8 py-4 font-bold text-gray-800">${estId}</td>
+                            <td class="px-8 py-4 text-gray-600">${nombreAct}</td>
+                            <td class="px-8 py-4 text-center font-black ${color}">${val}</td>
+                        </tr>
+                    `;
+                }
+            }
+            if(!hasData) tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-gray-500">No hay calificaciones registradas.</td></tr>`;
+            window.mostrarVistaDocente('vista-reportes');
+        };
+
+        window.generarReporteActividad = function(idActividad) {
+            const nombreAct = window.escapeHTML(baseActividades.find(a => a.id === idActividad)?.titulo || idActividad);
+            document.getElementById('titulo-vista-reporte').innerText = `Reporte: ${nombreAct}`;
+            const tbody = document.getElementById('tabla-datos-reporte');
+            tbody.innerHTML = '';
+
+            let hasData = false;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('nota_') && key.includes(idActividad)) {
+                    hasData = true;
+                    const estId = window.escapeHTML(key.replace('nota_', '').split('_ACT_')[0]);
+                    const val = window.escapeHTML(localStorage.getItem(key));
+                    const numVal = parseFloat(val);
+                    const color = numVal >= 3.0 ? 'text-green-600' : 'text-red-500';
+
+                    tbody.innerHTML += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="px-8 py-4 font-bold text-gray-800">${estId}</td>
+                            <td class="px-8 py-4 text-gray-600">${nombreAct}</td>
+                            <td class="px-8 py-4 text-center font-black ${color}">${val}</td>
+                        </tr>
+                    `;
+                }
+            }
+            if(!hasData) tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-gray-500">No hay entregas para esta actividad.</td></tr>`;
+            window.mostrarVistaDocente('vista-reportes');
+        };
+
         function extraerIdYouTubeFront(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
             const match = url.match(regExp);
-            // Si el link es incorrecto, carga el video "Me at the zoo" (jNQXAC9IVRw) que jamás genera Error 153.
             return (match && match[2].length === 11) ? match[2] : "jNQXAC9IVRw"; 
         }
 
+        // ACTIVAR ACTIVIDAD DESDE ESTUDIANTE DE FORMA SEGURA
+        window.iniciarActividadPorId = function(idActividad) {
+            const act = baseActividades.find(a => a.id === idActividad);
+            if(act) window.iniciarNuevaActividad(act);
+        };
+
         document.addEventListener("DOMContentLoaded", () => {
             
-            // 1. MANEJO DE VISTAS DOCENTE GLOBALES
-            window.mostrarVistaDocente = function(idVista) {
-                document.querySelectorAll('.view-docente').forEach(v => v.classList.add('hidden'));
-                document.getElementById(idVista).classList.remove('hidden');
-                
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.classList.remove('bg-blue-500', 'text-white');
-                    btn.classList.add('bg-transparent', 'text-gray-400');
-                });
-                
-                let btnId = idVista === 'vista-dashboard' ? 'nav-dashboard' : (idVista === 'vista-estudiantes' ? 'nav-estudiantes' : 'nav-actividad');
-                if(idVista !== 'vista-reportes') {
-                    document.getElementById(btnId).classList.add('bg-blue-500', 'text-white');
-                    document.getElementById(btnId).classList.remove('text-gray-400', 'bg-transparent');
-                }
-            };
-
-            // 2. NAVEGACIÓN LOGIN
-            document.getElementById('btn-show-estudiante').addEventListener('click', () => {
-                document.getElementById('form-estudiante').classList.remove('hidden');
-                document.getElementById('form-docente').classList.add('hidden');
+            // Navegación Sidebar
+            document.getElementById('nav-dashboard').addEventListener('click', () => { window.renderDashboardDocente(); });
+            document.getElementById('nav-actividad').addEventListener('click', () => { 
+                idActividadEditando = null;
+                document.getElementById('form-crear-actividad').reset();
+                document.getElementById('contenedor-preguntas').innerHTML = '';
+                document.getElementById('titulo-formulario-actividad').innerText = "Crear Nueva Actividad Interactiva";
+                document.getElementById('btn-submit-actividad').innerText = "Guardar Actividad y Publicar";
+                window.crearBloquePregunta(); 
+                window.mostrarVistaDocente('vista-actividad'); 
             });
-            document.getElementById('btn-show-docente').addEventListener('click', () => {
-                document.getElementById('form-docente').classList.remove('hidden');
-                document.getElementById('form-estudiante').classList.add('hidden');
-            });
+            document.getElementById('nav-estudiantes').addEventListener('click', () => { window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes'); });
 
-            // 3. EVENTOS DE LOGIN 
+            // Lógica Login Docente
             document.getElementById('form-docente').addEventListener('submit', (e) => {
                 e.preventDefault();
                 if (document.getElementById('pass-docente').value === 'AdminDocente') {
@@ -394,7 +536,54 @@
                 } else { alert('Contraseña incorrecta'); }
             });
 
-            // 4. FUNCIONES GLOBALES DE DOCENTE (CRUD & REPORTES)
+            // Lógica Login Estudiante
+            document.getElementById('btn-show-estudiante').addEventListener('click', () => {
+                document.getElementById('form-estudiante').classList.remove('hidden');
+                document.getElementById('form-docente').classList.add('hidden');
+            });
+            document.getElementById('btn-show-docente').addEventListener('click', () => {
+                document.getElementById('form-docente').classList.remove('hidden');
+                document.getElementById('form-estudiante').classList.add('hidden');
+            });
+
+            // Agregar Estudiantes Locales (Con XSS Shield)
+            window.renderEstudiantesLocales = function() {
+                const tbody = document.getElementById('tabla-estudiantes-locales');
+                tbody.innerHTML = '';
+                baseEstudiantes.forEach(est => {
+                    const seguroGrado = window.escapeHTML(est.grado);
+                    const seguroCodigo = window.escapeHTML(est.codigo);
+                    const seguroNombre = window.escapeHTML(est.nombre);
+                    const seguraPass = window.escapeHTML(est.pass);
+
+                    tbody.innerHTML += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="px-6 py-3 font-bold">${seguroGrado}</td>
+                            <td class="px-6 py-3 font-bold text-blue-600">${seguroCodigo}</td>
+                            <td class="px-6 py-3 text-gray-700">${seguroNombre}</td>
+                            <td class="px-6 py-3 text-center text-gray-500 font-mono">${seguraPass}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            document.getElementById('form-add-estudiante').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const grado = document.getElementById('new-est-grado').value;
+                const codigo = document.getElementById('new-est-codigo').value;
+                const nombre = document.getElementById('new-est-nombre').value;
+                const pass = codigo + nombre.trim().charAt(0).toUpperCase();
+
+                baseEstudiantes.push({ grado, codigo, nombre, pass });
+                localStorage.setItem('cafelab_estudiantes', JSON.stringify(baseEstudiantes));
+                window.renderEstudiantesLocales();
+                e.target.reset();
+
+                try { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'agregarEstudiante', payload: {grado, codigo, nombre} }) }); } catch(e){}
+                alert(`Estudiante guardado. Su contraseña de acceso es: ${pass}`);
+            });
+
+            // Render Dashboard Docente (Con XSS Shield)
             window.renderDashboardDocente = function(filtroGrado = null) {
                 window.mostrarVistaDocente('vista-dashboard');
                 document.getElementById('kpi-total-actividades').innerText = baseActividades.length;
@@ -404,7 +593,8 @@
                 LISTA_GRADOS.forEach(grado => {
                     const actAsignadas = baseActividades.filter(a => a.grados.includes(grado) || a.grados.includes('Todos')).length;
                     const isActive = filtroGrado === grado ? 'bg-white/10 text-white border-l-4 border-blue-500' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200';
-                    listaGrupos.innerHTML += `<li onclick="window.renderDashboardDocente('${grado}')" class="px-4 py-2.5 cursor-pointer flex justify-between items-center rounded-r-lg transition-colors group mb-1 ${isActive}"><span class="text-sm font-bold">Grado ${grado}</span><span class="bg-gray-700/50 text-gray-300 text-xs font-bold px-2.5 py-0.5 rounded-md">${actAsignadas}</span></li>`;
+                    const seguroGrado = window.escapeHTML(grado);
+                    listaGrupos.innerHTML += `<li onclick="window.renderDashboardDocente('${seguroGrado}')" class="px-4 py-2.5 cursor-pointer flex justify-between items-center rounded-r-lg transition-colors group mb-1 ${isActive}"><span class="text-sm font-bold">Grado ${seguroGrado}</span><span class="bg-gray-700/50 text-gray-300 text-xs font-bold px-2.5 py-0.5 rounded-md">${actAsignadas}</span></li>`;
                 });
 
                 const gridGrados = document.getElementById('grid-grados-progreso');
@@ -419,175 +609,65 @@
                     const promStr = count > 0 ? (totalNotas/count).toFixed(1) : 'S/N';
                     const badge = promStr !== 'S/N' && parseFloat(promStr) >= 3.0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
                     const porc = asig > 0 ? (count > 0 ? Math.min(Math.round((count/(asig*5))*100), 100) : 0) : 0; 
+                    const seguroGrado = window.escapeHTML(grado);
+
+                    gridGrados.innerHTML += `
+                        <div class="flex flex-col">
+                            <div class="flex justify-between items-center mb-3"><span class="font-extrabold text-gray-900 text-base">Grado ${seguroGrado}</span><span class="px-3 py-1 rounded-md text-[11px] font-bold ${badge}">Nota: ${promStr}</span></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mb-2"><div class="bg-blue-600 h-2 rounded-full" style="width: ${porc}%"></div></div>
+                            <div class="flex justify-between text-xs font-semibold text-gray-400"><span>${asig} asignadas</span><span>${porc}% completado</span></div>
+                        </div>
+                    `;
                 });
 
                 let acts = filtroGrado ? baseActividades.filter(a => a.grados.includes(filtroGrado) || a.grados.includes('Todos')) : baseActividades;
-                document.getElementById('titulo-tabla-actividades').innerText = filtroGrado ? `Actividades Creadas - Grado ${filtroGrado}` : `Gestión de Actividades Creadas`;
+                document.getElementById('titulo-tabla-actividades').innerText = filtroGrado ? `Actividades Creadas - Grado ${window.escapeHTML(filtroGrado)}` : `Gestión de Actividades Creadas`;
 
                 const tabla = document.getElementById('tabla-actividades-creadas');
                 tabla.innerHTML = '';
                 [...acts].reverse().forEach(act => {
                     const badge = act.estado === 'Activa' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600';
                     const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
+                    
+                    const seguroId = window.escapeHTML(act.id);
+                    const seguroGrados = window.escapeHTML(act.grados.join(', '));
+                    const seguroTitulo = window.escapeHTML(act.titulo);
+                    const seguraFecha = window.escapeHTML(act.fecha);
+                    const seguroEstado = window.escapeHTML(act.estado);
+
                     tabla.innerHTML += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50/80">
-                            <td class="px-6 py-4 font-extrabold text-gray-900">${act.grados.join(', ')}</td>
-                            <td class="px-6 py-4 font-medium text-gray-700">${act.titulo}</td>
-                            <td class="px-6 py-4 text-gray-400 text-sm">${act.fecha}</td>
-                            <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-md text-[11px] font-bold uppercase ${badge}">${act.estado}</span></td>
+                            <td class="px-6 py-4 font-extrabold text-gray-900">${seguroGrados}</td>
+                            <td class="px-6 py-4 font-medium text-gray-700">${seguroTitulo}</td>
+                            <td class="px-6 py-4 text-gray-400 text-sm">${seguraFecha}</td>
+                            <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-md text-[11px] font-bold uppercase ${badge}">${seguroEstado}</span></td>
                             <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
-                                <button onclick="window.toggleEstadoActividad('${act.id}')" class="text-xs font-bold text-gray-600 border px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">${btnEstado}</button>
-                                <button onclick="window.editarActividad('${act.id}')" class="text-xs font-bold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors px-3 py-2 rounded-lg">✏️ Editar</button>
-                                <button onclick="window.eliminarActividad('${act.id}')" class="text-xs font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors px-3 py-2 rounded-lg">🗑️ Eliminar</button>
-                                <button onclick="window.generarReporteActividad('${act.id}')" class="text-xs font-bold text-indigo-600 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-colors px-3 py-2 rounded-lg">👁 Reporte HTML</button>
+                                <button onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-gray-600 border px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">${btnEstado}</button>
+                                <button onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors px-3 py-2 rounded-lg">✏️ Editar</button>
+                                <button onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors px-3 py-2 rounded-lg">🗑️ Eliminar</button>
+                                <button onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-indigo-600 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-colors px-3 py-2 rounded-lg">👁 Reporte HTML</button>
                             </td>
                         </tr>
                     `;
                 });
-            };
+            }
 
-            window.eliminarActividad = function(idActividad) {
-                if(confirm("¿Estás seguro de eliminar esta actividad permanentemente?")) {
-                    baseActividades = baseActividades.filter(a => a.id !== idActividad);
-                    localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-                    window.renderDashboardDocente();
-                }
-            };
-
-            window.toggleEstadoActividad = function(idActividad) {
-                const index = baseActividades.findIndex(a => a.id === idActividad);
-                if (index > -1) {
-                    baseActividades[index].estado = baseActividades[index].estado === 'Activa' ? 'Desactivada' : 'Activa';
-                    localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-                    window.renderDashboardDocente(); 
-                }
-            };
-
-            window.editarActividad = function(idActividad) {
-                const act = baseActividades.find(a => a.id === idActividad);
-                if(!act) return;
-                
-                idActividadEditando = act.id;
-                document.getElementById('titulo-formulario-actividad').innerText = "Editar Actividad Interactiva";
-                document.getElementById('btn-submit-actividad').innerText = "Actualizar Actividad";
-
-                document.getElementById('grado-destino').value = act.grados[0];
-                document.getElementById('url-video').value = `https://youtube.com/watch?v=${act.videoId}`;
-                document.getElementById('titulo-clase').value = act.titulo;
-                document.getElementById('objetivo-actividad').value = act.objetivo || "";
-                document.getElementById('descripcion-actividad').value = act.descripcion || "";
-
-                document.getElementById('contenedor-preguntas').innerHTML = '';
-                act.preguntas.forEach(p => { window.crearBloquePregunta(p.tiempo, p.texto, p.opciones.join(', '), p.correcta); });
-
-                window.mostrarVistaDocente('vista-actividad');
-            };
-
-            window.generarReporteGlobal = function() {
-                document.getElementById('titulo-vista-reporte').innerText = "Reporte Global de Plataforma";
-                const tbody = document.getElementById('tabla-datos-reporte');
-                tbody.innerHTML = '';
-                
-                let hasData = false;
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key.startsWith('nota_')) {
-                        hasData = true;
-                        const raw = key.replace('nota_', '');
-                        const estId = raw.split('_ACT_')[0];
-                        const actId = 'ACT_' + raw.split('_ACT_')[1];
-                        const val = localStorage.getItem(key);
-                        
-                        const nombreAct = baseActividades.find(a => a.id === actId)?.titulo || actId;
-                        const numVal = parseFloat(val);
-                        const color = numVal >= 3.0 ? 'text-green-600' : 'text-red-500';
-
-                        tbody.innerHTML += `<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="px-8 py-4 font-bold text-gray-800">${estId}</td><td class="px-8 py-4 text-gray-600">${nombreAct}</td><td class="px-8 py-4 text-center font-black ${color}">${val}</td></tr>`;
-                    }
-                }
-                if(!hasData) tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-gray-500">No hay calificaciones registradas.</td></tr>`;
-                window.mostrarVistaDocente('vista-reportes');
-            };
-
-            window.generarReporteActividad = function(idActividad) {
-                const nombreAct = baseActividades.find(a => a.id === idActividad)?.titulo || idActividad;
-                document.getElementById('titulo-vista-reporte').innerText = `Reporte: ${nombreAct}`;
-                const tbody = document.getElementById('tabla-datos-reporte');
-                tbody.innerHTML = '';
-
-                let hasData = false;
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key.startsWith('nota_') && key.includes(idActividad)) {
-                        hasData = true;
-                        const estId = key.replace('nota_', '').split('_ACT_')[0];
-                        const val = localStorage.getItem(key);
-                        const numVal = parseFloat(val);
-                        const color = numVal >= 3.0 ? 'text-green-600' : 'text-red-500';
-
-                        tbody.innerHTML += `<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="px-8 py-4 font-bold text-gray-800">${estId}</td><td class="px-8 py-4 text-gray-600">${nombreAct}</td><td class="px-8 py-4 text-center font-black ${color}">${val}</td></tr>`;
-                    }
-                }
-                if(!hasData) tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-gray-500">No hay entregas para esta actividad.</td></tr>`;
-                window.mostrarVistaDocente('vista-reportes');
-            };
-
+            // Lógica Agregar Preguntas 
             window.crearBloquePregunta = function(t='', p='', o='', c='') {
                 const div = document.createElement('div');
                 div.className = "p-6 border border-gray-200 rounded-xl bg-gray-50 relative mt-4 shadow-sm";
                 div.innerHTML = `
                     <button type="button" class="absolute top-4 right-4 text-red-500 font-bold hover:bg-red-100 px-3 py-1 rounded-lg text-sm" onclick="this.parentElement.remove()">✕ Quitar</button>
                     <div class="grid grid-cols-4 gap-6 mb-4 mt-2">
-                        <div class="col-span-1"><label class="block text-sm font-bold text-gray-600 mb-1">Seg</label><input type="number" value="${t}" class="w-full p-3 border rounded-lg" required></div>
-                        <div class="col-span-3"><label class="block text-sm font-bold text-gray-600 mb-1">Pregunta</label><input type="text" value="${p}" class="w-full p-3 border rounded-lg" required></div>
+                        <div class="col-span-1"><label class="block text-sm font-bold text-gray-600 mb-1">Seg</label><input type="number" value="${window.escapeHTML(t)}" class="w-full p-3 border rounded-lg" required></div>
+                        <div class="col-span-3"><label class="block text-sm font-bold text-gray-600 mb-1">Pregunta</label><input type="text" value="${window.escapeHTML(p)}" class="w-full p-3 border rounded-lg" required></div>
                     </div>
-                    <label class="block text-sm font-bold text-gray-600 mb-1">Opciones (Separadas por coma)</label><input type="text" value="${o}" class="w-full p-3 border rounded-lg mb-4" required>
-                    <label class="block text-sm font-bold text-gray-600 mb-1">Índice Correcto (1, 2...)</label><input type="number" value="${c}" class="w-32 p-3 border rounded-lg" required>
+                    <label class="block text-sm font-bold text-gray-600 mb-1">Opciones (Separadas por coma)</label><input type="text" value="${window.escapeHTML(o)}" class="w-full p-3 border rounded-lg mb-4" required>
+                    <label class="block text-sm font-bold text-gray-600 mb-1">Índice Correcto (1, 2...)</label><input type="number" value="${window.escapeHTML(c)}" class="w-32 p-3 border rounded-lg" required>
                 `;
                 document.getElementById('contenedor-preguntas').appendChild(div);
             };
-
-            // 5. EVENTOS NAVEGACIÓN Y FORMULARIOS DOCENTE
-            document.getElementById('nav-dashboard').addEventListener('click', () => { window.renderDashboardDocente(); });
-            document.getElementById('nav-actividad').addEventListener('click', () => { 
-                idActividadEditando = null;
-                document.getElementById('form-crear-actividad').reset();
-                document.getElementById('contenedor-preguntas').innerHTML = '';
-                document.getElementById('titulo-formulario-actividad').innerText = "Crear Nueva Actividad Interactiva";
-                document.getElementById('btn-submit-actividad').innerText = "Guardar Actividad y Publicar";
-                window.crearBloquePregunta(); 
-                window.mostrarVistaDocente('vista-actividad'); 
-            });
-            document.getElementById('nav-estudiantes').addEventListener('click', () => { 
-                renderEstudiantesLocales(); 
-                window.mostrarVistaDocente('vista-estudiantes'); 
-            });
             document.getElementById('btn-add-pregunta').addEventListener('click', () => window.crearBloquePregunta());
-
-            // Agregar Estudiantes Locales
-            function renderEstudiantesLocales() {
-                const tbody = document.getElementById('tabla-estudiantes-locales');
-                tbody.innerHTML = '';
-                baseEstudiantes.forEach(est => {
-                    tbody.innerHTML += `<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="px-6 py-3 font-bold">${est.grado}</td><td class="px-6 py-3 font-bold text-blue-600">${est.codigo}</td><td class="px-6 py-3 text-gray-700">${est.nombre}</td><td class="px-6 py-3 text-center text-gray-500 font-mono">${est.pass}</td></tr>`;
-                });
-            }
-
-            document.getElementById('form-add-estudiante').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const grado = document.getElementById('new-est-grado').value;
-                const codigo = document.getElementById('new-est-codigo').value;
-                const nombre = document.getElementById('new-est-nombre').value;
-                const pass = codigo + nombre.trim().charAt(0).toUpperCase();
-
-                baseEstudiantes.push({ grado, codigo, nombre, pass });
-                localStorage.setItem('cafelab_estudiantes', JSON.stringify(baseEstudiantes));
-                renderEstudiantesLocales();
-                e.target.reset();
-
-                try { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'agregarEstudiante', payload: {grado, codigo, nombre} }) }); } catch(e){}
-                alert(`Estudiante guardado. Su contraseña de acceso es: ${pass}`);
-            });
 
             // Guardar Formulario Actividad
             document.getElementById('form-crear-actividad').addEventListener('submit', async (e) => {
@@ -623,26 +703,7 @@
                 document.getElementById('nav-dashboard').click(); 
             });
 
-            // 6. FUNCIONES GLOBALES DE ESTUDIANTE Y REPRODUCTOR
-            window.cerrarSesion = function() {
-                sessionStorage.clear();
-                estudianteIdActual = ""; nombreEstudianteActual = ""; gradoEstudianteActual = ""; idActividadEditando = null;
-                document.getElementById('form-estudiante').reset(); document.getElementById('form-docente').reset();
-                document.getElementById('panel-estudiante').classList.add('hidden'); document.getElementById('panel-estudiante').classList.remove('flex');
-                document.getElementById('panel-docente').classList.add('hidden'); document.getElementById('panel-docente').classList.remove('flex');
-                document.getElementById('login-panel').classList.remove('hidden'); document.getElementById('login-panel').classList.add('flex');
-                document.getElementById('form-estudiante').classList.add('hidden'); document.getElementById('form-docente').classList.add('hidden');
-                try { if (player && typeof player.stopVideo === 'function') player.stopVideo(); } catch(e){}
-            };
-
-            window.volverDashboardEstudiante = function() {
-                try { if (player && typeof player.pauseVideo === 'function') player.pauseVideo(); } catch(e) {}
-                document.getElementById('vista-reproductor').classList.add('hidden'); document.getElementById('vista-reproductor').classList.remove('flex');
-                document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.add('flex');
-                construirDashboardEstudiante(gradoEstudianteActual);
-            };
-
-            // Login Estudiante
+            // Lógica Login Estudiante 
             document.getElementById('form-estudiante').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const grado = document.getElementById('grado').value;
@@ -669,25 +730,29 @@
                 gradoEstudianteActual = grado; 
                 document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
                 document.getElementById('panel-estudiante').classList.remove('hidden'); document.getElementById('panel-estudiante').classList.add('flex');
-                document.getElementById('nombre-estudiante-display').innerText = nombre;
-                document.getElementById('grado-estudiante-display').innerText = grado;
-                document.getElementById('codigo-estudiante-display').innerText = codigo;
+                document.getElementById('nombre-estudiante-display').innerText = window.escapeHTML(nombre);
+                document.getElementById('grado-estudiante-display').innerText = window.escapeHTML(grado);
+                document.getElementById('codigo-estudiante-display').innerText = window.escapeHTML(codigo);
                 construirDashboardEstudiante(grado);
             }
 
-            // Dashboard Estudiante
+            // Dashboard Estudiante (Con XSS Shield)
             function construirDashboardEstudiante(grado) {
                 const listaP = document.getElementById('lista-pendientes'), listaR = document.getElementById('lista-realizadas');
                 listaP.innerHTML = ''; listaR.innerHTML = ''; let pCount = 0, rCount = 0;
                 baseActividades.forEach(act => {
                     if(act.grados.includes(grado) || act.grados.includes('Todos')) {
                         const notaGuardada = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
+                        const seguroTitulo = window.escapeHTML(act.titulo);
+                        const seguroId = window.escapeHTML(act.id);
+
                         if (notaGuardada) {
                             rCount++;
-                            listaR.innerHTML += `<div class="p-6 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-gray-900 text-xl">${act.titulo}</h4><p class="text-sm text-green-700 font-bold mt-1">Completada</p></div><div class="bg-white px-5 py-3 rounded-lg border border-gray-300 text-gray-900 font-black text-xl shadow-sm">${notaGuardada}</div></div>`;
+                            const seguraNota = window.escapeHTML(notaGuardada);
+                            listaR.innerHTML += `<div class="p-6 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-gray-900 text-xl">${seguroTitulo}</h4><p class="text-sm text-green-700 font-bold mt-1">Completada</p></div><div class="bg-white px-5 py-3 rounded-lg border border-gray-300 text-gray-900 font-black text-xl shadow-sm">${seguraNota}</div></div>`;
                         } else if (act.estado === 'Activa') { 
                             pCount++;
-                            listaP.innerHTML += `<div class="p-6 bg-white rounded-xl border border-blue-200 flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden"><div class="absolute left-0 top-0 w-1.5 h-full bg-blue-600"></div><div class="w-full pl-2"><h4 class="font-bold text-gray-900 text-xl">${act.titulo}</h4><p class="text-sm text-gray-500 font-medium mt-1">Video Asignado</p></div><button onclick='window.iniciarNuevaActividad(${JSON.stringify(act)})' class="w-full sm:w-auto shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl shadow-md font-bold text-lg">▶ Iniciar</button></div>`;
+                            listaP.innerHTML += `<div class="p-6 bg-white rounded-xl border border-blue-200 flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden"><div class="absolute left-0 top-0 w-1.5 h-full bg-blue-600"></div><div class="w-full pl-2"><h4 class="font-bold text-gray-900 text-xl">${seguroTitulo}</h4><p class="text-sm text-gray-500 font-medium mt-1">Video Asignado</p></div><button onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl shadow-md font-bold text-lg">▶ Iniciar</button></div>`;
                         }
                     }
                 });
@@ -700,7 +765,7 @@
                 actividadActual = actObj;
                 document.getElementById('vista-bienvenida-estudiante').classList.add('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.remove('flex');
                 document.getElementById('vista-reproductor').classList.remove('hidden'); document.getElementById('vista-reproductor').classList.add('flex');
-                document.getElementById('titulo-reproductor').innerText = actividadActual.titulo;
+                document.getElementById('titulo-reproductor').innerText = window.escapeHTML(actividadActual.titulo);
                 intentoActual = { correctas: 0, resueltas: 0 }; document.getElementById('progreso-text').innerText = "0%";
                 prepararReproductor();
             };
@@ -715,7 +780,6 @@
                 try {
                     if (player && typeof player.loadVideoById === 'function') { player.loadVideoById({videoId: actividadActual.videoId, startSeconds: Math.floor(tIn)}); } 
                     else {
-                        // ORÍGEN AGREGADO PARA EVITAR ERROR 153/150
                         player = new YT.Player('youtube-player', { videoId: actividadActual.videoId, playerVars: { 'autoplay': 1, 'controls': 0, 'start': Math.floor(tIn), 'rel': 0, 'modestbranding': 1, 'origin': window.location.origin }, events: { 'onStateChange': (e) => { if (e.data == YT.PlayerState.PLAYING) { intervaloVideo = setInterval(verificarTiempo, 1000); } else { clearInterval(intervaloVideo); } } } });
                     }
                 } catch(e){}
@@ -728,12 +792,12 @@
                 actividadActual.preguntas.forEach((pregunta, index) => {
                     if (!pregunta.respondida && tAct >= pregunta.tiempo && tAct < (pregunta.tiempo + 2)) {
                         player.pauseVideo(); clearInterval(intervaloVideo);
-                        document.getElementById('q-text').innerText = pregunta.texto;
+                        document.getElementById('q-text').innerText = window.escapeHTML(pregunta.texto);
                         const contO = document.getElementById('q-options'); contO.innerHTML = '';
                         pregunta.opciones.forEach((opcion, i) => {
                             const btn = document.createElement('button');
                             btn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-6 px-8 rounded-2xl text-left text-2xl border-2 border-blue-400 shadow-lg";
-                            btn.innerText = opcion;
+                            btn.innerText = opcion; // No usamos escapeHTML aquí porque innerText ya es seguro contra XSS
                             btn.onclick = () => {
                                 document.getElementById('question-overlay').classList.add('hidden');
                                 actividadActual.preguntas[index].respondida = true; intentoActual.resueltas++;
