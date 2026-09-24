@@ -10,7 +10,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f4f7fe; }
         .sidebar-bg { background-color: #0b1437; }
-        .glass-card { background: white; border-radius: 12px; box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.02); }
+        .glass-card { background: white; border-radius: 12px; box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.03); }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-gray-800">
@@ -26,21 +26,21 @@
             </div>
 
             <form id="form-estudiante" class="hidden space-y-4">
-                <select id="grado" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                <select id="grado" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none text-base" required>
                     <option value="">Seleccione Grado</option>
                     <option value="6-1">Sexto 1</option><option value="6-2">Sexto 2</option>
                     <option value="7">Séptimo</option><option value="8-1">Octavo 1</option>
                     <option value="8-2">Octavo 2</option><option value="9">Noveno</option>
                     <option value="10">Décimo</option><option value="11">Once</option>
                 </select>
-                <input type="text" id="codigo-estudiante" placeholder="Digite su Código (Ej: 12254)" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 outline-none" required>
-                <input type="password" id="pass-estudiante" placeholder="Contraseña (Ej: 12254Z)" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 outline-none" required>
-                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold shadow-md transition-colors">Ingresar</button>
+                <input type="text" id="codigo-estudiante" placeholder="Digite su Código (Ej: 12254)" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 outline-none text-base" required>
+                <input type="password" id="pass-estudiante" placeholder="Contraseña (Ej: 12254Z)" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 outline-none text-base" required>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold shadow-md transition-colors text-lg">Ingresar</button>
             </form>
 
             <form id="form-docente" class="hidden space-y-4">
-                <input type="password" id="pass-docente" placeholder="Contraseña de Administrador" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 outline-none" required>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-md transition-colors">Ingresar al Dashboard</button>
+                <input type="password" id="pass-docente" placeholder="Contraseña de Administrador" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 outline-none text-base" required>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-md transition-colors text-lg">Ingresar al Dashboard</button>
             </form>
         </div>
     </div>
@@ -49,27 +49,27 @@
     <div id="panel-docente" class="hidden flex-grow flex h-screen overflow-hidden">
         
         <!-- Sidebar Docente -->
-        <aside class="w-64 sidebar-bg text-gray-300 flex flex-col h-full shrink-0">
+        <aside class="w-72 sidebar-bg text-gray-300 flex flex-col h-full shrink-0">
             <div class="p-6 flex items-center justify-between border-b border-gray-700">
-                <h3 class="font-bold text-lg text-white">Menú Docente</h3>
-                <span class="bg-green-900 text-green-400 text-[10px] font-bold px-2 py-1 rounded-full">En línea</span>
+                <h3 class="font-bold text-xl text-white">Menú Docente</h3>
+                <span class="bg-green-900 text-green-400 text-xs font-bold px-3 py-1 rounded-full">En línea</span>
             </div>
             
             <div class="p-4 flex-grow overflow-y-auto">
-                <button id="nav-dashboard" class="w-full text-left bg-blue-600 text-white px-4 py-3 rounded-lg mb-2 font-semibold flex items-center gap-3 transition-colors shadow-md">
+                <button id="nav-dashboard" class="w-full text-left bg-blue-600 text-white px-4 py-3 rounded-lg mb-2 font-semibold flex items-center gap-3 transition-colors shadow-md text-base">
                     <span>📊</span> Dashboard
                 </button>
-                <button id="nav-actividad" class="w-full text-left hover:bg-white/10 px-4 py-3 rounded-lg mb-6 font-semibold flex items-center gap-3 transition-colors">
+                <button id="nav-actividad" class="w-full text-left hover:bg-white/10 px-4 py-3 rounded-lg mb-6 font-semibold flex items-center gap-3 transition-colors text-base">
                     <span>➕</span> Añadir Actividad
                 </button>
 
-                <h3 class="font-bold text-xs mb-3 text-gray-500 uppercase tracking-widest px-4">Grupos</h3>
-                <ul id="lista-grupos-docente" class="space-y-1 text-sm font-medium">
-                    <!-- Los grupos se llenan dinámicamente en JS para tener los contadores de actividades -->
+                <h3 class="font-bold text-sm mb-3 text-gray-400 uppercase tracking-widest px-4 mt-4">Reporte por Grupos</h3>
+                <ul id="lista-grupos-docente" class="space-y-2 text-base font-medium">
+                    <!-- Los grupos se llenan dinámicamente en JS -->
                 </ul>
             </div>
             <div class="p-4 border-t border-gray-700">
-                <button onclick="cerrarSesion()" class="w-full bg-red-900/40 hover:bg-red-900/60 text-red-300 px-4 py-3 rounded-lg font-bold transition-colors flex items-center justify-center gap-2">
+                <button onclick="cerrarSesion()" class="w-full bg-red-900/40 hover:bg-red-900/60 text-red-300 px-4 py-3 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 text-base">
                     🚪 Cerrar Sesión
                 </button>
             </div>
@@ -80,56 +80,55 @@
             
             <!-- VISTA: DASHBOARD DOCENTE -->
             <div id="vista-dashboard" class="block max-w-7xl mx-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-extrabold text-gray-900">Dashboard General</h2>
-                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-semibold shadow-md transition-colors flex items-center gap-2 text-sm">
-                        <span>📊</span> Generar Reporte Global
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-extrabold text-gray-900">Dashboard General</h2>
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2 text-sm">
+                        <span>📥</span> Generar Reporte Global
                     </button>
                 </div>
 
                 <!-- Top KPI Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="glass-card p-6 border border-gray-100 relative overflow-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="glass-card p-6 border border-gray-100 relative overflow-hidden flex flex-col justify-center">
                         <div class="absolute top-0 right-0 w-2 h-full bg-blue-500"></div>
-                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total de Actividades</h4>
-                        <p class="text-4xl font-black text-gray-900" id="kpi-total-actividades">0</p>
-                        <p class="text-xs text-gray-500 mt-2 font-medium" id="kpi-activas-plataforma">0 activas en plataforma</p>
+                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Total de Actividades</h4>
+                        <p class="text-5xl font-black text-gray-900" id="kpi-total-actividades">0</p>
+                        <p class="text-sm text-gray-500 mt-2 font-medium" id="kpi-activas-plataforma">0 activas en plataforma</p>
                     </div>
-                    <div class="glass-card p-6 border border-gray-100 relative overflow-hidden">
+                    <div class="glass-card p-6 border border-gray-100 relative overflow-hidden flex flex-col justify-center">
                         <div class="absolute top-0 right-0 w-2 h-full bg-purple-500"></div>
-                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Grupos Cubiertos</h4>
-                        <p class="text-4xl font-black text-purple-600" id="kpi-grupos">8</p>
-                        <p class="text-xs text-gray-500 mt-2 font-medium">Sexto a Once</p>
+                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Grupos Cubiertos</h4>
+                        <p class="text-5xl font-black text-purple-600" id="kpi-grupos">8</p>
+                        <p class="text-sm text-gray-500 mt-2 font-medium">Sexto a Once</p>
                     </div>
-                    <div class="glass-card p-6 border border-gray-100 relative overflow-hidden">
+                    <div class="glass-card p-6 border border-gray-100 relative overflow-hidden flex flex-col justify-center">
                         <div class="absolute top-0 right-0 w-2 h-full bg-green-500"></div>
-                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Promedio de Cumplimiento Global</h4>
-                        <p class="text-4xl font-black text-green-600" id="kpi-cumplimiento">0%</p>
-                        <p class="text-xs text-gray-500 mt-2 font-medium">Participación en cuestionarios</p>
+                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Cumplimiento Global</h4>
+                        <p class="text-5xl font-black text-green-600" id="kpi-cumplimiento">0%</p>
+                        <p class="text-sm text-gray-500 mt-2 font-medium">Participación en cuestionarios</p>
                     </div>
                 </div>
 
                 <!-- Middle Section: Avance por Grados -->
-                <h3 class="text-lg font-bold text-gray-900 mb-4">Avance y Rendimiento por Grados</h3>
-                <div class="glass-card p-6 border border-gray-100 mb-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6" id="grid-grados-progreso">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Avance y Rendimiento por Grados</h3>
+                <div class="glass-card p-8 border border-gray-100 mb-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-8" id="grid-grados-progreso">
                         <!-- Se llena con JS -->
                     </div>
                 </div>
 
                 <!-- Bottom Section: Actividades Creadas -->
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold text-gray-900">Actividades Creadas</h3>
-                    <span class="text-xs text-gray-400 font-medium">Haz clic en cualquier actividad para abrir sus estadísticas</span>
+                    <h3 class="text-xl font-bold text-gray-900">Historial de Actividades Creadas</h3>
                 </div>
-                <div class="glass-card border border-gray-100 overflow-hidden">
+                <div class="glass-card border border-gray-100 overflow-hidden mb-8">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="text-xs text-gray-400 uppercase bg-gray-50/50 border-b border-gray-100 font-semibold">
+                        <table class="w-full text-base text-left">
+                            <thead class="text-sm text-gray-600 uppercase bg-gray-100 border-b border-gray-200 font-bold">
                                 <tr>
-                                    <th class="px-6 py-4">ID</th>
+                                    <th class="px-6 py-4">ID de Actividad</th>
                                     <th class="px-6 py-4">Grado</th>
-                                    <th class="px-6 py-4">Título</th>
+                                    <th class="px-6 py-4">Título de la Clase</th>
                                     <th class="px-6 py-4">Fecha</th>
                                     <th class="px-6 py-4 text-center">Estado</th>
                                     <th class="px-6 py-4 text-right">Acción</th>
@@ -144,14 +143,14 @@
             </div>
 
             <!-- VISTA: AÑADIR ACTIVIDAD -->
-            <div id="vista-actividad" class="hidden max-w-4xl mx-auto">
-                <h2 class="text-2xl font-extrabold text-gray-900 mb-6">Crear Nueva Actividad Interactiva</h2>
+            <div id="vista-actividad" class="hidden max-w-5xl mx-auto">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Crear Nueva Actividad Interactiva</h2>
                 
-                <form id="form-crear-actividad" class="glass-card p-8 border border-gray-100 space-y-6">
-                    <div class="grid grid-cols-2 gap-6">
+                <form id="form-crear-actividad" class="glass-card p-10 border border-gray-100 space-y-6">
+                    <div class="grid grid-cols-2 gap-8">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Grado Destino</label>
-                            <select id="grado-destino" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                            <label class="block text-base font-bold text-gray-700 mb-2">Grado Destino</label>
+                            <select id="grado-destino" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none text-base" required>
                                 <option value="6-1">Sexto 1</option><option value="6-2">Sexto 2</option>
                                 <option value="7">Séptimo</option><option value="8-1">Octavo 1</option>
                                 <option value="8-2">Octavo 2</option><option value="9">Noveno</option>
@@ -160,35 +159,35 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Link de YouTube</label>
-                            <input type="url" id="url-video" placeholder="https://www.youtube.com/watch?v=..." class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 outline-none" required>
+                            <label class="block text-base font-bold text-gray-700 mb-2">Link de YouTube</label>
+                            <input type="url" id="url-video" placeholder="https://www.youtube.com/watch?v=..." class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 outline-none text-base" required>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Título de la Clase</label>
-                        <input type="text" id="titulo-clase" placeholder="Ej: Análisis Pitch de negocios" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 outline-none" required>
+                        <label class="block text-base font-bold text-gray-700 mb-2">Título de la Clase</label>
+                        <input type="text" id="titulo-clase" placeholder="Ej: Análisis Pitch de negocios" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 outline-none text-base" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Objetivo de la Actividad</label>
-                        <input type="text" id="objetivo-actividad" placeholder="Competencia a desarrollar..." class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 outline-none" required>
+                        <label class="block text-base font-bold text-gray-700 mb-2">Objetivo de la Actividad</label>
+                        <input type="text" id="objetivo-actividad" placeholder="Competencia a desarrollar..." class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 outline-none text-base" required>
                     </div>
 
-                    <div class="border-t border-gray-100 pt-8 mt-4">
+                    <div class="border-t border-gray-200 pt-8 mt-6">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-bold text-gray-900">Preguntas del Video</h3>
-                            <button type="button" id="btn-add-pregunta" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors shadow-sm flex items-center gap-2">
+                            <h3 class="text-xl font-bold text-gray-900">Preguntas del Video</h3>
+                            <button type="button" id="btn-add-pregunta" class="bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-gray-700 transition-colors shadow-sm flex items-center gap-2">
                                 <span>+</span> Agregar Pregunta
                             </button>
                         </div>
                         
-                        <div id="contenedor-preguntas" class="space-y-4">
+                        <div id="contenedor-preguntas" class="space-y-5">
                             <!-- Base (Se insertan dinámicamente) -->
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg mt-8 text-lg">
+                    <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg mt-8 text-xl">
                         Guardar Actividad y Publicar
                     </button>
                 </form>
@@ -201,52 +200,52 @@
         
         <!-- VISTA: DASHBOARD PERSONAL ESTUDIANTE -->
         <div id="vista-bienvenida-estudiante" class="max-w-5xl w-full flex flex-col gap-6 mt-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Hola, <span id="nombre-estudiante-display" class="text-blue-600">Estudiante</span> 👋</h2>
-                    <p class="text-gray-500 text-sm mt-1 font-medium">Grado: <span id="grado-estudiante-display" class="text-gray-800"></span> | Código: <span id="codigo-estudiante-display" class="text-gray-800"></span></p>
+                    <h2 class="text-3xl font-bold text-gray-900">Hola, <span id="nombre-estudiante-display" class="text-blue-600">Estudiante</span> 👋</h2>
+                    <p class="text-gray-600 text-base mt-2 font-medium">Grado: <span id="grado-estudiante-display" class="text-gray-900 font-bold"></span> | Código: <span id="codigo-estudiante-display" class="text-gray-900 font-bold"></span></p>
                 </div>
-                <button onclick="cerrarSesion()" class="text-red-500 hover:text-red-700 font-semibold transition-colors flex items-center gap-2 border border-red-100 bg-red-50 px-5 py-2.5 rounded-lg">
+                <button onclick="cerrarSesion()" class="text-red-600 hover:text-red-800 font-bold transition-colors flex items-center gap-2 border border-red-200 bg-red-50 px-6 py-3 rounded-lg text-base">
                     🚪 Cerrar Sesión
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
                 <!-- Pendientes -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">⏳ Actividades Pendientes</h3>
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 border-b pb-3">⏳ Actividades Pendientes</h3>
                     <div id="lista-pendientes" class="flex flex-col gap-4"></div>
                 </div>
                 <!-- Realizadas -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">✅ Mis Calificaciones</h3>
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 border-b pb-3">✅ Mis Calificaciones</h3>
                     <div id="lista-realizadas" class="flex flex-col gap-4"></div>
                 </div>
             </div>
         </div>
 
         <!-- VISTA: REPRODUCTOR INTERACTIVO -->
-        <div id="vista-reproductor" class="hidden w-full max-w-5xl bg-white p-6 rounded-xl shadow-lg flex-col h-[85vh] mt-4 border border-gray-100">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-900" id="titulo-reproductor">Actividad Interactiva</h2>
-                <div class="text-sm bg-blue-50 text-blue-700 border border-blue-100 px-4 py-2 rounded-full font-bold">
+        <div id="vista-reproductor" class="hidden w-full max-w-6xl bg-white p-6 rounded-xl shadow-lg flex-col h-[85vh] mt-4 border border-gray-200">
+            <div class="flex justify-between items-center mb-4 px-2">
+                <h2 class="text-2xl font-bold text-gray-900" id="titulo-reproductor">Actividad Interactiva</h2>
+                <div class="text-base bg-blue-50 text-blue-800 border border-blue-200 px-5 py-2.5 rounded-full font-bold">
                     Progreso: <span id="progreso-text">0%</span>
                 </div>
             </div>
             
-            <div class="relative w-full flex-grow bg-black rounded-lg overflow-hidden shadow-inner flex items-center justify-center" style="min-height: 400px;">
+            <div class="relative w-full flex-grow bg-black rounded-lg overflow-hidden shadow-inner flex items-center justify-center" style="min-height: 450px;">
                 <div id="youtube-player" class="w-full h-full absolute inset-0"></div>
                 
                 <div id="question-overlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-8 z-50 text-white">
-                    <div class="bg-gray-900 border border-gray-700 p-8 rounded-2xl max-w-2xl w-full text-center shadow-2xl">
-                        <span class="text-blue-400 font-bold tracking-widest uppercase text-xs mb-3 block">Pregunta de validación</span>
-                        <h3 id="q-text" class="text-2xl mb-8 font-semibold text-white leading-relaxed">¿Pregunta?</h3>
-                        <div id="q-options" class="grid grid-cols-1 gap-4 mb-4"></div>
+                    <div class="bg-gray-900 border border-gray-700 p-10 rounded-2xl max-w-3xl w-full text-center shadow-2xl">
+                        <span class="text-blue-400 font-bold tracking-widest uppercase text-sm mb-4 block">Pregunta de validación</span>
+                        <h3 id="q-text" class="text-3xl mb-10 font-bold text-white leading-relaxed">¿Pregunta?</h3>
+                        <div id="q-options" class="grid grid-cols-1 gap-5 mb-4"></div>
                     </div>
                 </div>
             </div>
-            <div class="mt-5 flex justify-center">
-                <button onclick="volverDashboardEstudiante()" class="text-gray-600 hover:text-blue-600 text-sm font-bold transition-colors border border-gray-200 px-6 py-3 rounded-lg bg-white shadow-sm">
+            <div class="mt-6 flex justify-center">
+                <button onclick="volverDashboardEstudiante()" class="text-gray-700 hover:text-blue-600 text-base font-bold transition-colors border border-gray-300 px-8 py-3.5 rounded-lg bg-gray-50 hover:bg-blue-50 shadow-sm">
                     ⏸ Pausar y regresar a mi Dashboard
                 </button>
             </div>
@@ -260,20 +259,15 @@
         let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0 };
         let estudianteIdActual = "", nombreEstudianteActual = "";
         
-        // Base de Actividades Local (Persistencia inmediata)
         let baseActividades = JSON.parse(localStorage.getItem('cafelab_actividades')) || [
             {
-                id: "ACT_179027007", grados: ["6-1"], titulo: "Análisis Pitch de negocios", videoId: "M7lc1UVf-VE",
+                id: "ACT_179027007", grados: ["6-1", "11"], titulo: "Análisis Pitch de negocios", videoId: "M7lc1UVf-VE",
                 fecha: "24/9/2026", estado: "Activa",
-                preguntas: [{ tiempo: 10, texto: "¿Pregunta de prueba?", opciones: ["A", "B"], correcta: 1, respondida: false }]
-            },
-            {
-                id: "ACT_179027008", grados: ["7"], titulo: "Ecosistemas Digitales y Ventas", videoId: "M7lc1UVf-VE",
-                fecha: "22/9/2026", estado: "Activa",
-                preguntas: [{ tiempo: 10, texto: "¿Pregunta de prueba?", opciones: ["A", "B"], correcta: 1, respondida: false }]
+                preguntas: [{ tiempo: 10, texto: "¿Pregunta de prueba?", opciones: ["Opción A", "Opción B"], correcta: 1, respondida: false }]
             }
         ];
 
+        // Se expone al contexto global para evitar errores ReferenceError al hacer clic en el HTML
         window.cerrarSesion = function() {
             sessionStorage.clear();
             document.getElementById('form-estudiante').reset();
@@ -289,15 +283,6 @@
             if (player && typeof player.stopVideo === 'function') player.stopVideo();
         };
 
-        window.volverDashboardEstudiante = function() {
-            if (player && typeof player.pauseVideo === 'function') { player.pauseVideo(); verificarTiempo(); }
-            document.getElementById('vista-reproductor').classList.add('hidden');
-            document.getElementById('vista-reproductor').classList.remove('flex');
-            document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden');
-            document.getElementById('vista-bienvenida-estudiante').classList.add('flex');
-            construirDashboardEstudiante(document.getElementById('grado').value);
-        };
-
         function extraerIdYouTubeFront(url) {
             const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
             return match ? match[1] : "M7lc1UVf-VE";
@@ -305,6 +290,19 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             
+            // Función mejorada y ubicada dentro del DOMContentLoaded para tener acceso a `verificarTiempo`
+            window.volverDashboardEstudiante = function() {
+                if (player && typeof player.pauseVideo === 'function') { 
+                    player.pauseVideo(); 
+                    verificarTiempo(); 
+                }
+                document.getElementById('vista-reproductor').classList.add('hidden');
+                document.getElementById('vista-reproductor').classList.remove('flex');
+                document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden');
+                document.getElementById('vista-bienvenida-estudiante').classList.add('flex');
+                construirDashboardEstudiante(document.getElementById('grado').value);
+            };
+
             // Login Handlers
             document.getElementById('btn-show-estudiante').addEventListener('click', () => {
                 document.getElementById('form-estudiante').classList.remove('hidden');
@@ -342,7 +340,7 @@
                 document.getElementById('nav-dashboard').classList.replace('bg-blue-600', 'bg-transparent');
             });
 
-            // --- LÓGICA DE RENDERIZADO DEL DASHBOARD DOCENTE ---
+            // Lógica de Renderizado Docente (Tamaños Mejorados)
             function renderDashboardDocente() {
                 const totalAct = baseActividades.length;
                 const activas = baseActividades.filter(a => a.estado === 'Activa').length;
@@ -350,29 +348,24 @@
                 document.getElementById('kpi-total-actividades').innerText = totalAct;
                 document.getElementById('kpi-activas-plataforma').innerText = `${activas} activas en plataforma`;
                 
-                // Sidebar Groups
                 const listaGrupos = document.getElementById('lista-grupos-docente');
                 listaGrupos.innerHTML = '';
                 LISTA_GRADOS.forEach(grado => {
                     const actAsignadas = baseActividades.filter(a => a.grados.includes(grado) || a.grados.includes('Todos')).length;
                     listaGrupos.innerHTML += `
-                        <li class="px-4 py-2 hover:bg-white/5 cursor-pointer flex justify-between items-center rounded-lg transition-colors group">
-                            <span class="group-hover:text-white transition-colors">Grado ${grado}</span>
-                            <span class="bg-gray-700/50 text-gray-400 text-[10px] font-bold px-2 py-0.5 rounded">${actAsignadas}</span>
+                        <li class="px-4 py-3 hover:bg-white/10 cursor-pointer flex justify-between items-center rounded-lg transition-colors group mb-1">
+                            <span class="group-hover:text-white transition-colors text-base">Grado ${grado}</span>
+                            <span class="bg-blue-900 text-blue-300 text-xs font-bold px-3 py-1 rounded-full border border-blue-800 shadow-sm">${actAsignadas}</span>
                         </li>
                     `;
                 });
 
-                // Avance por Grados (Middle Section)
                 const gridGrados = document.getElementById('grid-grados-progreso');
                 gridGrados.innerHTML = '';
-                
                 let sumPromedios = 0, gradosActivos = 0;
 
                 LISTA_GRADOS.forEach(grado => {
                     const asig = baseActividades.filter(a => a.grados.includes(grado) || a.grados.includes('Todos')).length;
-                    
-                    // Calcular nota promedio del grado simulada (leyendo localStorage)
                     let totalNotasGrado = 0, countNotasGrado = 0;
                     for (let i = 0; i < localStorage.length; i++) {
                         const key = localStorage.key(i);
@@ -383,77 +376,76 @@
                     }
                     
                     const promedioStr = countNotasGrado > 0 ? (totalNotasGrado/countNotasGrado).toFixed(1) : 'S/N';
-                    const badgeClass = promedioStr !== 'S/N' && parseFloat(promedioStr) >= 3.0 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
-                    const porcentaje = asig > 0 ? (countNotasGrado > 0 ? Math.min(Math.round((countNotasGrado/(asig*5))*100), 100) : 0) : 0; // Simulacion de %
+                    const badgeClass = promedioStr !== 'S/N' && parseFloat(promedioStr) >= 3.0 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                    const porcentaje = asig > 0 ? (countNotasGrado > 0 ? Math.min(Math.round((countNotasGrado/(asig*3))*100), 100) : 0) : 0; 
 
                     if(promedioStr !== 'S/N') { sumPromedios += parseFloat(promedioStr); gradosActivos++; }
 
                     gridGrados.innerHTML += `
                         <div class="flex flex-col">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="font-bold text-gray-900 text-sm">Grado ${grado}</span>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">Nota: ${promedioStr}</span>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-bold text-gray-900 text-base">Grado ${grado}</span>
+                                <span class="px-3 py-1 rounded-lg text-xs font-bold border shadow-sm ${badgeClass}">Nota: ${promedioStr}</span>
                             </div>
-                            <div class="w-full bg-gray-100 rounded-full h-1.5 mb-2 overflow-hidden">
-                                <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-500" style="width: ${porcentaje}%"></div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mb-2 overflow-hidden shadow-inner">
+                                <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${porcentaje}%"></div>
                             </div>
-                            <div class="flex justify-between text-[11px] font-medium text-gray-400">
-                                <span>${asig} act. asignada(s)</span>
-                                <span>${porcentaje}% completado</span>
+                            <div class="flex justify-between text-xs font-medium text-gray-500 mt-1">
+                                <span>${asig} asignadas</span>
+                                <span class="font-bold">${porcentaje}%</span>
                             </div>
                         </div>
                     `;
                 });
 
-                const promGlobal = gradosActivos > 0 ? Math.round((sumPromedios/gradosActivos)*20) : 0; // Convert 5.0 to 100%
+                const promGlobal = gradosActivos > 0 ? Math.round((sumPromedios/gradosActivos)*20) : 0; 
                 document.getElementById('kpi-cumplimiento').innerText = `${promGlobal}%`;
 
-                // Tabla Inferior
                 const tabla = document.getElementById('tabla-actividades-creadas');
                 tabla.innerHTML = '';
                 [...baseActividades].reverse().forEach(act => {
-                    const badgeEst = act.estado === 'Activa' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500';
+                    const badgeEst = act.estado === 'Activa' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200';
                     tabla.innerHTML += `
-                        <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 font-semibold text-blue-600 text-xs">${act.id}</td>
-                            <td class="px-6 py-4 font-bold text-gray-700">${act.grados.join(', ')}</td>
-                            <td class="px-6 py-4 font-medium text-gray-800">${act.titulo}</td>
-                            <td class="px-6 py-4 text-gray-500 text-xs">${act.fecha}</td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-[10px] font-bold ${badgeEst}">${act.estado}</span>
+                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-5 font-semibold text-blue-600 text-sm">${act.id}</td>
+                            <td class="px-6 py-5 font-bold text-gray-800 text-sm">${act.grados.join(', ')}</td>
+                            <td class="px-6 py-5 font-medium text-gray-900 text-sm">${act.titulo}</td>
+                            <td class="px-6 py-5 text-gray-500 text-sm">${act.fecha}</td>
+                            <td class="px-6 py-5 text-center">
+                                <span class="px-4 py-1.5 rounded-full text-xs font-bold border ${badgeEst}">${act.estado}</span>
                             </td>
-                            <td class="px-6 py-4 text-right">
-                                <button class="text-blue-600 text-xs font-bold hover:underline">Ver Reporte ➔</button>
+                            <td class="px-6 py-5 text-right">
+                                <button class="text-blue-600 text-sm font-bold hover:text-blue-800 hover:underline px-4 py-2 border border-blue-200 rounded-lg bg-blue-50 transition-colors shadow-sm">Ver Reporte</button>
                             </td>
                         </tr>
                     `;
                 });
             }
 
-            // Preguntas Dinamicas
+            // Preguntas Dinámicas
             document.getElementById('btn-add-pregunta').addEventListener('click', () => {
                 const nuevaPregunta = document.createElement('div');
-                nuevaPregunta.className = "p-5 border border-gray-200 rounded-xl bg-gray-50 relative mt-4";
+                nuevaPregunta.className = "p-6 border border-gray-200 rounded-xl bg-gray-50 relative mt-4 shadow-sm";
                 nuevaPregunta.innerHTML = `
-                    <button type="button" class="absolute top-3 right-3 text-red-500 font-bold hover:text-red-700 px-2 rounded" onclick="this.parentElement.remove()">✕</button>
-                    <div class="grid grid-cols-4 gap-4 mb-3 mt-1">
+                    <button type="button" class="absolute top-4 right-4 text-red-500 font-bold hover:text-red-700 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-lg transition-colors text-sm" onclick="this.parentElement.remove()">✕ Quitar</button>
+                    <div class="grid grid-cols-4 gap-6 mb-4 mt-2">
                         <div class="col-span-1">
-                            <label class="block text-xs font-bold text-gray-500 mb-1">Tiempo (Seg)</label>
-                            <input type="number" class="w-full p-2.5 border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500" required>
+                            <label class="block text-sm font-bold text-gray-600 mb-2">Tiempo (Seg)</label>
+                            <input type="number" class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-base" required>
                         </div>
                         <div class="col-span-3">
-                            <label class="block text-xs font-bold text-gray-500 mb-1">Pregunta</label>
-                            <input type="text" class="w-full p-2.5 border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500" required>
+                            <label class="block text-sm font-bold text-gray-600 mb-2">Formule la Pregunta</label>
+                            <input type="text" class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-base" required>
                         </div>
                     </div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1">Opciones (Separadas por comas)</label>
-                    <input type="text" class="w-full p-2.5 border border-gray-200 rounded-lg mb-3 outline-none focus:ring-1 focus:ring-blue-500" required>
-                    <label class="block text-xs font-bold text-gray-500 mb-1">Índice Correcto (1, 2...)</label>
-                    <input type="number" class="w-32 p-2.5 border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500" required>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">Opciones (Separadas por comas)</label>
+                    <input type="text" placeholder="Ej: Falso, Verdadero" class="w-full p-3 border border-gray-300 rounded-lg mb-4 outline-none focus:ring-2 focus:ring-blue-500 text-base" required>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">Índice Correcto (1, 2...)</label>
+                    <input type="number" class="w-32 p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-base" required>
                 `;
                 document.getElementById('contenedor-preguntas').appendChild(nuevaPregunta);
             });
-            document.getElementById('btn-add-pregunta').click(); // Auto-añadir la primera
+            document.getElementById('btn-add-pregunta').click(); 
 
             // Guardar Actividad
             document.getElementById('form-crear-actividad').addEventListener('submit', async (e) => {
@@ -481,7 +473,6 @@
                     });
                 }
 
-                // Guardado Inmediato Local
                 const dateObj = new Date();
                 baseActividades.push({
                     id: "ACT_" + dateObj.getTime().toString().slice(-9),
@@ -498,16 +489,18 @@
                 });
                 localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
                 
+                renderDashboardDocente(); // Se corrige el nombre de la función que paralizaba el botón
+                
                 try {
                     await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload: formData }) });
-                } catch (error) { console.log("Guardado en sheets pendiente por CORS/Red, guardado local exitoso."); }
+                } catch (error) { console.log("Guardado local exitoso."); }
                 
                 e.target.reset(); 
                 document.getElementById('contenedor-preguntas').innerHTML = ''; 
                 document.getElementById('btn-add-pregunta').click();
                 btnSubmit.innerText = btnOriginalText;
                 btnSubmit.disabled = false;
-                document.getElementById('nav-dashboard').click(); // Vuelve al dashboard actualizado
+                document.getElementById('nav-dashboard').click(); 
             });
 
             // Login Estudiante
@@ -528,6 +521,8 @@
                     
                     if(result.success) {
                         estudianteIdActual = `${grado}-${codigo}`;
+                        nombreEstudianteActual = result.nombre;
+                        
                         document.getElementById('login-panel').classList.add('hidden');
                         document.getElementById('login-panel').classList.remove('flex');
                         document.getElementById('panel-estudiante').classList.remove('hidden');
@@ -555,28 +550,28 @@
                         if (notaGuardada) {
                             rCount++;
                             listaRealizadas.innerHTML += `
-                                <div class="p-4 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-100">
-                                    <div><h4 class="font-bold text-gray-800">${act.titulo}</h4><p class="text-xs text-green-600 font-bold mt-1">Completada</p></div>
-                                    <div class="bg-white px-4 py-2 rounded-lg border border-gray-200 text-gray-900 font-black shadow-sm">${notaGuardada}</div>
+                                <div class="p-5 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-200 shadow-sm">
+                                    <div><h4 class="font-bold text-gray-900 text-lg">${act.titulo}</h4><p class="text-sm text-green-700 font-bold mt-1">Completada</p></div>
+                                    <div class="bg-white px-5 py-3 rounded-lg border border-gray-300 text-gray-900 font-black text-lg shadow-sm">${notaGuardada}</div>
                                 </div>
                             `;
                         } else {
                             pCount++;
                             listaPendientes.innerHTML += `
-                                <div class="p-5 bg-white rounded-xl border border-blue-100 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm relative overflow-hidden">
-                                    <div class="absolute left-0 top-0 w-1 h-full bg-blue-500"></div>
-                                    <div class="w-full">
-                                        <h4 class="font-bold text-gray-900">${act.titulo}</h4>
-                                        <p class="text-xs text-gray-500 font-medium mt-1">Video Asignado</p>
+                                <div class="p-6 bg-white rounded-xl border border-blue-200 flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden">
+                                    <div class="absolute left-0 top-0 w-1.5 h-full bg-blue-600"></div>
+                                    <div class="w-full pl-2">
+                                        <h4 class="font-bold text-gray-900 text-lg">${act.titulo}</h4>
+                                        <p class="text-sm text-gray-600 font-medium mt-1">Video Asignado</p>
                                     </div>
-                                    <button onclick='iniciarNuevaActividad(${JSON.stringify(act)})' class="w-full sm:w-auto shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow-md font-bold transition-colors">▶ Iniciar</button>
+                                    <button onclick='iniciarNuevaActividad(${JSON.stringify(act)})' class="w-full sm:w-auto shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-md font-bold transition-colors text-base">▶ Iniciar</button>
                                 </div>
                             `;
                         }
                     }
                 });
-                if(pCount === 0) listaPendientes.innerHTML = `<div class="p-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300"><span class="text-2xl">🎉</span><p class="text-gray-500 font-semibold mt-2">¡Sin pendientes!</p></div>`;
-                if(rCount === 0) listaRealizadas.innerHTML = `<p class="text-gray-400 text-sm font-medium p-4 text-center">Aún no hay calificaciones.</p>`;
+                if(pCount === 0) listaPendientes.innerHTML = `<div class="p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300"><span class="text-3xl">🎉</span><p class="text-gray-600 font-bold mt-3 text-lg">¡Sin pendientes!</p></div>`;
+                if(rCount === 0) listaRealizadas.innerHTML = `<p class="text-gray-500 text-base font-medium p-6 text-center border border-dashed border-gray-300 rounded-xl">Aún no hay calificaciones.</p>`;
             }
 
             // Reproductor Estudiante
@@ -620,7 +615,7 @@
                         const contOpciones = document.getElementById('q-options'); contOpciones.innerHTML = '';
                         pregunta.opciones.forEach((opcion, i) => {
                             const btn = document.createElement('button');
-                            btn.className = "w-full bg-blue-600/90 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded-xl transition-colors text-left text-lg border border-blue-400";
+                            btn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 px-8 rounded-xl transition-colors text-left text-xl border border-blue-400 shadow-md";
                             btn.innerText = opcion;
                             btn.onclick = () => {
                                 document.getElementById('question-overlay').classList.add('hidden');
