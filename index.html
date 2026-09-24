@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I.E. San Juan Bosco - Plataforma Interactiva</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-emerald-500 selection:text-white">
+
+  <!-- BARRA DE NAVEGACIÓN RESPONSIVE -->
+  <nav class="border-b border-slate-800 bg-slate-900/90 backdrop-blur px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-40">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-emerald-500 flex items-center justify-center font-black text-xl shadow-lg shadow-emerald-950/40">
+        ☕
+      </div>
+      <div>
+        <h1 class="font-bold text-xs sm:text-sm tracking-wide text-white">I.E. SAN JUAN BOSCO</h1>
+        <p class="text-[10px] sm:text-[11px] text-emerald-400 font-medium">Tecnología y café • Emprendimiento</p>
+      </div>
+    </div>
+    <div id="userInfoBar" class="flex items-center gap-2 sm:gap-3"></div>
+  </nav>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6">
+
+    <!-- 1. VISTA DE INGRESO (LOGIN) -->
+    <div id="viewLogin" class="max-w-md mx-auto mt-4 sm:mt-8 bg-slate-900/95 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-5">
+      <div class="text-center">
+        <h2 class="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
+          Aula Virtual Interactiva
+        </h2>
+        <p class="text-xs text-slate-400 mt-1">Selecciona tu perfil de ingreso</p>
+      </div>
+
+      <!-- Conmutador de Roles -->
+      <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-800/90 rounded-xl border border-slate-700/60">
+        <button type="button" id="tabEstudiante" onclick="switchLoginRole('estudiante')" class="py-2 text-xs font-bold rounded-lg transition-all bg-emerald-600 text-white shadow">
+          <i class="fa-solid fa-graduation-cap mr-1"></i> Estudiante
+        </button>
+        <button type="button" id="tabDocente" onclick="switchLoginRole('docente')" class="py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white">
+          <i class="fa-solid fa-chalkboard-user mr-1"></i> Docente
+        </button>
+      </div>
+
+      <!-- FORMULARIO ESTUDIANTE -->
+      <div id="boxLoginEstudiante" class="space-y-4">
+        <form id="formLoginEstudiante" onsubmit="loginEstudiante(event)" class="space-y-4">
+          <!-- 1. Grado -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1">1. Selecciona tu Grado</label>
+            <select id="estGradoSelect" onchange="alCambiarGrado()" class="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+              <option value="">-- Elige un grado --</option>
+              <option value="Sexto 1">Sexto 1</option>
+              <option value="Sexto 2">Sexto 2</option>
+              <option value="Séptimo">Séptimo</option>
+              <option value="Octavo 1">Octavo 1</option>
+              <option value="Octavo 2">Octavo 2</option>
+              <option value="Noveno">Noveno</option>
+              <option value="Décimo">Décimo</option>
+              <option value="Once">Once</option>
+            </select>
+          </div>
+
+          <!-- 2. Código -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1">2. Selecciona tu Código</label>
+            <select id="estCodigoSelect" disabled onchange="alCambiarCodigo()" class="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed">
+              <option value="">-- Primero selecciona el grado --</option>
+            </select>
+            <p id="lblNombreEstudianteDetectado" class="text-xs text-emerald-400 font-semibold mt-1.5 hidden"></p>
+          </div>
+
+          <!-- 3. Contraseña -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1">3. Contraseña</label>
+            <input id="estPass" required type="password" placeholder="Tu código + inicial de tu nombre" class="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            <span class="text-[10px] text-slate-500 mt-1 block">Ejemplo: Si tu código es 101 y te llamas Carlos, tu clave es 101C</span>
+          </div>
+
+          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 font-bold text-xs sm:text-sm rounded-xl transition shadow-lg shadow-emerald-900/40">
+            Ingresar al Aula
+          </button>
+
+          <div class="text-center pt-1">
+            <a href="#" onclick="abrirModalCambioPass(event)" class="text-[10px] text-slate-500 hover:text-slate-300 transition underline tracking-tight">
+              ¿Deseas cambiar tu contraseña?
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- FORMULARIO DOCENTE -->
+      <div id="boxLoginDocente" class="space-y-4 hidden">
+        <form id="formLoginDocente" onsubmit="loginDocente(event)" class="space-y-4">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1">Contraseña Maestra del Docente</label>
+            <input id="docentePass" autocomplete="off" required type="password" placeholder="Ingresa AdminDocente" class="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+          </div>
+          <button type="submit" class="w-full py-3 bg-cyan-600 hover:bg-cyan-500 font-bold text-xs sm:text-sm rounded-xl transition shadow-lg shadow-cyan-900/40">
+            Acceder al Panel Docente
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL CAMBIO DE CONTRASEÑA -->
+    <div id="modalCambiarPass" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl max-w-xs w-full space-y-3 text-xs shadow-2xl">
+        <h3 class="font-bold text-white text-sm">Cambio de Contraseña</h3>
+        <p class="text-slate-400 text-[11px]">Define una contraseña personalizada para tu cuenta.</p>
+        <div>
+          <label class="block text-slate-400 mb-1">Código Estudiante</label>
+          <input id="modalCodEst" type="text" placeholder="Ej. 101" class="w-full px-2.5 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Contraseña Actual</label>
+          <input id="modalOldPass" type="password" placeholder="Clave actual" class="w-full px-2.5 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Nueva Contraseña</label>
+          <input id="modalNewPass" type="password" placeholder="Nueva clave" class="w-full px-2.5 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="cerrarModalCambioPass()" class="w-1/2 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-semibold">Cancelar</button>
+          <button type="button" onclick="confirmarCambioPass()" class="w-1/2 py-2 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-lg shadow">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. VISTA ESTUDIANTE -->
+    <div id="viewEstudiante" class="hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-white" id="lblEstudianteNombre">Estudiante</h2>
+          <p class="text-xs text-emerald-400 font-medium" id="lblEstudianteGrado">Grado</p>
+        </div>
+        <div class="flex gap-3 w-full sm:w-auto">
+          <div class="flex-1 sm:flex-initial bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 text-center">
+            <span class="block text-[10px] text-slate-400 uppercase">Promedio</span>
+            <span id="lblPromedioEstudiante" class="text-lg font-black text-emerald-400">--</span>
+          </div>
+          <div class="flex-1 sm:flex-initial bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 text-center">
+            <span class="block text-[10px] text-slate-400 uppercase">Completadas</span>
+            <span id="lblCompletadasEstudiante" class="text-lg font-black text-cyan-400">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Actividades Asignadas</h3>
+        <div id="listaActividadesEstudiante" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+    </div>
+
+    <!-- 3. VISTA REPRODUCTOR Y ACTIVIDAD -->
+    <div id="viewPlayer" class="hidden max-w-4xl mx-auto space-y-4">
+      <div class="flex items-center justify-between">
+        <button onclick="volverAEstudiante()" class="text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+        </button>
+        <span id="badgeIntentos" class="text-xs px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-full font-bold">
+          Intento #1
+        </span>
+      </div>
+
+      <!-- Barra de Progreso y Puntaje -->
+      <div class="bg-slate-900 p-4 rounded-xl flex items-center justify-between border border-slate-800">
+        <div class="flex-1 mr-4 sm:mr-6">
+          <div class="flex justify-between text-xs text-slate-400 mb-1">
+            <span id="lblProgresoPlayer">Avance: 0 / 0</span>
+            <span id="lblPorcentajePlayer">0%</span>
+          </div>
+          <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+            <div id="barProgresoPlayer" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="block text-[10px] text-slate-400 uppercase">Aciertos</span>
+          <span id="lblScorePlayer" class="text-xl font-black text-emerald-400">0</span>
+        </div>
+      </div>
+
+      <!-- IFrame Container Responsivo con Aspect-Video -->
+      <div class="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-slate-800">
+        <div id="ytIframePlayer" class="w-full h-full"></div>
+
+        <!-- Modal de Pregunta -->
+        <div id="modalPregunta" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-20">
+          <div class="bg-slate-900 border border-slate-700 p-5 sm:p-6 rounded-2xl max-w-lg w-full shadow-2xl space-y-4">
+            <div class="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              Pregunta de Control
+            </div>
+            <h3 id="txtPreguntaModal" class="text-sm sm:text-base font-bold text-white"></h3>
+            <div id="optsModal" class="space-y-2 pt-1"></div>
+          </div>
+        </div>
+
+        <!-- Modal de Reanudación de Sesión -->
+        <div id="modalReanudar" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 z-30">
+          <div class="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-md w-full text-center space-y-4 shadow-2xl">
+            <div class="text-4xl">⏱️</div>
+            <h3 class="text-base sm:text-lg font-bold text-white">Actividad en Pausa Detectada</h3>
+            <p class="text-xs text-slate-400">Tenías un avance guardado. ¿Deseas reanudarlo o comenzar desde el inicio?</p>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+              <button onclick="responderReanudacion(false)" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl border border-slate-700">Reiniciar</button>
+              <button onclick="responderReanudacion(true)" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-bold rounded-xl shadow-lg">Reanudar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pantalla Final de Calificación -->
+        <div id="modalFinActividad" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-lg flex flex-col items-center justify-center p-6 z-30 text-center">
+          <div class="text-5xl mb-2">🎉</div>
+          <h2 class="text-xl sm:text-2xl font-black text-white">¡Actividad Finalizada!</h2>
+          <p class="text-xs text-slate-400 mt-1">Tu resultado ha sido registrado correctamente</p>
+          <div class="my-5 p-5 sm:p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl w-60 sm:w-64">
+            <span class="text-xs text-slate-400 uppercase font-semibold">Nota Obtenida</span>
+            <div id="lblNotaFinal" class="text-4xl sm:text-5xl font-black text-emerald-400 my-2">5.00</div>
+            <span id="lblResumenAciertos" class="text-xs text-slate-400 block">0 de 0 correctas</span>
+          </div>
+          <button onclick="volverAEstudiante()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-bold rounded-xl shadow-lg">
+            Finalizar y Regresar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. VISTA DOCENTE -->
+    <div id="viewDocente" class="hidden flex flex-col md:flex-row gap-6">
+      <!-- Barra lateral de navegación y grupos -->
+      <aside class="w-full md:w-64 bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4 self-start">
+        <div>
+          <h3 class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Opciones</h3>
+          <div class="mt-2 space-y-1">
+            <button onclick="setDocenteTab('dashboard')" id="btnTabDash" class="w-full text-left px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie"></i> Dashboard General
+            </button>
+            <button onclick="setDocenteTab('nuevaActividad')" id="btnTabNueva" class="w-full text-left px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-circle-plus"></i> Añadir Actividad
+            </button>
+          </div>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <div>
+          <h3 class="text-[11px] font-bold uppercase text-slate-400 tracking-wider">Filtrar Grupo</h3>
+          <div id="listaGruposSidebar" class="mt-2 space-y-1"></div>
+        </div>
+      </aside>
+
+      <!-- Contenido Principal Docente -->
+      <section class="flex-1 space-y-6">
+        <!-- Dashboard -->
+        <div id="docSubDashboard" class="space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+            <div>
+              <h2 id="lblTituloDashboard" class="text-base sm:text-lg font-bold text-white">Dashboard: Todos los Grupos</h2>
+              <p class="text-xs text-slate-400">Monitoreo de avance y rendimiento académico</p>
+            </div>
+            <div class="flex gap-2 w-full sm:w-auto">
+              <button onclick="window.print()" class="flex-1 sm:flex-initial px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg border border-slate-700 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-print"></i> Reporte
+              </button>
+              <button onclick="sincronizarConAppsScript()" class="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-xs font-bold rounded-lg flex items-center justify-center gap-2">
+                <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+              </button>
+            </div>
+          </div>
+
+          <!-- Métricas -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+              <span class="text-xs text-slate-400 uppercase font-semibold">Total Entregas</span>
+              <p id="metricaEntregas" class="text-2xl font-black text-white mt-1">0</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+              <span class="text-xs text-slate-400 uppercase font-semibold">Promedio de Notas</span>
+              <p id="metricaPromedio" class="text-2xl font-black text-emerald-400 mt-1">0.0</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+              <span class="text-xs text-slate-400 uppercase font-semibold">Actividades Creadas</span>
+              <p id="metricaActividades" class="text-2xl font-black text-cyan-400 mt-1">0</p>
+            </div>
+          </div>
+
+          <!-- Historial de Calificaciones -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between gap-3">
+              <h3 class="text-xs font-bold text-white uppercase tracking-wider">Historial de Calificaciones</h3>
+              <input id="txtBuscarEstudiante" oninput="filtrarTablaDocente()" type="text" placeholder="Buscar estudiante..." class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs focus:border-emerald-500 focus:outline-none w-full sm:w-64">
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-800 text-slate-400 uppercase font-bold text-[10px]">
+                  <tr>
+                    <th class="p-3">Fecha</th>
+                    <th class="p-3">Estudiante</th>
+                    <th class="p-3">Grado</th>
+                    <th class="p-3">Actividad</th>
+                    <th class="p-3 text-center">Intentos</th>
+                    <th class="p-3 text-center">Aciertos</th>
+                    <th class="p-3 text-right">Nota (1-5)</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaResultadosBody" class="divide-y divide-slate-800"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Creador de Actividades -->
+        <div id="docSubNuevaActividad" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-6">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white">Diseñar Nueva Actividad Interactiva</h2>
+            <p class="text-xs text-slate-400">Configura preguntas cronometradas sobre el video</p>
+          </div>
+
+          <form id="formCrearActividad" onsubmit="guardarNuevaActividad(event)" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Grado Destino</label>
+                <select id="actGrado" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs focus:border-emerald-500 focus:outline-none">
+                  <option>Sexto 1</option><option>Sexto 2</option><option>Séptimo</option>
+                  <option>Octavo 1</option><option>Octavo 2</option><option>Noveno</option>
+                  <option>Décimo</option><option>Once</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Título de la Clase</label>
+                <input id="actTitulo" required type="text" placeholder="Ej. Proceso de Fermentación y pH" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs focus:border-emerald-500 focus:outline-none">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Objetivo de Aprendizaje</label>
+              <input id="actObjetivo" required type="text" placeholder="Ej. Reconocer variables críticas en cafés diferenciados" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs focus:border-emerald-500 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Descripción</label>
+              <textarea id="actDescripcion" rows="2" placeholder="Indicaciones para los estudiantes..." class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs focus:border-emerald-500 focus:outline-none"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Enlace de YouTube</label>
+              <input id="actVideoUrl" required type="text" placeholder="https://www.youtube.com/watch?v=..." class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs focus:border-emerald-500 focus:outline-none">
+            </div>
+
+            <hr class="border-slate-800 my-4">
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Preguntas Cronometradas</h3>
+                <button type="button" onclick="agregarFilaPregunta()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold rounded-lg border border-slate-700">
+                  + Agregar Pregunta
+                </button>
+              </div>
+              <div id="contenedorPreguntasConfig" class="space-y-3"></div>
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 font-bold text-xs rounded-lg transition shadow-lg shadow-emerald-900/30">
+              Guardar y Publicar Actividad
+            </button>
+          </form>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <!-- PIE DE PÁGINA OBLIGATORIO -->
+  <footer class="border-t border-slate-800 bg-slate-900/90 py-4 sm:py-5 px-4 sm:px-6 mt-8 text-center text-xs text-slate-400 space-y-1">
+    <p class="font-bold text-slate-200">Docente: Alejandro Martínez Caicedo</p>
+    <p>Asignaturas: <span class="text-emerald-400 font-medium">Emprendimiento</span> • <span class="text-amber-400 font-medium">Tecnología y café</span></p>
+    <p class="text-[11px] text-slate-500">I.E. San Juan Bosco</p>
+  </footer>
+
+  <!-- LÓGICA JAVASCRIPT CORREGIDA -->
+  <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyU4WvIqf8qyvEhp1VEdSn6BjPimY4HTPR4u3OyuI8M1EVRAwtO9We1Q8k8hPdPvtm8nA/exec"[cite: 1];
+
+    const GRUPOS = ["Todos", "Sexto 1", "Sexto 2", "Séptimo", "Octavo 1", "Octavo 2", "Noveno", "Décimo", "Once"];
+
+    // Base de datos inicial con estudiantes semilla por si la conexión inicial a Google Sheets está cargando
+    const ESTUDIANTES_SEMILLA = [
+      { codigo: "601", nombre: "Carlos Morales", grado: "Sexto 1" },
+      { codigo: "602", nombre: "Daniela Ruiz", grado: "Sexto 1" },
+      { codigo: "603", nombre: "Andrés Gómez", grado: "Sexto 2" },
+      { codigo: "701", nombre: "Camila Torres", grado: "Séptimo" },
+      { codigo: "801", nombre: "Felipe Restrepo", grado: "Octavo 1" },
+      { codigo: "802", nombre: "Mariana Silva", grado: "Octavo 2" },
+      { codigo: "901", nombre: "Santiago Cruz", grado: "Noveno" },
+      { codigo: "1001", nombre: "Laura Zapata", grado: "Décimo" },
+      { codigo: "1101", nombre: "Valentina Ortiz", grado: "Once" }
+    ];
+
+    let dbEstudiantes = JSON.parse(localStorage.getItem('db_estudiantes')) || ESTUDIANTES_SEMILLA;
+    let contrasenasPersonalizadas = JSON.parse(localStorage.getItem('db_passwords_custom')) || {};
+
+    let dbActividades = JSON.parse(localStorage.getItem('db_actividades')) || [
+      {
+        id: "act-demo-1",
+        grado: "Noveno",
+        titulo: "Proceso de Tueste y Catación",
+        objetivo: "Reconocer las fases de secado y primer crack en el grano",
+        descripcion: "Observa detalladamente los cambios de color y aroma del grano.",
+        videoId: "dQw4w9WgXcQ",
+        preguntas: [
+          { time: 5, question: "¿Qué ocurre durante la fase endotérmica inicial?", options: ["Pérdida de humedad", "Segundo crack", "Caramelización extrema"], correctIndex: 0 }
+        ]
+      }
+    ];
+
+    let dbRegistros = JSON.parse(localStorage.getItem('db_registros')) || [];
+
+    let usuarioActual = null;
+    let grupoSeleccionadoDocente = "Todos";
+    let ytPlayer = null;
+    let timerLoop = null;
+    let actividadEnCurso = null;
+    let preguntasEjecutadas = new Set();
+    let aciertosActuales = 0;
+    let respondidasTotales = 0;
+    let numeroIntento = 1;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      cargarScriptYouTube();
+      renderizarSidebarGrupos();
+      sincronizarConAppsScript();
+    });
+
+    function cargarScriptYouTube() {
+      if (!window.YT) {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api"[cite: 1];
+        document.head.appendChild(tag);
+      }
+    }
+
+    function extraerVideoId(url) {
+      if (!url) return null;
+      const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/);
+      return match ? match[1] : (url.length === 11 ? url : null);
+    }
+
+    // INTERCAMBIAR ROLES
+    function switchLoginRole(rol) {
+      const tabEst = document.getElementById('tabEstudiante');
+      const tabDoc = document.getElementById('tabDocente');
+      const boxEst = document.getElementById('boxLoginEstudiante');
+      const boxDoc = document.getElementById('boxLoginDocente');
+
+      if (rol === 'estudiante') {
+        tabEst.className = "py-2 text-xs font-bold rounded-lg transition-all bg-emerald-600 text-white shadow";
+        tabDoc.className = "py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+        boxEst.classList.remove('hidden');
+        boxDoc.classList.add('hidden');
+      } else {
+        tabDoc.className = "py-2 text-xs font-bold rounded-lg transition-all bg-cyan-600 text-white shadow";
+        tabEst.className = "py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+        boxDoc.classList.remove('hidden');
+        boxEst.classList.add('hidden');
+        document.getElementById('docentePass').value = '';
+      }
+    }
+
+    // CASCADA GRADO -> CÓDIGO
+    function normalizarTexto(str) {
+      return (str || "").toLowerCase().replace(/\s+/g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function alCambiarGrado() {
+      const grado = document.getElementById('estGradoSelect').value;
+      const selectCodigo = document.getElementById('estCodigoSelect');
+      const lblNombre = document.getElementById('lblNombreEstudianteDetectado');
+      lblNombre.classList.add('hidden');
+
+      selectCodigo.innerHTML = `<option value="">-- Selecciona tu código --</option>`;
+
+      if (!grado) {
+        selectCodigo.disabled = true;
+        return;
+      }
+
+      const filtrados = dbEstudiantes.filter(e => normalizarTexto(e.grado) === normalizarTexto(grado));
+
+      if (filtrados.length === 0) {
+        selectCodigo.innerHTML = `<option value="">(Sin estudiantes registrados)</option>`;
+        selectCodigo.disabled = true;
+        return;
+      }
+
+      filtrados.sort((a, b) => String(a.codigo).localeCompare(String(b.codigo), undefined, { numeric: true }));
+
+      filtrados.forEach(est => {
+        const opt = document.createElement('option');
+        opt.value = est.codigo;
+        opt.textContent = `${est.codigo} - ${est.nombre}`;
+        selectCodigo.appendChild(opt);
+      });
+
+      selectCodigo.disabled = false;
+    }
+
+    function alCambiarCodigo() {
+      const cod = document.getElementById('estCodigoSelect').value;
+      const lblNombre = document.getElementById('lblNombreEstudianteDetectado');
+      const est = dbEstudiantes.find(e => String(e.codigo).trim() === String(cod).trim());
+      if (est) {
+        lblNombre.textContent = `✓ Estudiante: ${est.nombre}`;
+        lblNombre.classList.remove('hidden');
+      } else {
+        lblNombre.classList.add('hidden');
+      }
+    }
+
+    // ACCESO ESTUDIANTE
+    function loginEstudiante(e) {
+      e.preventDefault();
+      const grado = document.getElementById('estGradoSelect').value;
+      const codigo = document.getElementById('estCodigoSelect').value;
+      const passIngresada = document.getElementById('estPass').value.trim();
+
+      if (!grado || !codigo) {
+        alert("Por favor selecciona tu grado y tu código.");
+        return;
+      }
+
+      const est = dbEstudiantes.find(item => String(item.codigo).trim() === String(codigo).trim());
+      if (!est) {
+        alert("Estudiante no encontrado en la lista.");
+        return;
+      }
+
+      const inicialNombre = est.nombre.trim().charAt(0);
+      const clavePorDefecto = `${est.codigo}${inicialNombre}`.toLowerCase();
+      const clavePersonalizada = (contrasenasPersonalizadas[est.codigo] || "").toLowerCase();
+      const passClean = passIngresada.toLowerCase();
+
+      if (passClean !== clavePorDefecto && passClean !== clavePersonalizada) {
+        alert(`Contraseña incorrecta. Tu clave es tu código seguido de la inicial de tu nombre (ejemplo: ${est.codigo}${inicialNombre.toUpperCase()})`);
+        return;
+      }
+
+      usuarioActual = {
+        rol: "estudiante",
+        nombre: est.nombre,
+        codigo: est.codigo,
+        grado: grado
+      };
+
+      document.getElementById('estPass').value = '';
+      mostrarVista('viewEstudiante');
+      actualizarInterfazEstudiante();
+      actualizarBarraUsuario();
+    }
+
+    // ACCESO DOCENTE
+    function loginDocente(e) {
+      e.preventDefault();
+      const pass = document.getElementById('docentePass').value.trim();
+      
+      if (pass !== "AdminDocente") {
+        alert("Contraseña docente incorrecta.");
+        return;
+      }
+
+      usuarioActual = { rol: "docente", nombre: "Prof. Alejandro Martínez Caicedo" };
+      document.getElementById('docentePass').value = ""; // No recordar
+      mostrarVista('viewDocente');
+      actualizarDashboardDocente();
+      actualizarBarraUsuario();
+    }
+
+    // MODAL DE CAMBIO DE CONTRASEÑA
+    function abrirModalCambioPass(e) {
+      e.preventDefault();
+      document.getElementById('modalCambiarPass').classList.remove('hidden');
+    }
+
+    function cerrarModalCambioPass() {
+      document.getElementById('modalCambiarPass').classList.add('hidden');
+    }
+
+    function confirmarCambioPass() {
+      const cod = document.getElementById('modalCodEst').value.trim();
+      const oldPass = document.getElementById('modalOldPass').value.trim().toLowerCase();
+      const newPass = document.getElementById('modalNewPass').value.trim();
+
+      const est = dbEstudiantes.find(item => String(item.codigo).trim() === String(cod));
+      if (!est) {
+        alert("Código de estudiante no válido.");
+        return;
+      }
+
+      const inicial = est.nombre.trim().charAt(0);
+      const claveDefecto = `${est.codigo}${inicial}`.toLowerCase();
+      const claveActual = (contrasenasPersonalizadas[est.codigo] || claveDefecto).toLowerCase();
+
+      if (oldPass !== claveActual) {
+        alert("La contraseña actual no coincide.");
+        return;
+      }
+
+      if (newPass.length < 3) {
+        alert("La nueva contraseña debe tener al menos 3 caracteres.");
+        return;
+      }
+
+      contrasenasPersonalizadas[est.codigo] = newPass;
+      localStorage.setItem('db_passwords_custom', JSON.stringify(contrasenasPersonalizadas));
+
+      if (APPS_SCRIPT_URL) {
+        fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: "cambiarPassword", codigo: est.codigo, nuevaPassword: newPass })
+        });
+      }
+
+      alert("Contraseña actualizada con éxito.");
+      cerrarModalCambioPass();
+    }
+
+    function logout() {
+      usuarioActual = null;
+      if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+      clearInterval(timerLoop);
+      mostrarVista('viewLogin');
+      actualizarBarraUsuario();
+    }
+
+    function mostrarVista(viewId) {
+      ['viewLogin', 'viewEstudiante', 'viewPlayer', 'viewDocente'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(viewId).classList.remove('hidden');
+    }
+
+    function actualizarBarraUsuario() {
+      const container = document.getElementById('userInfoBar');
+      if (!usuarioActual) {
+        container.innerHTML = "";
+        return;
+      }
+      container.innerHTML = `
+        <div class="text-right text-xs">
+          <span class="block font-bold text-white">${usuarioActual.nombre}</span>
+          <span class="text-slate-400 text-[10px]">${usuarioActual.rol === 'docente' ? 'Docente Titular' : usuarioActual.grado}</span>
+        </div>
+        <button onclick="logout()" title="Cerrar Sesión" class="p-2 text-slate-400 hover:text-rose-400 transition">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      `;
+    }
+
+    // PANEL ESTUDIANTE
+    function actualizarInterfazEstudiante() {
+      document.getElementById('lblEstudianteNombre').textContent = usuarioActual.nombre;
+      document.getElementById('lblEstudianteGrado').textContent = `Grado: ${usuarioActual.grado} | Código: ${usuarioActual.codigo}`;
+
+      const registrosEst = dbRegistros.filter(r => String(r.EstudianteCodigo || r.codigo) === String(usuarioActual.codigo));
+      const completadas = registrosEst.length;
+      let promedio = "--";
+
+      if (completadas > 0) {
+        const suma = registrosEst.reduce((acc, curr) => acc + Number(curr.NotaFinal || curr.notaFinal || 0), 0);
+        promedio = (suma / completadas).toFixed(2);
+      }
+
+      document.getElementById('lblPromedioEstudiante').textContent = promedio;
+      document.getElementById('lblCompletadasEstudiante').textContent = completadas;
+
+      const actividadesGrado = dbActividades.filter(a => normalizarTexto(a.grado) === normalizarTexto(usuarioActual.grado));
+      const listaContainer = document.getElementById('listaActividadesEstudiante');
+      listaContainer.innerHTML = "";
+
+      if (actividadesGrado.length === 0) {
+        listaContainer.innerHTML = `<div class="col-span-full p-6 text-center text-xs text-slate-500 bg-slate-900 border border-slate-800 rounded-xl">No hay actividades publicadas para ${usuarioActual.grado} aún.</div>`;
+        return;
+      }
+
+      actividadesGrado.forEach(act => {
+        const reg = registrosEst.find(r => (r.ActividadID || r.actividadId) === act.id);
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 flex flex-col justify-between hover:border-slate-700 transition";
+        card.innerHTML = `
+          <div>
+            <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/30 uppercase">
+              ${act.grado}
+            </span>
+            <h4 class="text-sm font-bold text-white mt-2">${act.titulo}</h4>
+            <p class="text-xs text-slate-400 mt-1">${act.objetivo}</p>
+          </div>
+          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-xs ${reg ? 'text-emerald-400 font-bold' : 'text-amber-400 font-medium'}">
+              ${reg ? `Nota: ${(reg.NotaFinal \vert{}\vert{} reg.notaFinal)} (Int:${reg.Intentos || reg.intentos})` : 'Pendiente'}
+            </span>
+            <button onclick="iniciarActividad('${act.id}')" class="px-3 py-1.5 bg-slate-800 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition">
+              ${reg ? 'Repetir' : 'Iniciar'}
+            </button>
+          </div>
+        `;
+        listaContainer.appendChild(card);
+      });
+    }
+
+    // REPRODUCTOR Y ACTIVIDAD
+    function iniciarActividad(actividadId) {
+      actividadEnCurso = dbActividades.find(a => a.id === actividadId);
+      if (!actividadEnCurso) return;
+
+      mostrarVista('viewPlayer');
+      document.getElementById('modalFinActividad').classList.add('hidden');
+      document.getElementById('modalPregunta').classList.add('hidden');
+
+      const storageKey = `progreso_${usuarioActual.codigo}_${actividadId}`;
+      const savedState = JSON.parse(localStorage.getItem(storageKey));
+
+      const regPrevio = dbRegistros.filter(r => String(r.EstudianteCodigo || r.codigo) === String(usuarioActual.codigo) && (r.ActividadID || r.actividadId) === actividadId);
+      numeroIntento = regPrevio.length + 1;
+      document.getElementById('badgeIntentos').textContent = `Intento #${numeroIntento}`;
+
+      if (savedState && savedState.currentTime > 2 && savedState.answeredCount < actividadEnCurso.preguntas.length) {
+        document.getElementById('modalReanudar').classList.remove('hidden');
+      } else {
+        comenzarSesionDesde(0, 0, []);
+      }
+    }
+
+    function responderReanudacion(deseaReanudar) {
+      document.getElementById('modalReanudar').classList.add('hidden');
+      const storageKey = `progreso_${usuarioActual.codigo}_${actividadEnCurso.id}`;
+      const savedState = JSON.parse(localStorage.getItem(storageKey));
+
+      if (deseaReanudar && savedState) {
+        comenzarSesionDesde(savedState.currentTime, savedState.score, savedState.executedIndices);
+      } else {
+        localStorage.removeItem(storageKey);
+        comenzarSesionDesde(0, 0, []);
+      }
+    }
+
+    function comenzarSesionDesde(startTime, startScore, executedArr) {
+      aciertosActuales = startScore;
+      preguntasEjecutadas = new Set(executedArr);
+      respondidasTotales = preguntasEjecutadas.size;
+      actualizarProgresoPlayer();
+
+      const vid = extraerVideoId(actividadEnCurso.videoId);
+
+      if (ytPlayer && ytPlayer.loadVideoById) {
+        ytPlayer.loadVideoById({ videoId: vid, startSeconds: startTime });
+      } else {
+        ytPlayer = new YT.Player('ytIframePlayer', {
+          videoId: vid,
+          playerVars: {
+            'playsinline': 1,
+            'controls': 1,
+            'rel': 0,
+            'modestbranding': 1,
+            'enablejsapi': 1,
+            'origin': window.location.origin
+          },
+          events: {
+            'onReady': (e) => {
+              if (startTime > 0) e.target.seekTo(startTime, true);
+              e.target.playVideo();
+            },
+            'onStateChange': onPlayerStateChange
+          }
+        });
+      }
+    }
+
+    function onPlayerStateChange(e) {
+      if (e.data === YT.PlayerState.PLAYING) {
+        iniciarRastreador();
+      } else {
+        clearInterval(timerLoop);
+      }
+    }
+
+    function iniciarRastreador() {
+      clearInterval(timerLoop);
+      timerLoop = setInterval(() => {
+        if (!ytPlayer || !ytPlayer.getCurrentTime) return;
+        const cTime = Math.floor(ytPlayer.getCurrentTime());
+
+        const storageKey = `progreso_${usuarioActual.codigo}_${actividadEnCurso.id}`;
+        localStorage.setItem(storageKey, JSON.stringify({
+          currentTime: cTime,
+          score: aciertosActuales,
+          answeredCount: respondidasTotales,
+          executedIndices: Array.from(preguntasEjecutadas)
+        }));
+
+        actividadEnCurso.preguntas.forEach((p, idx) => {
+          if (cTime >= p.time && !preguntasEjecutadas.has(idx)) {
+            mostrarPreguntaModal(p, idx);
+          }
+        });
+      }, 500);
+    }
+
+    function mostrarPreguntaModal(preguntaObj, index) {
+      clearInterval(timerLoop);
+      ytPlayer.pauseVideo();
+      preguntasEjecutadas.add(index);
+
+      const modal = document.getElementById('modalPregunta');
+      document.getElementById('txtPreguntaModal').textContent = preguntaObj.question;
+      const optsCont = document.getElementById('optsModal');
+      optsCont.innerHTML = "";
+
+      preguntaObj.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs md:text-sm transition";
+        btn.textContent = opt;
+        btn.onclick = () => responderPregunta(idx, preguntaObj.correctIndex);
+        optsCont.appendChild(btn);
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    function responderPregunta(seleccionado, correcto) {
+      const modal = document.getElementById('modalPregunta');
+      modal.classList.add('hidden');
+      respondidasTotales++;
+
+      if (seleccionado === correcto) {
+        aciertosActuales++;
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+      }
+
+      actualizarProgresoPlayer();
+
+      if (respondidasTotales === actividadEnCurso.preguntas.length) {
+        finalizarActividad();
+      } else {
+        ytPlayer.playVideo();
+      }
+    }
+
+    function actualizarProgresoPlayer() {
+      const total = actividadEnCurso ? actividadEnCurso.preguntas.length : 1;
+      const pct = total > 0 ? (respondidasTotales / total) * 100 : 0;
+      document.getElementById('lblProgresoPlayer').textContent = `Avance: ${respondidasTotales} / ${total}`;
+      document.getElementById('lblPorcentajePlayer').textContent = `${Math.round(pct)}%`;
+      document.getElementById('barProgresoPlayer').style.width = `${pct}%`;
+      document.getElementById('lblScorePlayer').textContent = aciertosActuales;
+    }
+
+    function finalizarActividad() {
+      clearInterval(timerLoop);
+      ytPlayer.pauseVideo();
+
+      const total = actividadEnCurso.preguntas.length;
+      const nota = (1.0 + (aciertosActuales / total) * 4.0).toFixed(2);
+
+      document.getElementById('lblNotaFinal').textContent = nota;
+      document.getElementById('lblResumenAciertos').textContent = `${aciertosActuales} de ${total} correctas`;
+      document.getElementById('modalFinActividad').classList.remove('hidden');
+
+      confetti({ particleCount: 100, spread: 80, origin: { y: 0.5 } });
+
+      const registro = {
+        action: "guardarRegistro",
+        codigo: usuarioActual.codigo,
+        nombre: usuarioActual.nombre,
+        grado: usuarioActual.grado,
+        actividadId: actividadEnCurso.id,
+        correctas: aciertosActuales,
+        total: total,
+        intentos: numeroIntento
+      };
+
+      dbRegistros.push({
+        Fecha: new Date().toLocaleDateString(),
+        EstudianteCodigo: registro.codigo,
+        EstudianteNombre: registro.nombre,
+        Grado: registro.grado,
+        ActividadID: registro.actividadId,
+        Aciertos: registro.correctas,
+        Total: registro.total,
+        NotaFinal: parseFloat(nota),
+        Intentos: registro.intentos
+      });
+      localStorage.setItem('db_registros', JSON.stringify(dbRegistros));
+      localStorage.removeItem(`progreso_${usuarioActual.codigo}_${actividadEnCurso.id}`);
+
+      if (APPS_SCRIPT_URL) {
+        fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(registro)
+        });
+      }
+    }
+
+    function volverAEstudiante() {
+      if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+      clearInterval(timerLoop);
+      mostrarVista('viewEstudiante');
+      actualizarInterfazEstudiante();
+    }
+
+    // PANEL DOCENTE
+    function renderizarSidebarGrupos() {
+      const container = document.getElementById('listaGruposSidebar');
+      container.innerHTML = "";
+      GRUPOS.forEach(g => {
+        const btn = document.createElement('button');
+        btn.className = `w-full text-left px-3 py-1.5 text-xs font-semibold rounded-lg transition ${grupoSeleccionadoDocente === g ? 'bg-slate-800 text-emerald-400 font-bold' : 'text-slate-400 hover:text-white'}`;
+        btn.textContent = g;
+        btn.onclick = () => {
+          grupoSeleccionadoDocente = g;
+          renderizarSidebarGrupos();
+          actualizarDashboardDocente();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function setDocenteTab(tab) {
+      const subDash = document.getElementById('docSubDashboard');
+      const subNueva = document.getElementById('docSubNuevaActividad');
+      const btnDash = document.getElementById('btnTabDash');
+      const btnNueva = document.getElementById('btnTabNueva');
+
+      if (tab === 'dashboard') {
+        subDash.classList.remove('hidden');
+        subNueva.classList.add('hidden');
+        btnDash.className = "w-full text-left px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white flex items-center gap-2";
+        btnNueva.className = "w-full text-left px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-800 flex items-center gap-2";
+      } else {
+        subNueva.classList.remove('hidden');
+        subDash.classList.add('hidden');
+        btnNueva.className = "w-full text-left px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white flex items-center gap-2";
+        btnDash.className = "w-full text-left px-3 py-2 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-800 flex items-center gap-2";
+        prepararFormularioNuevaActividad();
+      }
+    }
+
+    function actualizarDashboardDocente() {
+      document.getElementById('lblTituloDashboard').textContent = `Dashboard: ${grupoSeleccionadoDocente}`;
+
+      const registrosFiltrados = grupoSeleccionadoDocente === "Todos"
+        ? dbRegistros
+        : dbRegistros.filter(r => normalizarTexto(r.Grado || r.grado) === normalizarTexto(grupoSeleccionadoDocente));
+
+      const actividadesFiltradas = grupoSeleccionadoDocente === "Todos"
+        ? dbActividades
+        : dbActividades.filter(a => normalizarTexto(a.grado) === normalizarTexto(grupoSeleccionadoDocente));
+
+      document.getElementById('metricaEntregas').textContent = registrosFiltrados.length;
+      document.getElementById('metricaActividades').textContent = actividadesFiltradas.length;
+
+      let prom = 0;
+      if (registrosFiltrados.length > 0) {
+        const suma = registrosFiltrados.reduce((a, b) => a + Number(b.NotaFinal || b.notaFinal || 0), 0);
+        prom = (suma / registrosFiltrados.length).toFixed(2);
+      }
+      document.getElementById('metricaPromedio').textContent = prom;
+
+      renderizarTablaDocente(registrosFiltrados);
+    }
+
+    function renderizarTablaDocente(datos) {
+      const tbody = document.getElementById('tablaResultadosBody');
+      tbody.innerHTML = "";
+
+      if (datos.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">No hay calificaciones registradas para este filtro</td></tr>`;
+        return;
+      }
+
+      datos.forEach(r => {
+        const act = dbActividades.find(a => a.id === (r.ActividadID || r.actividadId));
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/50";
+        tr.innerHTML = `
+          <td class="p-3">${r.Fecha ? String(r.Fecha).substring(0, 10) : 'Hoy'}</td>
+          <td class="p-3 font-semibold text-white">${r.EstudianteNombre || r.nombre}</td>
+          <td class="p-3">${r.Grado || r.grado}</td>
+          <td class="p-3">${act ? act.titulo : (r.ActividadID || r.actividadId)}</td>
+          <td class="p-3 text-center font-mono">${r.Intentos || r.intentos || 1}</td>
+          <td class="p-3 text-center font-mono">${r.Aciertos || r.correctas}/${r.Total || r.total}</td>
+          <td class="p-3 text-right font-bold text-emerald-400 font-mono">${Number(r.NotaFinal || r.notaFinal).toFixed(2)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filtrarTablaDocente() {
+      const term = document.getElementById('txtBuscarEstudiante').value.toLowerCase();
+      const registrosFiltrados = dbRegistros.filter(r => {
+        const coincideGrupo = grupoSeleccionadoDocente === "Todos" || normalizarTexto(r.Grado || r.grado) === normalizarTexto(grupoSeleccionadoDocente);
+        const coincideNombre = (r.EstudianteNombre || r.nombre || "").toLowerCase().includes(term);
+        return coincideGrupo && coincideNombre;
+      });
+      renderizarTablaDocente(registrosFiltrados);
+    }
+
+    function prepararFormularioNuevaActividad() {
+      const contenedor = document.getElementById('contenedorPreguntasConfig');
+      if (contenedor.children.length === 0) agregarFilaPregunta();
+    }
+
+    function agregarFilaPregunta() {
+      const contenedor = document.getElementById('contenedorPreguntasConfig');
+      const idx = contenedor.children.length;
+      const card = document.createElement('div');
+      card.className = "p-3 sm:p-4 bg-slate-800/70 border border-slate-700 rounded-xl space-y-3 relative";
+      card.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-emerald-400">Pregunta #${idx + 1}</span>
+          ${idx > 0 ? `<button type="button" onclick="this.parentElement.parentElement.remove()" class="text-xs text-rose-400 hover:text-rose-300">Eliminar</button>` : ''}
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div class="sm:col-span-3">
+            <input required type="text" placeholder="Enunciado de la pregunta..." class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs preg-text text-white">
+          </div>
+          <div>
+            <input required type="number" min="1" placeholder="Segundo (ej: 30)" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs preg-time text-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input required type="text" placeholder="Opción 1 (Correcta)" class="w-full px-3 py-1.5 bg-slate-900 border border-emerald-500/40 rounded-lg text-xs preg-opt-0 text-white">
+          <input required type="text" placeholder="Opción 2 (Distractor)" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs preg-opt-1 text-white">
+          <input required type="text" placeholder="Opción 3 (Distractor)" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs preg-opt-2 text-white">
+        </div>
+      `;
+      contenedor.appendChild(card);
+    }
+
+    function guardarNuevaActividad(e) {
+      e.preventDefault();
+      const videoId = extraerVideoId(document.getElementById('actVideoUrl').value);
+      if (!videoId) {
+        alert("Enlace de YouTube no válido.");
+        return;
+      }
+
+      const rows = document.querySelectorAll('#contenedorPreguntasConfig > div');
+      const preguntas = [];
+
+      rows.forEach(r => {
+        const text = r.querySelector('.preg-text').value.trim();
+        const time = parseInt(r.querySelector('.preg-time').value);
+        const opt0 = r.querySelector('.preg-opt-0').value.trim();
+        const opt1 = r.querySelector('.preg-opt-1').value.trim();
+        const opt2 = r.querySelector('.preg-opt-2').value.trim();
+
+        if (text && !isNaN(time)) {
+          preguntas.push({
+            time: time,
+            question: text,
+            options: [opt0, opt1, opt2],
+            correctIndex: 0
+          });
+        }
+      });
+
+      const nuevaAct = {
+        action: "guardarActividad",
+        id: "act-" + Date.now(),
+        grado: document.getElementById('actGrado').value,
+        titulo: document.getElementById('actTitulo').value.trim(),
+        objetivo: document.getElementById('actObjetivo').value.trim(),
+        descripcion: document.getElementById('actDescripcion').value.trim(),
+        videoId: videoId,
+        preguntas: preguntas
+      };
+
+      dbActividades.push(nuevaAct);
+      localStorage.setItem('db_actividades', JSON.stringify(dbActividades));
+
+      if (APPS_SCRIPT_URL) {
+        fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nuevaAct)
+        });
+      }
+
+      alert("¡Actividad guardada y asignada al grupo!");
+      document.getElementById('formCrearActividad').reset();
+      setDocenteTab('dashboard');
+      actualizarDashboardDocente();
+    }
+
+    // SINCRONIZACIÓN GET CON APPS SCRIPT
+    async function sincronizarConAppsScript() {
+      if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes("PEGAR_AQUI")) return;
+      try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=obtenerTodo`, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+        const json = await res.json();
+
+        if (json.estudiantes && json.estudiantes.length > 0) {
+          dbEstudiantes = json.estudiantes;
+          localStorage.setItem('db_estudiantes', JSON.stringify(dbEstudiantes));
+        }
+        if (json.actividades && json.actividades.length > 0) {
+          json.actividades.forEach(a => {
+            if (typeof a.PreguntasJSON === 'string') {
+              try { a.preguntas = JSON.parse(a.PreguntasJSON); } catch(err){}
+            }
+          });
+          dbActividades = json.actividades;
+          localStorage.setItem('db_actividades', JSON.stringify(dbActividades));
+        }
+        if (json.registros && json.registros.length > 0) {
+          dbRegistros = json.registros;
+          localStorage.setItem('db_registros', JSON.stringify(dbRegistros));
+        }
+        if (usuarioActual && usuarioActual.rol === 'docente') actualizarDashboardDocente();
+        if (usuarioActual && usuarioActual.rol === 'estudiante') actualizarInterfazEstudiante();
+      } catch (err) {
+        console.warn("Utilizando datos locales o sincronización pendiente:", err);
+      }
+    }
+  </script>
+</body>
+</html>
