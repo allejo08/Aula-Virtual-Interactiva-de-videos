@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma Interactiva - I.E. San Juan Bosco</title>
+    <title>Plataforma Interactiva - CaféLab</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 </head>
@@ -42,10 +42,6 @@
                 <input type="password" id="pass-docente" placeholder="Contraseña de Administrador" class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500" required>
                 <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-bold transition-colors shadow-md">Ingresar</button>
             </form>
-
-            <div class="text-center mt-4">
-                <a href="#" class="text-xs text-gray-400 hover:text-blue-500 transition-colors">¿Olvidaste o deseas cambiar tu contraseña?</a>
-            </div>
         </div>
     </div>
 
@@ -79,21 +75,6 @@
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-3xl font-bold text-gray-800">Dashboard General</h2>
                     <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow text-sm transition-colors">📥 Generar Reporte Global</button>
-                </div>
-                
-                <div class="grid grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                        <h4 class="text-blue-800 font-bold mb-2">Total Estudiantes Activos</h4>
-                        <p class="text-4xl font-black text-blue-600">--</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                        <h4 class="text-green-800 font-bold mb-2">Actividades Creadas</h4>
-                        <p class="text-4xl font-black text-green-600">--</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                        <h4 class="text-purple-800 font-bold mb-2">Promedio General</h4>
-                        <p class="text-4xl font-black text-purple-600">--</p>
-                    </div>
                 </div>
 
                 <h3 id="titulo-grupo-seleccionado" class="text-xl font-bold text-gray-700 mb-4">Reporte por Grupo: Selecciona un grado</h3>
@@ -161,24 +142,44 @@
     </div>
 
     <!-- PANEL ESTUDIANTE -->
-    <div id="panel-estudiante" class="hidden flex-grow flex-col items-center p-8 bg-gray-50 min-h-screen">
+    <div id="panel-estudiante" class="hidden flex-grow flex-col items-center p-4 bg-gray-50 min-h-screen">
         
-        <!-- VISTA: BIENVENIDA ESTUDIANTE -->
-        <div id="vista-bienvenida-estudiante" class="max-w-3xl w-full bg-white p-8 rounded-lg shadow-md text-center mt-10">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Bienvenido, <span id="nombre-estudiante-display" class="text-blue-600">Estudiante</span></h2>
-            <p class="text-gray-600 mb-6">Grado: <span id="grado-estudiante-display" class="font-bold"></span> | Código: <span id="codigo-estudiante-display" class="font-bold"></span></p>
+        <!-- VISTA: DASHBOARD PERSONAL ESTUDIANTE -->
+        <div id="vista-bienvenida-estudiante" class="max-w-5xl w-full flex flex-col gap-6 mt-6">
             
-            <div class="bg-blue-50 border border-blue-200 p-6 rounded-lg mb-6">
-                <h3 class="text-xl font-bold text-blue-800 mb-2">Actividad Asignada</h3>
-                <p class="text-blue-600 mb-4 font-semibold" id="titulo-actividad-pendiente">Cargando actividad...</p>
-                <button id="btn-iniciar-actividad" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow font-bold transition-colors hidden">Iniciar Actividad</button>
+            <!-- Header del Perfil -->
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Hola, <span id="nombre-estudiante-display" class="text-blue-600">Estudiante</span> 👋</h2>
+                    <p class="text-gray-500 text-sm mt-1">Grado: <span id="grado-estudiante-display" class="font-bold text-gray-700"></span> | Código: <span id="codigo-estudiante-display" class="font-bold text-gray-700"></span></p>
+                </div>
+                <button onclick="cerrarSesion()" class="text-red-500 hover:text-red-700 font-semibold transition-colors flex items-center gap-2 border border-red-200 bg-red-50 px-4 py-2 rounded-lg">
+                    🚪 Cerrar Sesión
+                </button>
             </div>
-            
-            <button onclick="cerrarSesion()" class="text-sm text-red-500 hover:text-red-700 underline font-semibold transition-colors">🚪 Cerrar Sesión y volver al inicio</button>
+
+            <!-- Grid de Actividades -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Columna: Pendientes -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">⏳ Actividades Pendientes</h3>
+                    <div id="lista-pendientes" class="flex flex-col gap-4">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+
+                <!-- Columna: Realizadas -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">✅ Mis Calificaciones</h3>
+                    <div id="lista-realizadas" class="flex flex-col gap-4">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- VISTA: REPRODUCTOR INTERACTIVO -->
-        <div id="vista-reproductor" class="hidden w-full max-w-5xl bg-white p-6 rounded-lg shadow-lg flex-col h-[85vh]">
+        <div id="vista-reproductor" class="hidden w-full max-w-5xl bg-white p-6 rounded-lg shadow-lg flex-col h-[85vh] mt-4">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold text-gray-800" id="titulo-reproductor">Actividad Interactiva</h2>
                 <div class="text-sm bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-bold shadow-sm">
@@ -186,23 +187,21 @@
                 </div>
             </div>
             
-            <!-- Contenedor del Video -->
             <div class="relative w-full flex-grow bg-black rounded-lg overflow-hidden shadow-inner flex items-center justify-center" style="min-height: 400px;">
                 <div id="youtube-player" class="w-full h-full absolute inset-0"></div>
                 
-                <!-- Modal de Pregunta Interrumpida -->
                 <div id="question-overlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-8 z-50 text-white">
                     <div class="bg-gray-800 border border-gray-600 p-8 rounded-xl max-w-2xl w-full text-center shadow-2xl transform transition-all">
                         <span class="text-blue-400 font-bold tracking-widest uppercase text-xs mb-2 block">Pregunta de validación</span>
                         <h3 id="q-text" class="text-2xl mb-8 font-semibold text-white leading-relaxed">¿Pregunta?</h3>
-                        <div id="q-options" class="grid grid-cols-1 gap-4 mb-4">
-                            <!-- Opciones generadas por JS -->
-                        </div>
+                        <div id="q-options" class="grid grid-cols-1 gap-4 mb-4"></div>
                     </div>
                 </div>
             </div>
-            <div class="mt-4 text-center">
-                <button onclick="volverDashboardEstudiante()" class="text-gray-500 hover:text-blue-600 text-sm font-semibold transition-colors">⏸ Salir y regresar a mi Dashboard</button>
+            <div class="mt-4 flex justify-between items-center">
+                <button onclick="volverDashboardEstudiante()" class="text-gray-500 hover:text-blue-600 text-sm font-semibold transition-colors border border-gray-300 px-4 py-2 rounded-lg bg-gray-50 hover:bg-blue-50">
+                    ⏸ Pausar y regresar a mi Dashboard
+                </button>
             </div>
         </div>
     </div>
@@ -216,56 +215,65 @@
     </footer>
 
     <script>
-        // Función Global de Cerrar Sesión (Recarga la página para volver al inicio)
+        // Funciones Globales
         function cerrarSesion() {
             sessionStorage.clear();
             location.reload(); 
         }
 
-        // URL Oficial de Google Apps Script
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfZCYVzDmmeRguhLvzeC-bWiHsNdnf81Aiah0k-6OnSOb408pv1mzuucjEMafP1wD_/exec';
         
-        // Variables globales del reproductor
         let player;
         let intervaloVideo;
         let actividadActual = null;
         let intentoActual = { correctas: 0, resueltas: 0 };
         let estudianteIdActual = "";
+        let nombreEstudianteActual = "";
+        
+        // Base de datos simulada de actividades por grado (Hasta conectar GET de Google Sheets)
+        const baseActividades = [
+            {
+                id: "ACT_DEMO_01",
+                grados: ["6-1", "6-2", "11"],
+                titulo: "Evaluación Sensorial y Tueste de Especialidad",
+                videoId: "M7lc1UVf-VE", // ID de prueba corregido
+                preguntas: [
+                    { tiempo: 10, texto: "¿Cuál es el puntaje mínimo SCA para considerar un café de especialidad?", opciones: ["80 puntos", "83 puntos", "85 puntos"], correcta: 1, respondida: false },
+                    { tiempo: 25, texto: "¿A qué temperatura aproximada del agua se sugiere realizar la extracción controlada?", opciones: ["85°C", "90°C", "100°C"], correcta: 2, respondida: false }
+                ]
+            }
+        ];
 
         document.addEventListener("DOMContentLoaded", () => {
             
-            // Función para salir del video y volver al Dashboard personal
+            // Función para volver al Dashboard Estudiante
             window.volverDashboardEstudiante = function() {
                 if (player && typeof player.pauseVideo === 'function') {
                     player.pauseVideo();
-                    verificarTiempo(); // Fuerza el guardado del último segundo en localStorage
+                    verificarTiempo(); 
                 }
                 document.getElementById('vista-reproductor').classList.add('hidden');
                 document.getElementById('vista-reproductor').classList.remove('flex');
                 document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden');
+                document.getElementById('vista-bienvenida-estudiante').classList.add('flex');
+                
+                construirDashboardEstudiante(document.getElementById('grado').value);
             };
 
-            // 1. Alternar Login
-            const btnEstudiante = document.getElementById('btn-show-estudiante');
-            const btnDocente = document.getElementById('btn-show-docente');
-            const formEstudiante = document.getElementById('form-estudiante');
-            const formDocente = document.getElementById('form-docente');
-
-            btnEstudiante.addEventListener('click', () => {
-                formEstudiante.classList.remove('hidden');
-                formDocente.classList.add('hidden');
+            // 1. Manejo de Paneles de Login
+            document.getElementById('btn-show-estudiante').addEventListener('click', () => {
+                document.getElementById('form-estudiante').classList.remove('hidden');
+                document.getElementById('form-docente').classList.add('hidden');
             });
-
-            btnDocente.addEventListener('click', () => {
-                formDocente.classList.remove('hidden');
-                formEstudiante.classList.add('hidden');
+            document.getElementById('btn-show-docente').addEventListener('click', () => {
+                document.getElementById('form-docente').classList.remove('hidden');
+                document.getElementById('form-estudiante').classList.add('hidden');
             });
 
             // 2. Ingreso Docente
-            formDocente.addEventListener('submit', (e) => {
+            document.getElementById('form-docente').addEventListener('submit', (e) => {
                 e.preventDefault();
-                const pass = document.getElementById('pass-docente').value;
-                if (pass === 'AdminDocente') {
+                if (document.getElementById('pass-docente').value === 'AdminDocente') {
                     document.getElementById('login-panel').classList.add('hidden');
                     document.getElementById('panel-docente').classList.remove('hidden');
                 } else {
@@ -273,29 +281,23 @@
                 }
             });
 
-            // 3. Navegación Panel Docente y Dashboard
-            const navDashboard = document.getElementById('nav-dashboard');
-            const navActividad = document.getElementById('nav-actividad');
-            const vistaDashboard = document.getElementById('vista-dashboard');
-            const vistaActividad = document.getElementById('vista-actividad');
-
-            navDashboard.addEventListener('click', () => {
-                vistaDashboard.classList.remove('hidden');
-                vistaActividad.classList.add('hidden');
-                navDashboard.classList.replace('bg-gray-800', 'bg-blue-600');
-                navActividad.classList.replace('bg-green-600', 'bg-gray-800');
+            // 3. Navegación Panel Docente
+            document.getElementById('nav-dashboard').addEventListener('click', () => {
+                document.getElementById('vista-dashboard').classList.remove('hidden');
+                document.getElementById('vista-actividad').classList.add('hidden');
+                document.getElementById('nav-dashboard').classList.replace('bg-gray-800', 'bg-blue-600');
+                document.getElementById('nav-actividad').classList.replace('bg-green-600', 'bg-gray-800');
             });
 
-            navActividad.addEventListener('click', () => {
-                vistaActividad.classList.remove('hidden');
-                vistaDashboard.classList.add('hidden');
-                navActividad.classList.replace('bg-gray-800', 'bg-green-600');
-                navDashboard.classList.replace('bg-blue-600', 'bg-gray-800');
+            document.getElementById('nav-actividad').addEventListener('click', () => {
+                document.getElementById('vista-actividad').classList.remove('hidden');
+                document.getElementById('vista-dashboard').classList.add('hidden');
+                document.getElementById('nav-actividad').classList.replace('bg-gray-800', 'bg-green-600');
+                document.getElementById('nav-dashboard').classList.replace('bg-blue-600', 'bg-gray-800');
             });
 
-            // 4. Lógica de clics en los grupos (Panel lateral izquierdo)
+            // 4. Lógica de Dashboard Docente (Actualización Dinámica)
             const listaGrupos = document.querySelectorAll('#lista-grupos-docente li');
-            const tituloGrupo = document.getElementById('titulo-grupo-seleccionado');
             const contenedorActividades = document.getElementById('contenedor-actividades-grupo');
 
             listaGrupos.forEach(li => {
@@ -303,43 +305,59 @@
                     listaGrupos.forEach(el => el.classList.remove('bg-gray-700', 'border-l-4', 'border-blue-500', 'font-bold'));
                     li.classList.add('bg-gray-700', 'border-l-4', 'border-blue-500', 'font-bold');
                     
-                    const nombreGrupo = li.innerText;
-                    tituloGrupo.innerText = `Actividades Asignadas: ${nombreGrupo}`;
+                    const gradoSeleccionado = li.getAttribute('data-grado');
+                    document.getElementById('titulo-grupo-seleccionado').innerText = `Reporte de Actividades: Grado ${li.innerText}`;
                     
+                    // Filtrar actividades correspondientes a este grado
+                    const actividadesGrado = baseActividades.filter(act => act.grados.includes(gradoSeleccionado) || act.grados.includes('Todos'));
+                    
+                    if(actividadesGrado.length === 0) {
+                        contenedorActividades.innerHTML = `<p class="text-gray-500 py-8">No hay actividades asignadas para este grado.</p>`;
+                        return;
+                    }
+
+                    let filasHTML = '';
+                    actividadesGrado.forEach(act => {
+                        // Buscar si algún estudiante de este grado resolvió la actividad en el LocalStorage
+                        let estudiantesQueResolvieron = 0;
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key.startsWith(`nota_${gradoSeleccionado}`) && key.includes(act.id)) {
+                                estudiantesQueResolvieron++;
+                            }
+                        }
+
+                        filasHTML += `
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-6 py-4 font-bold text-gray-900">${act.titulo}</td>
+                                <td class="px-6 py-4 text-green-600 font-semibold">${estudiantesQueResolvieron > 0 ? estudiantesQueResolvieron + ' Entregas' : 'Sin entregas'}</td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-blue-600 font-bold hover:underline">Ver Notas</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
                     contenedorActividades.innerHTML = `
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left text-gray-500 border rounded-lg">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b">
                                     <tr>
                                         <th class="px-6 py-3">Título de la Actividad</th>
-                                        <th class="px-6 py-3">Grado</th>
-                                        <th class="px-6 py-3">Estado</th>
+                                        <th class="px-6 py-3">Estado de Entrega</th>
                                         <th class="px-6 py-3 text-right">Acción</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr class="bg-white border-b hover:bg-gray-50">
-                                        <td class="px-6 py-4 font-bold text-gray-900">Evaluación Sensorial y Tueste</td>
-                                        <td class="px-6 py-4">${nombreGrupo}</td>
-                                        <td class="px-6 py-4 text-green-600 font-semibold">Activa</td>
-                                        <td class="px-6 py-4 text-right">
-                                            <button class="text-blue-600 font-bold hover:underline">Ver Notas</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
+                                <tbody>${filasHTML}</tbody>
                             </table>
                         </div>
                     `;
-                    
-                    navDashboard.click();
+                    document.getElementById('nav-dashboard').click();
                 });
             });
 
-            // 5. Agregar Preguntas Dinámicas (Panel Docente)
-            const btnAddPregunta = document.getElementById('btn-add-pregunta');
-            const contenedorPreguntas = document.getElementById('contenedor-preguntas');
-
-            function crearPlantillaPregunta() {
+            // 5. Agregar Preguntas Dinámicas en Formulario
+            document.getElementById('btn-add-pregunta').addEventListener('click', () => {
                 const nuevaPregunta = document.createElement('div');
                 nuevaPregunta.className = "border border-gray-300 p-4 rounded-lg bg-gray-50 relative mt-4 shadow-sm";
                 nuevaPregunta.innerHTML = `
@@ -347,78 +365,22 @@
                     <div class="grid grid-cols-4 gap-4 mb-3 mt-2">
                         <div class="col-span-1">
                             <label class="block text-xs font-bold text-gray-600 mb-1">Tiempo (Seg)</label>
-                            <input type="number" placeholder="Ej: 120" class="w-full p-2 border rounded text-sm focus:ring-1 focus:ring-blue-500" required>
+                            <input type="number" class="w-full p-2 border rounded text-sm" required>
                         </div>
                         <div class="col-span-3">
                             <label class="block text-xs font-bold text-gray-600 mb-1">Pregunta</label>
-                            <input type="text" placeholder="Formule la pregunta" class="w-full p-2 border rounded text-sm focus:ring-1 focus:ring-blue-500" required>
+                            <input type="text" class="w-full p-2 border rounded text-sm" required>
                         </div>
                     </div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">Opciones (Separadas por comas)</label>
-                    <input type="text" placeholder="Opción A, Opción B, Opción C" class="w-full p-2 border rounded text-sm mb-3 focus:ring-1 focus:ring-blue-500" required>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Índice Correcto (1, 2, 3...)</label>
-                    <input type="number" placeholder="1" min="1" class="w-32 p-2 border rounded text-sm focus:ring-1 focus:ring-blue-500" required>
+                    <input type="text" class="w-full p-2 border rounded text-sm mb-3" required>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Índice Correcto (1, 2...)</label>
+                    <input type="number" class="w-32 p-2 border rounded text-sm" required>
                 `;
-                contenedorPreguntas.appendChild(nuevaPregunta);
-            }
-            
-            crearPlantillaPregunta();
-            btnAddPregunta.addEventListener('click', crearPlantillaPregunta);
-
-            // 6. Enviar Actividad a Google Sheets
-            document.getElementById('form-crear-actividad').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const btnSubmit = e.target.querySelector('button[type="submit"]');
-                const btnOriginalText = btnSubmit.innerText;
-                btnSubmit.innerText = "Guardando en Google Sheets...";
-                btnSubmit.disabled = true;
-
-                const formData = {
-                    grado: document.getElementById('grado-destino').value,
-                    urlVideo: document.getElementById('url-video').value,
-                    titulo: document.getElementById('titulo-clase').value,
-                    objetivo: document.getElementById('objetivo-actividad').value,
-                    descripcion: document.getElementById('descripcion-actividad').value,
-                    preguntas: []
-                };
-
-                const preguntasRows = document.getElementById('contenedor-preguntas').children;
-                for (let row of preguntasRows) {
-                    const inputs = row.querySelectorAll('input');
-                    formData.preguntas.push({
-                        tiempo: inputs[0].value,
-                        texto: inputs[1].value,
-                        opciones: inputs[2].value,
-                        correcta: inputs[3].value
-                    });
-                }
-
-                try {
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'crearActividad', payload: formData })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if(result.success) {
-                        alert("¡Actividad guardada exitosamente!");
-                        e.target.reset(); 
-                        document.getElementById('contenedor-preguntas').innerHTML = ''; 
-                        crearPlantillaPregunta(); 
-                    } else {
-                        alert("Error al guardar: " + (result.error || "Desconocido"));
-                    }
-                } catch (error) {
-                    alert("Error de conexión al guardar actividad.");
-                } finally {
-                    btnSubmit.innerText = btnOriginalText;
-                    btnSubmit.disabled = false;
-                }
+                document.getElementById('contenedor-preguntas').appendChild(nuevaPregunta);
             });
 
-            // 7. Login del Estudiante
+            // 6. Login del Estudiante
             document.getElementById('form-estudiante').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
@@ -436,11 +398,12 @@
                         method: 'POST',
                         body: JSON.stringify({ action: 'validarEstudiante', grado: grado, codigo: codigo, password: password })
                     });
-                    
                     const result = await response.json();
                     
                     if(result.success) {
                         estudianteIdActual = `${grado}-${codigo}`;
+                        nombreEstudianteActual = result.nombre;
+                        
                         document.getElementById('login-panel').classList.add('hidden');
                         document.getElementById('panel-estudiante').classList.remove('hidden');
                         document.getElementById('panel-estudiante').classList.add('flex');
@@ -449,7 +412,7 @@
                         document.getElementById('grado-estudiante-display').innerText = grado;
                         document.getElementById('codigo-estudiante-display').innerText = codigo;
                         
-                        cargarActividadMockParaEstudiante();
+                        construirDashboardEstudiante(grado);
                     } else {
                         alert("Error: " + (result.error || "Credenciales incorrectas."));
                     }
@@ -461,63 +424,96 @@
                 }
             });
 
-            // 8. Lógica del Reproductor de Video
-            const btnIniciarActividad = document.getElementById('btn-iniciar-actividad');
-            const vistaBienvenida = document.getElementById('vista-bienvenida-estudiante');
-            const vistaReproductor = document.getElementById('vista-reproductor');
+            // 7. Construcción del Dashboard del Estudiante
+            function construirDashboardEstudiante(grado) {
+                const listaPendientes = document.getElementById('lista-pendientes');
+                const listaRealizadas = document.getElementById('lista-realizadas');
+                
+                listaPendientes.innerHTML = '';
+                listaRealizadas.innerHTML = '';
+                
+                let pendientesCount = 0;
+                let realizadasCount = 0;
 
-            function cargarActividadMockParaEstudiante() {
-                actividadActual = {
-                    id: "ACT_DEMO_01",
-                    titulo: "Evaluación Sensorial y Tueste de Especialidad",
-                    videoId: "M7lc1UVf-VE", // ID de prueba de YouTube (corregido)
-                    preguntas: [
-                        { tiempo: 10, texto: "¿Cuál es el puntaje mínimo SCA para considerar un café de especialidad?", opciones: ["80 puntos", "83 puntos", "85 puntos"], correcta: 1, respondida: false },
-                        { tiempo: 25, texto: "¿A qué temperatura aproximada del agua se sugiere realizar la extracción controlada?", opciones: ["85°C", "90°C", "100°C"], correcta: 2, respondida: false }
-                    ]
-                };
+                baseActividades.forEach(act => {
+                    if(act.grados.includes(grado) || act.grados.includes('Todos')) {
+                        // Verificar si ya tiene nota guardada en LocalStorage
+                        const notaGuardada = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
+                        
+                        if (notaGuardada) {
+                            // Actividad Realizada
+                            realizadasCount++;
+                            listaRealizadas.innerHTML += `
+                                <div class="p-4 border border-green-200 bg-green-50 rounded-lg flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-bold text-green-900">${act.titulo}</h4>
+                                        <p class="text-xs text-green-700 mt-1">Completada exitosamente</p>
+                                    </div>
+                                    <div class="bg-white px-4 py-2 rounded-full border border-green-300 text-green-700 font-bold shadow-sm">
+                                        Nota: ${notaGuardada}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Actividad Pendiente
+                            pendientesCount++;
+                            listaPendientes.innerHTML += `
+                                <div class="p-4 border border-gray-200 bg-gray-50 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">${act.titulo}</h4>
+                                        <p class="text-xs text-gray-500 mt-1">Video Interactivo Asignado</p>
+                                    </div>
+                                    <button onclick='iniciarNuevaActividad(${JSON.stringify(act)})' class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-bold transition-colors">
+                                        ▶ Iniciar
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                });
 
-                document.getElementById('titulo-actividad-pendiente').innerText = actividadActual.titulo;
-                btnIniciarActividad.classList.remove('hidden');
+                if(pendientesCount === 0) listaPendientes.innerHTML = `<p class="text-gray-500 text-sm">¡Excelente! No tienes actividades pendientes.</p>`;
+                if(realizadasCount === 0) listaRealizadas.innerHTML = `<p class="text-gray-500 text-sm">Aún no has completado actividades.</p>`;
             }
 
-            btnIniciarActividad.addEventListener('click', () => {
-                vistaBienvenida.classList.add('hidden');
-                vistaReproductor.classList.remove('hidden');
-                vistaReproductor.classList.add('flex');
+            // Iniciar Actividad desde el Dashboard
+            window.iniciarNuevaActividad = function(actividadObj) {
+                actividadActual = actividadObj;
+                
+                document.getElementById('vista-bienvenida-estudiante').classList.add('hidden');
+                document.getElementById('vista-bienvenida-estudiante').classList.remove('flex');
+                
+                document.getElementById('vista-reproductor').classList.remove('hidden');
+                document.getElementById('vista-reproductor').classList.add('flex');
                 document.getElementById('titulo-reproductor').innerText = actividadActual.titulo;
                 
-                iniciarReproductor();
-            });
+                intentoActual = { correctas: 0, resueltas: 0 };
+                document.getElementById('progreso-text').innerText = "0%";
+                
+                prepararReproductor();
+            };
 
-            function iniciarReproductor() {
+            function prepararReproductor() {
                 const estadoGuardado = JSON.parse(localStorage.getItem(`estado_${actividadActual.id}_${estudianteIdActual}`));
                 let tiempoInicio = 0;
 
-                if (estadoGuardado) {
-                    if(confirm("Tienes una sesión guardada. ¿Deseas reanudar desde donde quedaste?")) {
-                        actividadActual.preguntas = estadoGuardado.preguntas;
-                        intentoActual = estadoGuardado.intento;
-                        tiempoInicio = estadoGuardado.ultimoTiempo;
-                        actualizarProgreso();
-                    } else {
-                        localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
-                    }
+                if (estadoGuardado && confirm("Tienes una sesión guardada. ¿Deseas reanudar desde donde quedaste?")) {
+                    actividadActual.preguntas = estadoGuardado.preguntas;
+                    intentoActual = estadoGuardado.intento;
+                    tiempoInicio = estadoGuardado.ultimoTiempo;
+                    const porcentaje = Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100);
+                    document.getElementById('progreso-text').innerText = `${porcentaje}%`;
                 }
 
-                player = new YT.Player('youtube-player', {
-                    videoId: actividadActual.videoId,
-                    playerVars: { 
-                        'autoplay': 1, 
-                        'controls': 0, 
-                        'start': Math.floor(tiempoInicio),
-                        'rel': 0,
-                        'modestbranding': 1
-                    },
-                    events: {
-                        'onStateChange': onPlayerStateChange
-                    }
-                });
+                if (player) {
+                    player.loadVideoById({videoId: actividadActual.videoId, startSeconds: tiempoInicio});
+                } else {
+                    player = new YT.Player('youtube-player', {
+                        videoId: actividadActual.videoId,
+                        playerVars: { 'autoplay': 1, 'controls': 0, 'start': Math.floor(tiempoInicio), 'rel': 0, 'modestbranding': 1 },
+                        events: { 'onStateChange': onPlayerStateChange }
+                    });
+                }
             }
 
             window.onPlayerStateChange = function(event) {
@@ -539,61 +535,54 @@
 
                 actividadActual.preguntas.forEach((pregunta, index) => {
                     if (!pregunta.respondida && tiempoActual >= pregunta.tiempo && tiempoActual < (pregunta.tiempo + 2)) {
-                        mostrarPregunta(pregunta, index);
+                        player.pauseVideo();
+                        clearInterval(intervaloVideo);
+                        
+                        document.getElementById('q-text').innerText = pregunta.texto;
+                        const contenedorOpciones = document.getElementById('q-options');
+                        contenedorOpciones.innerHTML = '';
+                        
+                        pregunta.opciones.forEach((opcion, i) => {
+                            const btn = document.createElement('button');
+                            btn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-4 px-6 rounded-lg transition-colors text-left text-lg shadow-md border border-blue-700";
+                            btn.innerText = opcion;
+                            const esCorrecta = (i + 1) === parseInt(pregunta.correcta);
+                            btn.onclick = () => {
+                                document.getElementById('question-overlay').classList.add('hidden');
+                                actividadActual.preguntas[index].respondida = true;
+                                intentoActual.resueltas++;
+                                if (esCorrecta) intentoActual.correctas++;
+                                
+                                const porcentaje = Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100);
+                                document.getElementById('progreso-text').innerText = `${porcentaje}%`;
+                                
+                                if (intentoActual.resueltas === actividadActual.preguntas.length) {
+                                    finalizarActividad();
+                                } else {
+                                    player.playVideo();
+                                }
+                            };
+                            contenedorOpciones.appendChild(btn);
+                        });
+                        
+                        document.getElementById('question-overlay').classList.remove('hidden');
                     }
                 });
             }
 
-            function mostrarPregunta(pregunta, index) {
-                player.pauseVideo();
-                clearInterval(intervaloVideo);
-                
-                document.getElementById('q-text').innerText = pregunta.texto;
-                const contenedorOpciones = document.getElementById('q-options');
-                contenedorOpciones.innerHTML = '';
-                
-                pregunta.opciones.forEach((opcion, i) => {
-                    const btn = document.createElement('button');
-                    btn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-4 px-6 rounded-lg transition-colors text-left text-lg shadow-md border border-blue-700";
-                    btn.innerText = opcion;
-                    
-                    const esCorrecta = (i + 1) === parseInt(pregunta.correcta);
-                    btn.onclick = () => procesarRespuesta(index, esCorrecta);
-                    
-                    contenedorOpciones.appendChild(btn);
-                });
-                
-                document.getElementById('question-overlay').classList.remove('hidden');
-            }
-
-            function procesarRespuesta(index, esCorrecta) {
-                document.getElementById('question-overlay').classList.add('hidden');
-                actividadActual.preguntas[index].respondida = true;
-                
-                intentoActual.resueltas++;
-                if (esCorrecta) intentoActual.correctas++;
-                
-                actualizarProgreso();
-                
-                if (intentoActual.resueltas === actividadActual.preguntas.length) {
-                    finalizarActividad();
-                } else {
-                    player.playVideo();
-                }
-            }
-
-            function actualizarProgreso() {
-                const porcentaje = Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100);
-                document.getElementById('progreso-text').innerText = `${porcentaje}%`;
-            }
-
             async function finalizarActividad() {
+                // Borrar estado temporal de interrupción
                 localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
                 
-                const notaFinal = ((intentoActual.correctas / actividadActual.preguntas.length) * 4) + 1;
-                alert(`¡Actividad completada!\nHas obtenido ${intentoActual.correctas} respuestas correctas.\nNota final: ${notaFinal.toFixed(1)}`);
+                const notaFinal = (((intentoActual.correctas / actividadActual.preguntas.length) * 4) + 1).toFixed(1);
+                
+                // Guardar la nota final en LocalStorage para actualizar el Dashboard inmediatamente
+                localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, notaFinal);
+                
+                alert(`¡Actividad completada!\nHas obtenido ${intentoActual.correctas} respuestas correctas.\nNota final: ${notaFinal}`);
                 
                 try {
+                    // Enviar al Google Sheets
                     await fetch(SCRIPT_URL, {
                         method: 'POST',
                         body: JSON.stringify({
@@ -608,13 +597,7 @@
                     console.error("No se pudo guardar la nota en Sheets", error);
                 }
                 
-                // Cambiar el estado del botón en el dashboard
-                const btnIniciar = document.getElementById('btn-iniciar-actividad');
-                btnIniciar.innerText = "Actividad Completada";
-                btnIniciar.disabled = true;
-                btnIniciar.classList.replace('bg-blue-600', 'bg-green-600');
-                btnIniciar.classList.remove('hover:bg-blue-700');
-                
+                // Retornar al dashboard organizado
                 volverDashboardEstudiante();
             }
         });
