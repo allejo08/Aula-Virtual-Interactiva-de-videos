@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma Interactiva - I.E. San Juan Bosco</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
 
@@ -13,9 +12,11 @@
     <div id="login-panel" class="flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
             <h2 class="text-2xl font-bold text-center mb-6">Ingreso a la Plataforma</h2>
+            
+            <!-- Botones de selección de rol -->
             <div class="flex justify-center space-x-4 mb-6">
-                <button onclick="setRole('estudiante')" class="px-4 py-2 bg-blue-600 text-white rounded focus:ring-2">Estudiante</button>
-                <button onclick="setRole('docente')" class="px-4 py-2 bg-gray-600 text-white rounded focus:ring-2">Docente</button>
+                <button onclick="setRole('estudiante')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors">Estudiante</button>
+                <button onclick="setRole('docente')" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors">Docente</button>
             </div>
 
             <!-- Formulario Estudiante -->
@@ -33,16 +34,15 @@
                 </select>
                 <select id="codigo" class="w-full p-2 border rounded disabled:opacity-50" disabled>
                     <option value="">Seleccione Código</option>
-                    <!-- Llenado dinámico por JS -->
                 </select>
                 <input type="password" id="pass-estudiante" placeholder="Contraseña (Ej: 12A)" class="w-full p-2 border rounded">
-                <button type="submit" class="w-full bg-green-600 text-white py-2 rounded font-bold">Ingresar</button>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-bold transition-colors">Ingresar como Estudiante</button>
             </form>
 
             <!-- Formulario Docente -->
             <form id="form-docente" class="hidden space-y-4">
                 <input type="password" id="pass-docente" placeholder="Contraseña de Administrador" class="w-full p-2 border rounded">
-                <button type="submit" class="w-full bg-green-600 text-white py-2 rounded font-bold">Ingresar</button>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-bold transition-colors">Ingresar como Docente</button>
             </form>
 
             <div class="text-center mt-4">
@@ -51,49 +51,22 @@
         </div>
     </div>
 
-    <!-- PANEL DOCENTE -->
+    <!-- PANEL DOCENTE (Oculto por defecto) -->
     <div id="panel-docente" class="hidden flex-grow flex">
         <aside class="w-64 bg-gray-800 text-white p-4">
             <h3 class="font-bold text-lg mb-4">Grupos</h3>
             <ul class="space-y-2 text-sm">
                 <li class="cursor-pointer hover:bg-gray-700 p-2 rounded">Sexto 1</li>
-                <li class="cursor-pointer hover:bg-gray-700 p-2 rounded">Sexto 2</li>
-                <li class="cursor-pointer hover:bg-gray-700 p-2 rounded">Séptimo</li>
-                <li class="cursor-pointer hover:bg-gray-700 p-2 rounded">Octavo 1</li>
-                <li class="cursor-pointer hover:bg-gray-700 p-2 rounded">Octavo 2</li>
-                <li class="cursor-pointer hover:bg-gray-700 p-2 rounded">Noveno</li>
-                <li class="cursor-pointer hover:bg-gray-700 p-2 rounded">Décimo</li>
                 <li class="cursor-pointer hover:bg-gray-700 p-2 rounded">Once</li>
             </ul>
         </aside>
         <main class="flex-1 p-8">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-bold">Dashboard de Rendimiento</h2>
+                <h2 class="text-3xl font-bold">Dashboard de Docente</h2>
                 <button class="bg-blue-600 text-white px-4 py-2 rounded shadow">+ Añadir Actividad</button>
             </div>
-            <!-- Contenido del dashboard irá aquí -->
+            <p>Bienvenido, Alejandro. Aquí podrás configurar los videos y ver las notas.</p>
         </main>
-    </div>
-
-    <!-- PANEL ESTUDIANTE & REPRODUCTOR -->
-    <div id="panel-estudiante" class="hidden flex-grow p-8 max-w-5xl mx-auto w-full">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold">Actividad en curso</h2>
-            <div class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">Progreso: <span id="progreso-text">0%</span></div>
-        </div>
-        <div class="aspect-w-16 aspect-h-9 bg-black rounded-lg overflow-hidden shadow-xl relative">
-            <div id="youtube-player"></div>
-            
-            <!-- Modal de Pregunta -->
-            <div id="question-overlay" class="hidden absolute inset-0 bg-black/90 flex items-center justify-center p-6 z-50 text-white">
-                <div class="bg-gray-800 p-8 rounded-lg max-w-2xl w-full text-center">
-                    <h3 id="q-text" class="text-2xl mb-6 font-semibold">¿Pregunta?</h3>
-                    <div id="q-options" class="grid grid-cols-1 gap-3 mb-6">
-                        <!-- Opciones generadas por JS -->
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <footer class="bg-gray-900 text-gray-400 py-6 mt-auto text-sm text-center">
@@ -104,6 +77,54 @@
         </div>
     </footer>
 
-    <script src="app.js"></script>
+    <!-- SCRIPT INTEGRADO PARA EVITAR ERRORES DE RUTAS -->
+    <script>
+        // 1. Alternar entre formularios de Docente y Estudiante
+        function setRole(role) {
+            const formEst = document.getElementById('form-estudiante');
+            const formDoc = document.getElementById('form-docente');
+
+            if (role === 'estudiante') {
+                formEst.classList.remove('hidden');
+                formDoc.classList.add('hidden');
+            } else if (role === 'docente') {
+                formDoc.classList.remove('hidden');
+                formEst.classList.add('hidden');
+            }
+        }
+
+        // 2. Habilitar la lista de códigos cuando se elige un grado
+        function cargarCodigos() {
+            const grado = document.getElementById('grado').value;
+            const codigoSelect = document.getElementById('codigo');
+            
+            if (grado !== "") {
+                codigoSelect.disabled = false;
+                // Aquí luego conectaremos con Google Sheets, por ahora ponemos datos de prueba:
+                codigoSelect.innerHTML = `
+                    <option value="">Seleccione Código</option>
+                    <option value="01">01</option>
+                    <option value="02">02</option>
+                    <option value="03">03</option>
+                `;
+            } else {
+                codigoSelect.disabled = true;
+                codigoSelect.innerHTML = '<option value="">Seleccione Código</option>';
+            }
+        }
+
+        // 3. Simulación de Ingreso del Docente
+        document.getElementById('form-docente').addEventListener('submit', function(e) {
+            e.preventDefault(); // Evita que la página se recargue
+            const pass = document.getElementById('pass-docente').value;
+            
+            if (pass === 'AdminDocente') {
+                document.getElementById('login-panel').classList.add('hidden');
+                document.getElementById('panel-docente').classList.remove('hidden');
+            } else {
+                alert('Contraseña incorrecta');
+            }
+        });
+    </script>
 </body>
 </html>
