@@ -3,563 +3,693 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma Educativa - Portal</title>
+    <title>Plataforma Interactiva - CaféLab</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
-<body class="bg-slate-100 font-sans antialiased text-slate-800">
+<body class="bg-gray-100 flex flex-col min-h-screen">
 
-    <!-- ================= PANTALLA DE SELECCIÓN DE ROL / LOGIN ================= -->
-    <div id="pantallaLogin" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-slate-200 text-center">
-            <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-md">
-                🎓
+    <!-- LOGIN PANEL -->
+    <div id="login-panel" class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center mb-6">Ingreso a la Plataforma</h2>
+            
+            <div class="flex justify-center space-x-4 mb-6">
+                <button id="btn-show-estudiante" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors shadow">Estudiante</button>
+                <button id="btn-show-docente" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors shadow">Docente</button>
             </div>
-            <h2 class="text-2xl font-bold text-slate-900 mb-2">Plataforma Educativa</h2>
-            <p class="text-sm text-slate-500 mb-6">Selecciona tu perfil para ingresar al sistema</p>
 
-            <div class="space-y-4">
-                <button onclick="iniciarSesion('docente')" class="w-full flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 text-white font-medium py-3 px-4 rounded-xl transition shadow">
-                    👨‍🏫 Ingresar como Docente
-                </button>
-                <button onclick="iniciarSesion('estudiante')" class="w-full flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl transition shadow">
-                    👨‍🎓 Ingresar como Estudiante
-                </button>
-            </div>
+            <!-- Formulario Estudiante -->
+            <form id="form-estudiante" class="hidden space-y-4">
+                <select id="grado" class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500" required>
+                    <option value="">Seleccione Grado</option>
+                    <option value="6-1">Sexto 1</option>
+                    <option value="6-2">Sexto 2</option>
+                    <option value="7">Séptimo</option>
+                    <option value="8-1">Octavo 1</option>
+                    <option value="8-2">Octavo 2</option>
+                    <option value="9">Noveno</option>
+                    <option value="10">Décimo</option>
+                    <option value="11">Once</option>
+                </select>
+                <input type="text" id="codigo-estudiante" placeholder="Digite su Código (Ej: 12254)" class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500" required>
+                <input type="password" id="pass-estudiante" placeholder="Contraseña (Ej: 12254Z)" class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500" required>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-bold transition-colors shadow-md">Ingresar</button>
+            </form>
+
+            <!-- Formulario Docente -->
+            <form id="form-docente" class="hidden space-y-4">
+                <input type="password" id="pass-docente" placeholder="Contraseña de Administrador" class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500" required>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-bold transition-colors shadow-md">Ingresar</button>
+            </form>
         </div>
     </div>
 
-    <!-- ================= PANEL DOCENTE ================= -->
-    <div id="panelDocente" class="hidden flex h-screen overflow-hidden">
-        <!-- Menú Lateral -->
-        <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20">
-            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
-                <span class="text-lg font-bold tracking-wide">Menú Docente</span>
-                <span class="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-0.5 rounded font-mono">En línea</span>
-            </div>
+    <!-- PANEL DOCENTE -->
+    <div id="panel-docente" class="hidden flex-grow flex h-screen overflow-hidden">
+        <aside class="w-64 bg-gray-800 text-white p-4 flex flex-col h-full overflow-y-auto">
+            <h3 class="font-bold text-xl mb-6 text-center border-b border-gray-600 pb-2">Menú Docente</h3>
+            
+            <button id="nav-dashboard" class="text-left w-full bg-blue-600 hover:bg-blue-700 p-2 rounded mb-2 font-semibold transition-colors">📊 Dashboard</button>
+            <button id="nav-actividad" class="text-left w-full bg-gray-800 hover:bg-gray-700 p-2 rounded mb-6 font-semibold transition-colors">➕ Añadir Actividad</button>
 
-            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-                <button onclick="mostrarDashboard()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 transition font-medium text-left">
-                    📊 Dashboard
-                </button>
-                <button onclick="mostrarFormularioActividad()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-slate-800 transition font-medium text-left text-slate-300">
-                    ➕ Añadir Actividad
-                </button>
-                
-                <div class="pt-5 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Grupos</div>
-                <div class="space-y-1" id="listaGruposDocente">
-                    <!-- Se generan dinámicamente -->
-                </div>
-            </nav>
+            <h3 class="font-bold text-sm mb-2 text-gray-400 uppercase">Grupos</h3>
+            <ul id="lista-grupos-docente" class="space-y-1 text-sm flex-grow">
+                <li data-grado="6-1" class="cursor-pointer hover:bg-gray-700 p-2 rounded transition-colors">Sexto 1</li>
+                <li data-grado="6-2" class="cursor-pointer hover:bg-gray-700 p-2 rounded transition-colors">Sexto 2</li>
+                <li data-grado="7" class="cursor-pointer hover:bg-gray-700 p-2 rounded transition-colors">Séptimo</li>
+                <li data-grado="8-1" class="cursor-pointer hover:bg-gray-700 p-2 rounded transition-colors">Octavo 1</li>
+                <li data-grado="8-2" class="cursor-pointer hover:bg-gray-700 p-2 rounded transition-colors">Octavo 2</li>
+                <li data-grado="9" class="cursor-pointer hover:bg-gray-700 p-2 rounded transition-colors">Noveno</li>
+                <li data-grado="10" class="cursor-pointer hover:bg-gray-700 p-2 rounded transition-colors">Décimo</li>
+                <li data-grado="11" class="cursor-pointer hover:bg-gray-700 p-2 rounded transition-colors">Once</li>
+            </ul>
 
-            <!-- Botón Cerrar Sesión -->
-            <div class="p-4 border-t border-slate-800 bg-slate-950/40">
-                <button onclick="cerrarSesion()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white transition font-medium text-sm">
-                    🚪 Cerrar Sesión
-                </button>
-            </div>
+            <button onclick="cerrarSesion()" class="mt-6 w-full bg-red-600 hover:bg-red-700 text-white p-2 rounded font-bold transition-colors shadow">🚪 Cerrar Sesión</button>
         </aside>
 
-        <!-- Área Principal de Trabajo -->
-        <main class="flex-1 flex flex-col overflow-y-auto">
-            <header class="bg-white shadow-sm h-16 flex items-center justify-between px-8 border-b border-slate-200">
-                <h1 id="tituloSeccion" class="text-xl font-bold text-slate-800">Dashboard General</h1>
-                <button onclick="generarReporteGlobal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
-                    📊 Generar Reporte Global
-                </button>
-            </header>
+        <main class="flex-1 p-8 bg-gray-50 overflow-y-auto h-full">
+            
+            <!-- VISTA: DASHBOARD -->
+            <div id="vista-dashboard" class="block">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold text-gray-800">Dashboard General</h2>
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow text-sm transition-colors">📥 Generar Reporte Global</button>
+                </div>
 
-            <div id="contenidoDinamico" class="p-8">
-                <!-- Vistas dinámicas -->
+                <h3 id="titulo-grupo-seleccionado" class="text-xl font-bold text-gray-700 mb-4">Reporte por Grupo: Selecciona un grado</h3>
+                <div id="contenedor-actividades-grupo" class="bg-white border border-gray-200 rounded-lg p-8 text-center text-gray-500 shadow-sm">
+                    <p>Haz clic en un grupo en el menú lateral izquierdo para ver las actividades asignadas y las notas de los estudiantes.</p>
+                </div>
+            </div>
+
+            <!-- VISTA: AÑADIR ACTIVIDAD -->
+            <div id="vista-actividad" class="hidden">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">Crear Nueva Actividad</h2>
+                
+                <form id="form-crear-actividad" class="space-y-6 max-w-4xl bg-white p-8 rounded-lg shadow-sm border border-gray-200">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Grado Destino</label>
+                            <select id="grado-destino" class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500" required>
+                                <option value="6-1">Sexto 1</option>
+                                <option value="6-2">Sexto 2</option>
+                                <option value="7">Séptimo</option>
+                                <option value="8-1">Octavo 1</option>
+                                <option value="8-2">Octavo 2</option>
+                                <option value="9">Noveno</option>
+                                <option value="10">Décimo</option>
+                                <option value="11">Once</option>
+                                <option value="Todos">Todos los grupos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Link de YouTube</label>
+                            <input type="url" id="url-video" placeholder="https://www.youtube.com/watch?v=..." class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Título de la Clase</label>
+                        <input type="text" id="titulo-clase" placeholder="Ej: Fases del proceso de transformación" class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Objetivo de la Actividad</label>
+                        <input type="text" id="objetivo-actividad" placeholder="Ej: Reconocer los puntos de control de temperatura..." class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Descripción</label>
+                        <textarea id="descripcion-actividad" rows="3" placeholder="Instrucciones para los estudiantes..." class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500" required></textarea>
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-gray-800">Preguntas Interactivas</h3>
+                            <button type="button" id="btn-add-pregunta" class="bg-gray-800 text-white px-3 py-1 rounded text-sm hover:bg-gray-700 transition-colors shadow">+ Agregar Pregunta</button>
+                        </div>
+                        
+                        <div id="contenedor-preguntas" class="space-y-4">
+                            <!-- Base (Se insertan dinámicamente) -->
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-700 transition-colors shadow-lg mt-6">Guardar Actividad en Base de Datos</button>
+                </form>
             </div>
         </main>
     </div>
 
-    <!-- ================= VISTA ESTUDIANTE (BÁSICA) ================= -->
-    <div id="panelEstudiante" class="hidden min-h-screen bg-slate-50 p-8">
-        <div class="max-w-4xl mx-auto">
-            <div class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm mb-6 border">
+    <!-- PANEL ESTUDIANTE -->
+    <div id="panel-estudiante" class="hidden flex-grow flex-col items-center p-4 bg-gray-50 min-h-screen">
+        
+        <!-- VISTA: DASHBOARD PERSONAL ESTUDIANTE -->
+        <div id="vista-bienvenida-estudiante" class="max-w-5xl w-full flex flex-col gap-6 mt-6">
+            
+            <!-- Header del Perfil -->
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-800">Portal Estudiantil</h2>
-                    <p class="text-sm text-slate-500">Grupo: Sexto 1</p>
+                    <h2 class="text-2xl font-bold text-gray-800">Hola, <span id="nombre-estudiante-display" class="text-blue-600">Estudiante</span> 👋</h2>
+                    <p class="text-gray-500 text-sm mt-1">Grado: <span id="grado-estudiante-display" class="font-bold text-gray-700"></span> | Código: <span id="codigo-estudiante-display" class="font-bold text-gray-700"></span></p>
                 </div>
-                <button onclick="cerrarSesion()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium px-4 py-2 rounded-lg transition">
-                    Cerrar Sesión
+                <button onclick="cerrarSesion()" class="text-red-500 hover:text-red-700 font-semibold transition-colors flex items-center gap-2 border border-red-200 bg-red-50 px-4 py-2 rounded-lg">
+                    🚪 Cerrar Sesión
                 </button>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                <h3 class="font-bold text-slate-800 mb-4">Tus Actividades Asignadas</h3>
-                <div id="listaActividadesEstudiante" class="space-y-3"></div>
+
+            <!-- Grid de Actividades -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Columna: Pendientes -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">⏳ Actividades Pendientes</h3>
+                    <div id="lista-pendientes" class="flex flex-col gap-4">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+
+                <!-- Columna: Realizadas -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">✅ Mis Calificaciones</h3>
+                    <div id="lista-realizadas" class="flex flex-col gap-4">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA: REPRODUCTOR INTERACTIVO -->
+        <div id="vista-reproductor" class="hidden w-full max-w-5xl bg-white p-6 rounded-lg shadow-lg flex-col h-[85vh] mt-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800" id="titulo-reproductor">Actividad Interactiva</h2>
+                <div class="text-sm bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-bold shadow-sm">
+                    Progreso: <span id="progreso-text">0%</span>
+                </div>
+            </div>
+            
+            <div class="relative w-full flex-grow bg-black rounded-lg overflow-hidden shadow-inner flex items-center justify-center" style="min-height: 400px;">
+                <div id="youtube-player" class="w-full h-full absolute inset-0"></div>
+                
+                <div id="question-overlay" class="hidden absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-8 z-50 text-white">
+                    <div class="bg-gray-800 border border-gray-600 p-8 rounded-xl max-w-2xl w-full text-center shadow-2xl transform transition-all">
+                        <span class="text-blue-400 font-bold tracking-widest uppercase text-xs mb-2 block">Pregunta de validación</span>
+                        <h3 id="q-text" class="text-2xl mb-8 font-semibold text-white leading-relaxed">¿Pregunta?</h3>
+                        <div id="q-options" class="grid grid-cols-1 gap-4 mb-4"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+                <button onclick="volverDashboardEstudiante()" class="text-gray-500 hover:text-blue-600 text-sm font-semibold transition-colors border border-gray-300 px-4 py-2 rounded-lg bg-gray-50 hover:bg-blue-50">
+                    ⏸ Pausar y regresar a mi Dashboard
+                </button>
             </div>
         </div>
     </div>
 
+    <footer class="bg-gray-900 text-gray-400 py-6 mt-auto text-sm text-center">
+        <div class="max-w-4xl mx-auto px-4">
+            <p class="font-semibold text-gray-200">Alejandro Martínez Caicedo</p>
+            <p>Emprendimiento | Tecnología y café</p>
+            <p class="mt-2 text-xs">Institución Educativa San Juan Bosco</p>
+        </div>
+    </footer>
+
     <script>
-        // Lista oficial de grados normalizada
-        const GRUPOS = [
-            "Sexto 1", "Sexto 2", "Séptimo", "Octavo 1", 
-            "Octavo 2", "Noveno", "Décimo", "Once"
-        ];
-
-        // Base de datos de ejemplo en memoria
-        let actividades = [
-            { 
-                id: "ACT_179027007", 
-                fecha: "24/9/2026", 
-                grado: "Sexto 1", 
-                link: "https://www.youtube.com/watch?v=G84CdSrYqcc", 
-                titulo: "Análisis Pitch de negocios", 
-                objetivo: "Identificar elementos clave de un pitch de negocios y marketing.", 
-                descripcion: "Analizar el caso real de emprendimiento infantil en Shark Tank.",
-                activa: true,
-                estudiantesTotal: 32,
-                estudiantesCompletados: 26,
-                promedioCalificacion: 4.3
-            },
-            { 
-                id: "ACT_179027008", 
-                fecha: "22/9/2026", 
-                grado: "Séptimo", 
-                link: "https://www.youtube.com/watch?v=G84CdSrYqcc", 
-                titulo: "Ecosistemas Digitales y Ventas", 
-                objetivo: "Reconocer las herramientas de difusión y pauta online.", 
-                descripcion: "Taller sobre embudos de venta y redes sociales.",
-                activa: true,
-                estudiantesTotal: 30,
-                estudiantesCompletados: 18,
-                promedioCalificacion: 3.9
-            },
-            { 
-                id: "ACT_179027009", 
-                fecha: "20/9/2026", 
-                grado: "Once", 
-                link: "https://www.youtube.com/watch?v=G84CdSrYqcc", 
-                titulo: "Estructuración de Capital y Acciones", 
-                objetivo: "Analizar la diferencia entre crédito y porcentaje accionario.", 
-                descripcion: "Estudio de rondas de inversión y valoraciones comerciales.",
-                activa: false,
-                estudiantesTotal: 28,
-                estudiantesCompletados: 12,
-                promedioCalificacion: 4.1
+        // --- Variables y Configuración Global ---
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfZCYVzDmmeRguhLvzeC-bWiHsNdnf81Aiah0k-6OnSOb408pv1mzuucjEMafP1wD_/exec';
+        
+        let player;
+        let intervaloVideo;
+        let actividadActual = null;
+        let intentoActual = { correctas: 0, resueltas: 0 };
+        let estudianteIdActual = "";
+        let nombreEstudianteActual = "";
+        
+        // Base de datos simulada de actividades por grado (Hasta conectar GET de Google Sheets)
+        const baseActividades = [
+            {
+                id: "ACT_DEMO_01",
+                grados: ["6-1", "6-2", "11"],
+                titulo: "Evaluación Sensorial y Tueste de Especialidad",
+                videoId: "M7lc1UVf-VE", // ID de prueba estable de YouTube
+                preguntas: [
+                    { tiempo: 10, texto: "¿Cuál es el puntaje mínimo SCA para considerar un café de especialidad?", opciones: ["80 puntos", "83 puntos", "85 puntos"], correcta: 1, respondida: false },
+                    { tiempo: 25, texto: "¿A qué temperatura aproximada del agua se sugiere realizar la extracción controlada?", opciones: ["85°C", "90°C", "100°C"], correcta: 2, respondida: false }
+                ]
             }
         ];
 
-        // Normalizador de texto para compatibilidad con Google Sheets ("6-1", "Sexto 1", etc.)
-        function normalizarGrado(g) {
-            if (!g) return "";
-            let val = g.toString().trim().toLowerCase();
-            if (val === "6-1" || val === "6.1" || val === "sexto 1" || val === "sexto-1") return "Sexto 1";
-            if (val === "6-2" || val === "6.2" || val === "sexto 2" || val === "sexto-2") return "Sexto 2";
-            if (val === "7" || val === "séptimo" || val === "septimo") return "Séptimo";
-            if (val === "8-1" || val === "octavo 1") return "Octavo 1";
-            if (val === "8-2" || val === "octavo 2") return "Octavo 2";
-            if (val === "9" || val === "noveno") return "Noveno";
-            if (val === "10" || val === "décimo" || val === "decimo") return "Décimo";
-            if (val === "11" || val === "once") return "Once";
-            return g;
-        }
+        // --- Funciones Globales para Botones ---
 
-        // --- GESTIÓN DE SESIÓN Y VISTAS ---
-        function iniciarSesion(rol) {
-            sessionStorage.setItem("rol_activo", rol);
-            aplicarEstadoSesion();
-        }
+        // Función Mejorada de Cerrar Sesión (Limpia sin recargar)
+        window.cerrarSesion = function() {
+            // 1. Limpiar variables y almacenamiento temporal
+            sessionStorage.clear();
+            estudianteIdActual = "";
+            nombreEstudianteActual = "";
+            actividadActual = null;
+            
+            // 2. Vaciar completamente las casillas de los formularios
+            document.getElementById('form-estudiante').reset();
+            document.getElementById('form-docente').reset();
+            
+            // 3. Ocultar los paneles de perfiles
+            document.getElementById('panel-estudiante').classList.add('hidden');
+            document.getElementById('panel-estudiante').classList.remove('flex');
+            
+            document.getElementById('panel-docente').classList.add('hidden');
+            document.getElementById('panel-docente').classList.remove('flex');
+            
+            // 4. Mostrar nuevamente el panel principal de bienvenida
+            document.getElementById('login-panel').classList.remove('hidden');
+            document.getElementById('login-panel').classList.add('flex');
+            
+            // 5. Ocultar los recuadros de usuario y contraseña para elegir el rol desde cero
+            document.getElementById('form-estudiante').classList.add('hidden');
+            document.getElementById('form-docente').classList.add('hidden');
 
-        function cerrarSesion() {
-            sessionStorage.removeItem("rol_activo");
-            aplicarEstadoSesion();
-        }
-
-        function aplicarEstadoSesion() {
-            const rol = sessionStorage.getItem("rol_activo");
-            const pantallaLogin = document.getElementById("pantallaLogin");
-            const panelDocente = document.getElementById("panelDocente");
-            const panelEstudiante = document.getElementById("panelEstudiante");
-
-            pantallaLogin.classList.add("hidden");
-            panelDocente.classList.add("hidden");
-            panelEstudiante.classList.add("hidden");
-
-            if (rol === "docente") {
-                panelDocente.classList.remove("hidden");
-                renderMenuGrupos();
-                mostrarDashboard();
-            } else if (rol === "estudiante") {
-                panelEstudiante.classList.remove("hidden");
-                cargarVistaEstudiante();
-            } else {
-                pantallaLogin.classList.remove("hidden");
+            // 6. Detener el video si quedó reproduciéndose de fondo
+            if (typeof player !== 'undefined' && player && typeof player.stopVideo === 'function') {
+                player.stopVideo();
             }
-        }
+        };
 
-        function renderMenuGrupos() {
-            const contenedor = document.getElementById("listaGruposDocente");
-            contenedor.innerHTML = GRUPOS.map(grupo => `
-                <button onclick="filtrarPorGrupo('${grupo}')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-slate-800 text-slate-300 transition text-sm flex justify-between items-center">
-                    <span>${grupo}</span>
-                    <span class="text-xs bg-slate-800 px-1.5 py-0.5 rounded text-slate-400 font-mono">
-                        ${actividades.filter(a => normalizarGrado(a.grado) === grupo).length}
-                    </span>
-                </button>
-            `).join('');
-        }
+        // Función para volver al Dashboard Estudiante sin cerrar sesión
+        window.volverDashboardEstudiante = function() {
+            if (player && typeof player.pauseVideo === 'function') {
+                player.pauseVideo();
+                verificarTiempo(); 
+            }
+            document.getElementById('vista-reproductor').classList.add('hidden');
+            document.getElementById('vista-reproductor').classList.remove('flex');
+            document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden');
+            document.getElementById('vista-bienvenida-estudiante').classList.add('flex');
+            
+            construirDashboardEstudiante(document.getElementById('grado').value);
+        };
 
-        // --- DASHBOARD DOCENTE CON ESTADÍSTICAS POR GRADO ---
-        function mostrarDashboard() {
-            document.getElementById('tituloSeccion').innerText = "Dashboard General";
-            const contenedor = document.getElementById('contenidoDinamico');
-
-            const totalActividades = actividades.length;
-            const actividadesActivas = actividades.filter(a => a.activa).length;
-
-            // Calcular avance estadístico por grado
-            const statsPorGrado = GRUPOS.map(grupo => {
-                const acts = actividades.filter(a => normalizarGrado(a.grado) === grupo);
-                if (acts.length === 0) return { grupo, avance: 0, promedio: 0, totalActs: 0 };
-                
-                const totalEsperados = acts.reduce((acc, curr) => acc + (curr.estudiantesTotal || 0), 0);
-                const totalHechos = acts.reduce((acc, curr) => acc + (curr.estudiantesCompletados || 0), 0);
-                const porcentaje = totalEsperados > 0 ? Math.round((totalHechos / totalEsperados) * 100) : 0;
-                const prom = (acts.reduce((acc, curr) => acc + (curr.promedioCalificacion || 0), 0) / acts.length).toFixed(1);
-                
-                return { grupo, avance: porcentaje, promedio: prom, totalActs: acts.length };
+        // --- Lógica Principal de Eventos ---
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // 1. Manejo de Paneles de Login
+            document.getElementById('btn-show-estudiante').addEventListener('click', () => {
+                document.getElementById('form-estudiante').classList.remove('hidden');
+                document.getElementById('form-docente').classList.add('hidden');
+            });
+            document.getElementById('btn-show-docente').addEventListener('click', () => {
+                document.getElementById('form-docente').classList.remove('hidden');
+                document.getElementById('form-estudiante').classList.add('hidden');
             });
 
-            contenedor.innerHTML = `
-                <!-- Métricas Principales -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total de Actividades</h4>
-                        <p class="text-3xl font-extrabold text-slate-900 mt-2">${totalActividades}</p>
-                        <p class="text-xs text-slate-500 mt-1">${actividadesActivas} activas en plataforma</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Grupos Cubiertos</h4>
-                        <p class="text-3xl font-extrabold text-indigo-600 mt-2">${GRUPOS.length}</p>
-                        <p class="text-xs text-slate-500 mt-1">Sexto a Once</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Promedio de Cumplimiento Global</h4>
-                        <p class="text-3xl font-extrabold text-emerald-600 mt-2">76%</p>
-                        <p class="text-xs text-slate-500 mt-1">Participación en cuestionarios</p>
-                    </div>
-                </div>
-
-                <!-- Estadísticas de Avance por Grados -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-                    <h3 class="text-base font-bold text-slate-800 mb-4">Avance y Rendimiento por Grados</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        ${statsPorGrado.map(st => `
-                            <div class="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="font-bold text-sm text-slate-800">${st.grupo}</span>
-                                    <span class="text-xs font-bold px-2 py-0.5 rounded ${st.promedio >= 4.0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                                        Nota: ${st.promedio > 0 ? st.promedio : 'S/N'}
-                                    </span>
-                                </div>
-                                <div class="w-full bg-slate-200 rounded-full h-2 mb-2">
-                                    <div class="bg-blue-600 h-2 rounded-full transition-all" style="width: ${st.avance}%"></div>
-                                </div>
-                                <div class="flex justify-between text-xs text-slate-500">
-                                    <span>${st.totalActs} act. asignada(s)</span>
-                                    <span>${st.avance}% completado</span>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- Tabla de Actividades con Redirección a Estadísticas -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-base font-bold text-slate-800">Actividades Creadas</h3>
-                        <span class="text-xs text-slate-400">Haz clic en cualquier actividad para abrir sus estadísticas</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="border-b text-xs font-semibold text-slate-400 uppercase bg-slate-50/50">
-                                    <th class="p-3">ID</th>
-                                    <th class="p-3">Grado</th>
-                                    <th class="p-3">Título</th>
-                                    <th class="p-3">Fecha</th>
-                                    <th class="p-3">Estado</th>
-                                    <th class="p-3 text-right">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y text-sm">
-                                ${actividades.map(a => `
-                                    <tr onclick="verEstadisticasActividad('${a.id}')" class="hover:bg-blue-50/50 cursor-pointer transition">
-                                        <td class="p-3 font-mono text-xs text-blue-600 font-semibold">${a.id}</td>
-                                        <td class="p-3 font-medium text-slate-800">${a.grado}</td>
-                                        <td class="p-3 text-slate-700">${a.titulo}</td>
-                                        <td class="p-3 text-slate-500 text-xs">${a.fecha}</td>
-                                        <td class="p-3">
-                                            <span class="text-xs px-2.5 py-1 rounded-full font-semibold ${a.activa ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
-                                                ${a.activa ? 'Activa' : 'Desactivada'}
-                                            </span>
-                                        </td>
-                                        <td class="p-3 text-right">
-                                            <span class="text-xs font-semibold text-blue-600 hover:text-blue-800">Ver Reporte ➔</span>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
-
-        // --- VISTA DETALLADA DE ESTADÍSTICAS POR ACTIVIDAD (AL DAR CLIC) ---
-        function verEstadisticasActividad(actividadId) {
-            const act = actividades.find(a => a.id === actividadId);
-            if (!act) return;
-
-            document.getElementById('tituloSeccion').innerText = `Estadísticas: ${act.titulo}`;
-            const contenedor = document.getElementById('contenidoDinamico');
-
-            const porcentajeEntrega = Math.round((act.estudiantesCompletados / act.estudiantesTotal) * 100);
-
-            contenedor.innerHTML = `
-                <div class="mb-4">
-                    <button onclick="mostrarDashboard()" class="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                        ← Volver al Dashboard
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 mb-4 gap-4">
-                        <div>
-                            <span class="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">${act.id}</span>
-                            <span class="text-xs font-bold text-slate-600 ml-2 bg-slate-100 px-2 py-1 rounded">${act.grado}</span>
-                            <h2 class="text-2xl font-bold text-slate-900 mt-2">${act.titulo}</h2>
-                            <p class="text-sm text-slate-600 mt-1">${act.objetivo}</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="toggleEstadoActividad('${act.id}', true)" class="px-4 py-2 rounded-lg text-sm font-semibold transition ${act.activa ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
-                                ${act.activa ? '⏸ Desactivar Actividad' : '▶ Activar Actividad'}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div class="bg-slate-50 border p-4 rounded-xl">
-                            <span class="text-xs font-semibold text-slate-500">Estudiantes que han respondido</span>
-                            <p class="text-2xl font-bold text-slate-800 mt-1">${act.estudiantesCompletados} / ${act.estudiantesTotal}</p>
-                            <div class="w-full bg-slate-200 rounded-full h-1.5 mt-2">
-                                <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${porcentajeEntrega}%"></div>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 border p-4 rounded-xl">
-                            <span class="text-xs font-semibold text-slate-500">Promedio General</span>
-                            <p class="text-2xl font-bold text-emerald-600 mt-1">${act.promedioCalificacion} / 5.0</p>
-                            <p class="text-xs text-slate-400 mt-1">Escala tipo Saber / ICFES</p>
-                        </div>
-                        <div class="bg-slate-50 border p-4 rounded-xl">
-                            <span class="text-xs font-semibold text-slate-500">Material de Trabajo</span>
-                            <p class="mt-1">
-                                <a href="${act.link}" target="_blank" class="text-sm text-blue-600 hover:underline font-medium inline-flex items-center gap-1">
-                                    Ver Video en YouTube ↗
-                                </a>
-                            </p>
-                        </div>
-                    </div>
-
-                    <h4 class="font-bold text-slate-800 mb-3 text-sm">Registro de Respuestas de Estudiantes</h4>
-                    <div class="border rounded-xl overflow-hidden">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-50 text-xs font-semibold text-slate-500 border-b">
-                                <tr>
-                                    <th class="p-3">Estudiante</th>
-                                    <th class="p-3">Aciertos (10 preguntas)</th>
-                                    <th class="p-3">Calificación</th>
-                                    <th class="p-3">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y text-slate-700">
-                                <tr>
-                                    <td class="p-3 font-medium">Camila Andrea Morales</td>
-                                    <td class="p-3">9 / 10</td>
-                                    <td class="p-3 font-bold text-emerald-600">4.5</td>
-                                    <td class="p-3"><span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded font-semibold">Aprobado</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="p-3 font-medium">Juan David Sánchez</td>
-                                    <td class="p-3">8 / 10</td>
-                                    <td class="p-3 font-bold text-emerald-600">4.0</td>
-                                    <td class="p-3"><span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded font-semibold">Aprobado</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="p-3 font-medium">Mateo Gómez Ríos</td>
-                                    <td class="p-3">5 / 10</td>
-                                    <td class="p-3 font-bold text-rose-600">2.5</td>
-                                    <td class="p-3"><span class="bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded font-semibold">Reprobado</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
-
-        // --- FILTRO POR GRUPO CON OPCIÓN DE DESACTIVAR / ACTIVAR ---
-        function filtrarPorGrupo(grupoSeleccionado) {
-            const grupoNormalizado = normalizarGrado(grupoSeleccionado);
-            document.getElementById('tituloSeccion').innerText = `Actividades de ${grupoNormalizado}`;
-            const contenedor = document.getElementById('contenidoDinamico');
-
-            const filtradas = actividades.filter(a => normalizarGrado(a.grado) === grupoNormalizado);
-
-            contenedor.innerHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-800">Listado de Actividades Asignadas</h3>
-                            <p class="text-sm text-slate-500">Puedes pausar o activar actividades para este grupo en cualquier momento.</p>
-                        </div>
-                        <button onclick="mostrarFormularioActividad()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
-                            + Asignar a este grupo
-                        </button>
-                    </div>
-
-                    ${filtradas.length > 0 ? `
-                        <div class="space-y-4">
-                            ${filtradas.map(act => `
-                                <div class="border rounded-xl p-5 bg-slate-50/70 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                    <div>
-                                        <div class="flex items-center gap-2 mb-1">
-                                            <span class="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">${act.id}</span>
-                                            <span class="text-xs px-2 py-0.5 rounded-full font-bold ${act.activa ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
-                                                ${act.activa ? 'Visible para Estudiantes' : 'Desactivada'}
-                                            </span>
-                                        </div>
-                                        <h4 class="font-bold text-slate-900 text-base">${act.titulo}</h4>
-                                        <p class="text-sm text-slate-600 mt-1">${act.objetivo}</p>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <button onclick="verEstadisticasActividad('${act.id}')" class="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-medium rounded-lg shadow-sm transition">
-                                            📊 Métricas
-                                        </button>
-                                        <button onclick="toggleEstadoActividad('${act.id}', false, '${grupoNormalizado}')" class="px-3 py-1.5 text-xs font-medium rounded-lg transition ${act.activa ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
-                                            ${act.activa ? 'Desactivar' : 'Activar'}
-                                        </button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : `
-                        <div class="p-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed">
-                            No hay actividades asignadas a ${grupoNormalizado}.
-                        </div>
-                    `}
-                </div>
-            `;
-        }
-
-        // Función para cambiar estado Activa / Desactivada
-        function toggleEstadoActividad(id, redirigirAEstadisticas = false, grupoOrigen = null) {
-            const index = actividades.findIndex(a => a.id === id);
-            if (index !== -1) {
-                actividades[index].activa = !actividades[index].activa;
-                if (redirigirAEstadisticas) {
-                    verEstadisticasActividad(id);
-                } else if (grupoOrigen) {
-                    filtrarPorGrupo(grupoOrigen);
+            // 2. Ingreso Docente
+            document.getElementById('form-docente').addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (document.getElementById('pass-docente').value === 'AdminDocente') {
+                    document.getElementById('login-panel').classList.add('hidden');
+                    document.getElementById('login-panel').classList.remove('flex');
+                    document.getElementById('panel-docente').classList.remove('hidden');
+                    document.getElementById('panel-docente').classList.add('flex');
                 } else {
-                    mostrarDashboard();
+                    alert('Contraseña incorrecta');
+                }
+            });
+
+            // 3. Navegación Panel Docente
+            document.getElementById('nav-dashboard').addEventListener('click', () => {
+                document.getElementById('vista-dashboard').classList.remove('hidden');
+                document.getElementById('vista-actividad').classList.add('hidden');
+                document.getElementById('nav-dashboard').classList.replace('bg-gray-800', 'bg-blue-600');
+                document.getElementById('nav-actividad').classList.replace('bg-green-600', 'bg-gray-800');
+            });
+
+            document.getElementById('nav-actividad').addEventListener('click', () => {
+                document.getElementById('vista-actividad').classList.remove('hidden');
+                document.getElementById('vista-dashboard').classList.add('hidden');
+                document.getElementById('nav-actividad').classList.replace('bg-gray-800', 'bg-green-600');
+                document.getElementById('nav-dashboard').classList.replace('bg-blue-600', 'bg-gray-800');
+            });
+
+            // 4. Lógica de Dashboard Docente (Actualización Dinámica)
+            const listaGrupos = document.querySelectorAll('#lista-grupos-docente li');
+            const contenedorActividades = document.getElementById('contenedor-actividades-grupo');
+
+            listaGrupos.forEach(li => {
+                li.addEventListener('click', () => {
+                    listaGrupos.forEach(el => el.classList.remove('bg-gray-700', 'border-l-4', 'border-blue-500', 'font-bold'));
+                    li.classList.add('bg-gray-700', 'border-l-4', 'border-blue-500', 'font-bold');
+                    
+                    const gradoSeleccionado = li.getAttribute('data-grado');
+                    document.getElementById('titulo-grupo-seleccionado').innerText = `Reporte de Actividades: Grado ${li.innerText}`;
+                    
+                    // Filtrar actividades correspondientes a este grado
+                    const actividadesGrado = baseActividades.filter(act => act.grados.includes(gradoSeleccionado) || act.grados.includes('Todos'));
+                    
+                    if(actividadesGrado.length === 0) {
+                        contenedorActividades.innerHTML = `<p class="text-gray-500 py-8">No hay actividades asignadas para este grado.</p>`;
+                        return;
+                    }
+
+                    let filasHTML = '';
+                    actividadesGrado.forEach(act => {
+                        // Buscar si algún estudiante de este grado resolvió la actividad en el LocalStorage
+                        let estudiantesQueResolvieron = 0;
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key.startsWith(`nota_${gradoSeleccionado}`) && key.includes(act.id)) {
+                                estudiantesQueResolvieron++;
+                            }
+                        }
+
+                        filasHTML += `
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-6 py-4 font-bold text-gray-900">${act.titulo}</td>
+                                <td class="px-6 py-4 text-green-600 font-semibold">${estudiantesQueResolvieron > 0 ? estudiantesQueResolvieron + ' Entregas' : 'Sin entregas'}</td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-blue-600 font-bold hover:underline">Ver Notas</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    contenedorActividades.innerHTML = `
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500 border rounded-lg">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b">
+                                    <tr>
+                                        <th class="px-6 py-3">Título de la Actividad</th>
+                                        <th class="px-6 py-3">Estado de Entrega</th>
+                                        <th class="px-6 py-3 text-right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${filasHTML}</tbody>
+                            </table>
+                        </div>
+                    `;
+                    document.getElementById('nav-dashboard').click();
+                });
+            });
+
+            // 5. Agregar Preguntas Dinámicas en Formulario
+            document.getElementById('btn-add-pregunta').addEventListener('click', () => {
+                const nuevaPregunta = document.createElement('div');
+                nuevaPregunta.className = "border border-gray-300 p-4 rounded-lg bg-gray-50 relative mt-4 shadow-sm";
+                nuevaPregunta.innerHTML = `
+                    <button type="button" class="absolute top-2 right-3 text-red-500 font-bold hover:text-red-700 bg-red-100 px-2 rounded" onclick="this.parentElement.remove()">X</button>
+                    <div class="grid grid-cols-4 gap-4 mb-3 mt-2">
+                        <div class="col-span-1">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Tiempo (Seg)</label>
+                            <input type="number" class="w-full p-2 border rounded text-sm" required>
+                        </div>
+                        <div class="col-span-3">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Pregunta</label>
+                            <input type="text" class="w-full p-2 border rounded text-sm" required>
+                        </div>
+                    </div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Opciones (Separadas por comas)</label>
+                    <input type="text" class="w-full p-2 border rounded text-sm mb-3" required>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Índice Correcto (1, 2...)</label>
+                    <input type="number" class="w-32 p-2 border rounded text-sm" required>
+                `;
+                document.getElementById('contenedor-preguntas').appendChild(nuevaPregunta);
+            });
+
+            // 6. Crear Actividad - Envío a Sheets
+            document.getElementById('form-crear-actividad').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const btnSubmit = e.target.querySelector('button[type="submit"]');
+                const btnOriginalText = btnSubmit.innerText;
+                btnSubmit.innerText = "Guardando en Google Sheets...";
+                btnSubmit.disabled = true;
+
+                const formData = {
+                    grado: document.getElementById('grado-destino').value,
+                    urlVideo: document.getElementById('url-video').value,
+                    titulo: document.getElementById('titulo-clase').value,
+                    objetivo: document.getElementById('objetivo-actividad').value,
+                    descripcion: document.getElementById('descripcion-actividad').value,
+                    preguntas: []
+                };
+
+                const preguntasRows = document.getElementById('contenedor-preguntas').children;
+                for (let row of preguntasRows) {
+                    const inputs = row.querySelectorAll('input');
+                    formData.preguntas.push({
+                        tiempo: inputs[0].value,
+                        texto: inputs[1].value,
+                        opciones: inputs[2].value,
+                        correcta: inputs[3].value
+                    });
+                }
+
+                try {
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'crearActividad', payload: formData })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if(result.success) {
+                        alert("¡Actividad guardada exitosamente!");
+                        e.target.reset(); 
+                        document.getElementById('contenedor-preguntas').innerHTML = ''; 
+                    } else {
+                        alert("Error al guardar: " + (result.error || "Desconocido"));
+                    }
+                } catch (error) {
+                    alert("Error de conexión al guardar actividad.");
+                } finally {
+                    btnSubmit.innerText = btnOriginalText;
+                    btnSubmit.disabled = false;
+                }
+            });
+
+            // 7. Login del Estudiante
+            document.getElementById('form-estudiante').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const btnSubmit = e.target.querySelector('button[type="submit"]');
+                const btnOriginalText = btnSubmit.innerText;
+                btnSubmit.innerText = "Verificando credenciales...";
+                btnSubmit.disabled = true;
+
+                const grado = document.getElementById('grado').value;
+                const codigo = document.getElementById('codigo-estudiante').value;
+                const password = document.getElementById('pass-estudiante').value;
+
+                try {
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'validarEstudiante', grado: grado, codigo: codigo, password: password })
+                    });
+                    const result = await response.json();
+                    
+                    if(result.success) {
+                        estudianteIdActual = `${grado}-${codigo}`;
+                        nombreEstudianteActual = result.nombre;
+                        
+                        document.getElementById('login-panel').classList.add('hidden');
+                        document.getElementById('login-panel').classList.remove('flex');
+                        
+                        document.getElementById('panel-estudiante').classList.remove('hidden');
+                        document.getElementById('panel-estudiante').classList.add('flex');
+                        
+                        document.getElementById('nombre-estudiante-display').innerText = result.nombre;
+                        document.getElementById('grado-estudiante-display').innerText = grado;
+                        document.getElementById('codigo-estudiante-display').innerText = codigo;
+                        
+                        construirDashboardEstudiante(grado);
+                    } else {
+                        alert("Error: " + (result.error || "Credenciales incorrectas."));
+                    }
+                } catch (error) {
+                    alert("Error de conexión al validar estudiante.");
+                } finally {
+                    btnSubmit.innerText = btnOriginalText;
+                    btnSubmit.disabled = false;
+                }
+            });
+
+            // 8. Construcción del Dashboard del Estudiante
+            function construirDashboardEstudiante(grado) {
+                const listaPendientes = document.getElementById('lista-pendientes');
+                const listaRealizadas = document.getElementById('lista-realizadas');
+                
+                listaPendientes.innerHTML = '';
+                listaRealizadas.innerHTML = '';
+                
+                let pendientesCount = 0;
+                let realizadasCount = 0;
+
+                baseActividades.forEach(act => {
+                    if(act.grados.includes(grado) || act.grados.includes('Todos')) {
+                        // Verificar si ya tiene nota guardada en LocalStorage
+                        const notaGuardada = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
+                        
+                        if (notaGuardada) {
+                            // Actividad Realizada
+                            realizadasCount++;
+                            listaRealizadas.innerHTML += `
+                                <div class="p-4 border border-green-200 bg-green-50 rounded-lg flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-bold text-green-900">${act.titulo}</h4>
+                                        <p class="text-xs text-green-700 mt-1">Completada exitosamente</p>
+                                    </div>
+                                    <div class="bg-white px-4 py-2 rounded-full border border-green-300 text-green-700 font-bold shadow-sm">
+                                        Nota: ${notaGuardada}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Actividad Pendiente
+                            pendientesCount++;
+                            listaPendientes.innerHTML += `
+                                <div class="p-4 border border-gray-200 bg-gray-50 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">${act.titulo}</h4>
+                                        <p class="text-xs text-gray-500 mt-1">Video Interactivo Asignado</p>
+                                    </div>
+                                    <button onclick='iniciarNuevaActividad(${JSON.stringify(act)})' class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-bold transition-colors flex items-center justify-center">
+                                        ▶ Iniciar
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                });
+
+                if(pendientesCount === 0) listaPendientes.innerHTML = `<p class="text-gray-500 text-sm">¡Excelente! No tienes actividades pendientes.</p>`;
+                if(realizadasCount === 0) listaRealizadas.innerHTML = `<p class="text-gray-500 text-sm">Aún no has completado actividades.</p>`;
+            }
+
+            // 9. Lógica del Reproductor de Video
+            window.iniciarNuevaActividad = function(actividadObj) {
+                actividadActual = actividadObj;
+                
+                document.getElementById('vista-bienvenida-estudiante').classList.add('hidden');
+                document.getElementById('vista-bienvenida-estudiante').classList.remove('flex');
+                
+                document.getElementById('vista-reproductor').classList.remove('hidden');
+                document.getElementById('vista-reproductor').classList.add('flex');
+                document.getElementById('titulo-reproductor').innerText = actividadActual.titulo;
+                
+                intentoActual = { correctas: 0, resueltas: 0 };
+                document.getElementById('progreso-text').innerText = "0%";
+                
+                prepararReproductor();
+            };
+
+            function prepararReproductor() {
+                const estadoGuardado = JSON.parse(localStorage.getItem(`estado_${actividadActual.id}_${estudianteIdActual}`));
+                let tiempoInicio = 0;
+
+                if (estadoGuardado && confirm("Tienes una sesión guardada. ¿Deseas reanudar desde donde quedaste?")) {
+                    actividadActual.preguntas = estadoGuardado.preguntas;
+                    intentoActual = estadoGuardado.intento;
+                    tiempoInicio = estadoGuardado.ultimoTiempo;
+                    const porcentaje = Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100);
+                    document.getElementById('progreso-text').innerText = `${porcentaje}%`;
+                }
+
+                if (player) {
+                    player.loadVideoById({videoId: actividadActual.videoId, startSeconds: Math.floor(tiempoInicio)});
+                } else {
+                    player = new YT.Player('youtube-player', {
+                        videoId: actividadActual.videoId,
+                        playerVars: { 'autoplay': 1, 'controls': 0, 'start': Math.floor(tiempoInicio), 'rel': 0, 'modestbranding': 1 },
+                        events: { 'onStateChange': onPlayerStateChange }
+                    });
                 }
             }
-        }
 
-        // --- FORMULARIO NUEVA ACTIVIDAD ---
-        function mostrarFormularioActividad() {
-            document.getElementById('tituloSeccion').innerText = "Crear Nueva Actividad";
-            const contenedor = document.getElementById('contenidoDinamico');
-
-            contenedor.innerHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-2xl mx-auto">
-                    <form onsubmit="guardarActividad(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Grado Destino</label>
-                            <select id="formGrado" class="w-full border rounded-xl p-2.5 text-sm bg-slate-50">
-                                ${GRUPOS.map(g => `<option value="${g}">${g}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Link de YouTube</label>
-                            <input type="url" id="formLink" required placeholder="https://www.youtube.com/watch?v=..." class="w-full border rounded-xl p-2.5 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Título de la Clase</label>
-                            <input type="text" id="formTitulo" required placeholder="Ej: Análisis Pitch de negocios" class="w-full border rounded-xl p-2.5 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Objetivo de la Actividad</label>
-                            <input type="text" id="formObjetivo" required placeholder="Ej: Identificar los elementos clave..." class="w-full border rounded-xl p-2.5 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción</label>
-                            <textarea id="formDescripcion" rows="3" class="w-full border rounded-xl p-2.5 text-sm" placeholder="Instrucciones para los estudiantes..."></textarea>
-                        </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition shadow">
-                            Guardar y Asignar Actividad
-                        </button>
-                    </form>
-                </div>
-            `;
-        }
-
-        function guardarActividad(e) {
-            e.preventDefault();
-            const nueva = {
-                id: "ACT_" + Math.floor(Math.random() * 900000000 + 100000000),
-                fecha: new Date().toLocaleDateString(),
-                grado: document.getElementById('formGrado').value,
-                link: document.getElementById('formLink').value,
-                titulo: document.getElementById('formTitulo').value,
-                objetivo: document.getElementById('formObjetivo').value,
-                descripcion: document.getElementById('formDescripcion').value,
-                activa: true,
-                estudiantesTotal: 30,
-                estudiantesCompletados: 0,
-                promedioCalificacion: 0
+            window.onPlayerStateChange = function(event) {
+                if (event.data == YT.PlayerState.PLAYING) {
+                    intervaloVideo = setInterval(verificarTiempo, 1000);
+                } else {
+                    clearInterval(intervaloVideo);
+                }
             };
-            actividades.unshift(nueva);
-            renderMenuGrupos();
-            mostrarDashboard();
-        }
 
-        function cargarVistaEstudiante() {
-            const contenedor = document.getElementById("listaActividadesEstudiante");
-            // Solo muestra actividades activas del grupo asignado (ej. Sexto 1)
-            const visibles = actividades.filter(a => normalizarGrado(a.grado) === "Sexto 1" && a.activa);
+            function verificarTiempo() {
+                if (!player || typeof player.getCurrentTime !== 'function') return;
+                
+                const tiempoActual = player.getCurrentTime();
+                
+                localStorage.setItem(`estado_${actividadActual.id}_${estudianteIdActual}`, JSON.stringify({
+                    ultimoTiempo: tiempoActual,
+                    preguntas: actividadActual.preguntas,
+                    intento: intentoActual
+                }));
 
-            if (visibles.length === 0) {
-                contenedor.innerHTML = `<p class="text-sm text-slate-500">No tienes actividades pendientes por responder.</p>`;
-                return;
+                actividadActual.preguntas.forEach((pregunta, index) => {
+                    if (!pregunta.respondida && tiempoActual >= pregunta.tiempo && tiempoActual < (pregunta.tiempo + 2)) {
+                        player.pauseVideo();
+                        clearInterval(intervaloVideo);
+                        
+                        document.getElementById('q-text').innerText = pregunta.texto;
+                        const contenedorOpciones = document.getElementById('q-options');
+                        contenedorOpciones.innerHTML = '';
+                        
+                        pregunta.opciones.forEach((opcion, i) => {
+                            const btn = document.createElement('button');
+                            btn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-4 px-6 rounded-lg transition-colors text-left text-lg shadow-md border border-blue-700";
+                            btn.innerText = opcion;
+                            const esCorrecta = (i + 1) === parseInt(pregunta.correcta);
+                            btn.onclick = () => {
+                                document.getElementById('question-overlay').classList.add('hidden');
+                                actividadActual.preguntas[index].respondida = true;
+                                intentoActual.resueltas++;
+                                if (esCorrecta) intentoActual.correctas++;
+                                
+                                const porcentaje = Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100);
+                                document.getElementById('progreso-text').innerText = `${porcentaje}%`;
+                                
+                                if (intentoActual.resueltas === actividadActual.preguntas.length) {
+                                    finalizarActividad();
+                                } else {
+                                    player.playVideo();
+                                }
+                            };
+                            contenedorOpciones.appendChild(btn);
+                        });
+                        
+                        document.getElementById('question-overlay').classList.remove('hidden');
+                    }
+                });
             }
 
-            contenedor.innerHTML = visibles.map(act => `
-                <div class="border p-4 rounded-xl flex justify-between items-center">
-                    <div>
-                        <h4 class="font-bold text-slate-800">${act.titulo}</h4>
-                        <p class="text-xs text-slate-500">${act.descripcion}</p>
-                    </div>
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">
-                        Comenzar Actividad
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        function generarReporteGlobal() {
-            alert("Descargando informe consolidado en formato de calificaciones...");
-        }
-
-        // Inicio automático según el estado de la sesión guardado
-        window.onload = function() {
-            aplicarEstadoSesion();
-        };
+            async function finalizarActividad() {
+                // Borrar estado temporal de interrupción
+                localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
+                
+                const notaFinal = (((intentoActual.correctas / actividadActual.preguntas.length) * 4) + 1).toFixed(1);
+                
+                // Guardar la nota final en LocalStorage para actualizar el Dashboard inmediatamente
+                localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, notaFinal);
+                
+                alert(`¡Actividad completada!\nHas obtenido ${intentoActual.correctas} respuestas correctas.\nNota final: ${notaFinal}`);
+                
+                try {
+                    // Enviar al Google Sheets
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'guardarNota',
+                            estudianteId: estudianteIdActual,
+                            actividadId: actividadActual.id,
+                            respuestasCorrectas: intentoActual.correctas,
+                            totalPreguntas: actividadActual.preguntas.length
+                        })
+                    });
+                } catch (error) {
+                    console.error("No se pudo guardar la nota en Sheets", error);
+                }
+                
+                // Retornar al dashboard organizado sin cerrar la sesión
+                volverDashboardEstudiante();
+            }
+        });
     </script>
 </body>
 </html>
