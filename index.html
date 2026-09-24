@@ -349,14 +349,14 @@
         let estudianteIdActual = "", nombreEstudianteActual = "", gradoEstudianteActual = "";
         let idActividadEditando = null;
         
-        // Carga Segura e Inteligente de Datos Locales (Evita Pantallas en Blanco)
+        // PASO 1.5: Variable Global de Escudo Anti-Trampas
+        let maxTiempoVisto = 0; 
+        
+        // Carga Segura e Inteligente de Datos Locales
         let baseActividades = [];
         try {
             const tempActs = JSON.parse(localStorage.getItem('cafelab_actividades'));
-            if (Array.isArray(tempActs)) {
-                // Filtrar solo las actividades que tengan formato válido
-                baseActividades = tempActs.filter(a => a && a.id && Array.isArray(a.grados) && a.titulo);
-            }
+            if (Array.isArray(tempActs)) baseActividades = tempActs.filter(a => a && a.id && Array.isArray(a.grados) && a.titulo);
         } catch(e) { baseActividades = []; }
 
         let baseEstudiantes = [];
@@ -392,20 +392,14 @@
 
         window.sincronizarConNube = async function() {
             window.mostrarToast("Sincronizando con Google Sheets...", "success");
-            
-            // Acción Inmediata: Limpiar datos corruptos viejos del navegador si los hay
             localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
             window.renderDashboardDocente();
 
-            // Preparación futura para hacer el GET a Google Apps Script
             try {
-                // const response = await fetch(SCRIPT_URL + "?action=getActividades"); // Se habilitará en Fase 2
                 setTimeout(() => {
                     window.mostrarToast("Datos locales optimizados. La descarga desde Sheets requerirá actualización del backend (Fase 2).", "warning");
                 }, 1500);
-            } catch (error) {
-                window.mostrarToast("Error de red al intentar sincronizar.", "error");
-            }
+            } catch (error) { window.mostrarToast("Error de red al intentar sincronizar.", "error"); }
         };
 
         // ==========================================
@@ -419,6 +413,13 @@
             document.getElementById('login-panel').classList.remove('hidden'); document.getElementById('login-panel').classList.add('flex');
             document.getElementById('form-estudiante').classList.add('hidden'); document.getElementById('form-docente').classList.add('hidden');
             try { if (player && typeof player.stopVideo === 'function') player.stopVideo(); } catch(e){}
+        };
+
+        window.volverDashboardEstudiante = function() {
+            try { if (player && typeof player.pauseVideo === 'function') player.pauseVideo(); } catch(e) {}
+            document.getElementById('vista-reproductor').classList.add('hidden'); document.getElementById('vista-reproductor').classList.remove('flex');
+            document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.add('flex');
+            construirDashboardEstudiante(gradoEstudianteActual);
         };
 
         window.mostrarVistaDocente = function(idVista) {
@@ -494,7 +495,14 @@
                     const raw = key.replace('nota_', '');
                     const estId = window.escapeHTML(raw.split('_ACT_')[0]);
                     const actId = window.escapeHTML('ACT_' + raw.split('_ACT_')[1]);
-                    const val = window.escapeHTML(localStorage.getItem(key));
+                    
+                    let valObj = localStorage.getItem(key);
+                    let val = "0.0";
+                    try {
+                        // PASO 1.5: Soportar el nuevo formato seguro de notas
+                        let parseado = JSON.parse(valObj);
+                        val = window.escapeHTML(parseado.nota || valObj);
+                    } catch(e) { val = window.escapeHTML(valObj); } // Retrocompatibilidad
                     
                     const nombreAct = window.escapeHTML(baseActividades.find(a => a.id === actId)?.titulo || actId);
                     const numVal = parseFloat(val);
@@ -525,7 +533,14 @@
                 if (key.startsWith('nota_') && key.includes(idActividad)) {
                     hasData = true;
                     const estId = window.escapeHTML(key.replace('nota_', '').split('_ACT_')[0]);
-                    const val = window.escapeHTML(localStorage.getItem(key));
+                    
+                    let valObj = localStorage.getItem(key);
+                    let val = "0.0";
+                    try {
+                        let parseado = JSON.parse(valObj);
+                        val = window.escapeHTML(parseado.nota || valObj);
+                    } catch(e) { val = window.escapeHTML(valObj); }
+
                     const numVal = parseFloat(val);
                     const color = numVal >= 3.0 ? 'text-green-600' : 'text-red-500';
 
@@ -585,7 +600,7 @@
                 document.getElementById('form-docente').classList.remove('hidden'); document.getElementById('form-estudiante').classList.add('hidden');
             });
 
-            // Agregar Estudiantes Locales (Con XSS Shield)
+            // Agregar Estudiantes Locales
             window.renderEstudiantesLocales = function() {
                 const tbody = document.getElementById('tabla-estudiantes-locales');
                 tbody.innerHTML = '';
@@ -641,7 +656,14 @@
                     let totalNotas = 0, count = 0;
                     for (let i = 0; i < localStorage.length; i++) {
                         const key = localStorage.key(i);
-                        if (key.startsWith(`nota_${grado}-`)) { totalNotas += parseFloat(localStorage.getItem(key)); count++; }
+                        if (key.startsWith(`nota_${grado}-`)) { 
+                            let valObj = localStorage.getItem(key);
+                            try {
+                                let parseado = JSON.parse(valObj);
+                                totalNotas += parseFloat(parseado.nota || valObj);
+                            } catch(e) { totalNotas += parseFloat(valObj); }
+                            count++; 
+                        }
                     }
                     const promStr = count > 0 ? (totalNotas/count).toFixed(1) : 'S/N';
                     const badge = promStr !== 'S/N' && parseFloat(promStr) >= 3.0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
@@ -663,7 +685,6 @@
                 const tabla = document.getElementById('tabla-actividades-creadas');
                 tabla.innerHTML = '';
                 [...acts].reverse().forEach(act => {
-                    // Prevenir error si la actividad local es vieja y no tiene los datos correctos
                     if(!act || !Array.isArray(act.grados)) return; 
 
                     const badge = act.estado === 'Activa' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600';
@@ -824,7 +845,9 @@
             });
 
             function iniciarSesionEstudianteLocal(grado, codigo, nombre) {
-                estudianteIdActual = `${grado}-${codigo}`; nombreEstudianteActual = nombre; gradoEstudianteActual = grado; 
+                estudianteIdActual = `${grado}-${codigo}`;
+                nombreEstudianteActual = nombre;
+                gradoEstudianteActual = grado; 
                 document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
                 document.getElementById('panel-estudiante').classList.remove('hidden'); document.getElementById('panel-estudiante').classList.add('flex');
                 document.getElementById('nombre-estudiante-display').innerText = window.escapeHTML(nombre);
@@ -839,13 +862,19 @@
                 listaP.innerHTML = ''; listaR.innerHTML = ''; let pCount = 0, rCount = 0;
                 baseActividades.forEach(act => {
                     if(act.grados.includes(grado) || act.grados.includes('Todos')) {
-                        const notaGuardada = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
+                        const notaGuardadaObj = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
                         const seguroTitulo = window.escapeHTML(act.titulo);
                         const seguroId = window.escapeHTML(act.id);
 
-                        if (notaGuardada) {
+                        if (notaGuardadaObj) {
                             rCount++;
-                            listaR.innerHTML += `<div class="p-6 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-gray-900 text-xl">${seguroTitulo}</h4><p class="text-sm text-green-700 font-bold mt-1">Completada</p></div><div class="bg-white px-5 py-3 rounded-lg border border-gray-300 text-gray-900 font-black text-xl shadow-sm">${window.escapeHTML(notaGuardada)}</div></div>`;
+                            let val = "0.0";
+                            try {
+                                let parseado = JSON.parse(notaGuardadaObj);
+                                val = window.escapeHTML(parseado.nota || notaGuardadaObj);
+                            } catch(e) { val = window.escapeHTML(notaGuardadaObj); }
+
+                            listaR.innerHTML += `<div class="p-6 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-gray-900 text-xl">${seguroTitulo}</h4><p class="text-sm text-green-700 font-bold mt-1">Completada</p></div><div class="bg-white px-5 py-3 rounded-lg border border-gray-300 text-gray-900 font-black text-xl shadow-sm">${val}</div></div>`;
                         } else if (act.estado === 'Activa') { 
                             pCount++;
                             listaP.innerHTML += `<div class="p-6 bg-white rounded-xl border border-blue-200 flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden"><div class="absolute left-0 top-0 w-1.5 h-full bg-blue-600"></div><div class="w-full pl-2"><h4 class="font-bold text-gray-900 text-xl">${seguroTitulo}</h4><p class="text-sm text-gray-500 font-medium mt-1">Video Asignado</p></div><button onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl shadow-md font-bold text-lg">▶ Iniciar</button></div>`;
@@ -856,7 +885,7 @@
                 if(rCount===0) listaR.innerHTML = `<p class="text-gray-500 text-lg font-medium p-8 text-center border border-dashed border-gray-300 rounded-xl">Aún no hay calificaciones registradas.</p>`;
             }
 
-            // Reproductor Estudiante
+            // Reproductor Estudiante (Paso 1.5: ANTI-TRAMPAS)
             window.iniciarActividadPorId = function(idActividad) {
                 const act = baseActividades.find(a => a.id === idActividad);
                 if(!act) return;
@@ -864,7 +893,9 @@
                 document.getElementById('vista-bienvenida-estudiante').classList.add('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.remove('flex');
                 document.getElementById('vista-reproductor').classList.remove('hidden'); document.getElementById('vista-reproductor').classList.add('flex');
                 document.getElementById('titulo-reproductor').innerText = window.escapeHTML(actividadActual.titulo);
-                intentoActual = { correctas: 0, resueltas: 0 }; document.getElementById('progreso-text').innerText = "0%";
+                intentoActual = { correctas: 0, resueltas: 0 }; 
+                document.getElementById('progreso-text').innerText = "0%";
+                maxTiempoVisto = 0; // Reinicio del Anti-Trampas
                 prepararReproductor();
             };
 
@@ -872,9 +903,15 @@
                 const estG = JSON.parse(localStorage.getItem(`estado_${actividadActual.id}_${estudianteIdActual}`));
                 let tIn = 0;
                 if (estG && confirm("Tienes una sesión guardada. ¿Reanudar?")) {
-                    actividadActual.preguntas = estG.preguntas; intentoActual = estG.intento; tIn = estG.ultimoTiempo;
+                    actividadActual.preguntas = estG.preguntas; 
+                    intentoActual = estG.intento; 
+                    tIn = estG.ultimoTiempo;
+                    maxTiempoVisto = estG.maxTiempoVisto || tIn; // Recuperar máximo visto
                     document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
+                } else {
+                    maxTiempoVisto = 0; // Si no reanuda, empieza de cero
                 }
+
                 try {
                     if (player && typeof player.loadVideoById === 'function') { player.loadVideoById({videoId: actividadActual.videoId, startSeconds: Math.floor(tIn)}); } 
                     else {
@@ -886,7 +923,21 @@
             function verificarTiempo() {
                 if (!player || typeof player.getCurrentTime !== 'function') return;
                 const tAct = player.getCurrentTime();
-                localStorage.setItem(`estado_${actividadActual.id}_${estudianteIdActual}`, JSON.stringify({ ultimoTiempo: tAct, preguntas: actividadActual.preguntas, intento: intentoActual }));
+
+                // =====================================
+                // PASO 1.5: SISTEMA ANTI-TRAMPAS (Seek)
+                // =====================================
+                if (tAct > maxTiempoVisto + 3) { 
+                    // Si el estudiante adelanta el video más de 3 segundos (margen de lag)
+                    player.seekTo(maxTiempoVisto);
+                    window.mostrarToast("⚠️ No está permitido adelantar el video. Debes ver la clase completa.", "warning");
+                    return;
+                }
+                if(tAct > maxTiempoVisto) { maxTiempoVisto = tAct; } // Avanza legalmente
+
+                // Guardado de estado con Anti-Trampa
+                localStorage.setItem(`estado_${actividadActual.id}_${estudianteIdActual}`, JSON.stringify({ ultimoTiempo: tAct, maxTiempoVisto: maxTiempoVisto, preguntas: actividadActual.preguntas, intento: intentoActual }));
+                
                 actividadActual.preguntas.forEach((pregunta, index) => {
                     if (!pregunta.respondida && tAct >= pregunta.tiempo && tAct < (pregunta.tiempo + 2)) {
                         player.pauseVideo(); clearInterval(intervaloVideo);
@@ -913,7 +964,15 @@
             async function finalizarActividad() {
                 localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
                 const notaFinal = (((intentoActual.correctas / actividadActual.preguntas.length) * 4) + 1).toFixed(1);
-                localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, notaFinal);
+                
+                // =====================================
+                // PASO 1.5: PROTECCIÓN BÁSICA DE LA NOTA
+                // =====================================
+                const payloadNota = JSON.stringify({
+                    nota: notaFinal,
+                    validador: btoa(notaFinal + "_" + estudianteIdActual + "_CafeLab") // Pequeño hash de integridad
+                });
+                localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, payloadNota);
                 
                 window.volverDashboardEstudiante();
                 window.mostrarToast(`¡Completado! Nota: ${notaFinal}`, "success");
@@ -921,7 +980,7 @@
                 try { 
                     await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', estudianteId: estudianteIdActual, actividadId: actividadActual.id, respuestasCorrectas: intentoActual.correctas, totalPreguntas: actividadActual.preguntas.length }) }); 
                     window.mostrarToast("Calificación enviada a Google Sheets", "success");
-                } catch (error) { window.mostrarToast("Calificación guardada localmente", "warning"); }
+                } catch (error) { window.mostrarToast("Calificación guardada localmente. Se sincronizará luego.", "warning"); }
             }
         });
     </script>
