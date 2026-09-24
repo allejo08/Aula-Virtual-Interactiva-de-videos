@@ -50,8 +50,8 @@
         <aside class="w-64 bg-gray-800 text-white p-4 flex flex-col h-full overflow-y-auto">
             <h3 class="font-bold text-xl mb-6 text-center border-b border-gray-600 pb-2">Menú Docente</h3>
             
-            <button id="nav-dashboard" class="text-left w-full bg-blue-600 hover:bg-blue-700 p-2 rounded mb-2 font-semibold transition-colors">📊 Dashboard</button>
-            <button id="nav-actividad" class="text-left w-full bg-gray-800 hover:bg-gray-700 p-2 rounded mb-6 font-semibold transition-colors">➕ Añadir Actividad</button>
+            <button id="nav-dashboard" class="text-left w-full bg-blue-600 hover:bg-blue-700 p-2 rounded mb-2 font-semibold transition-colors flex items-center gap-2">📊 Dashboard</button>
+            <button id="nav-actividad" class="text-left w-full bg-gray-800 hover:bg-gray-700 p-2 rounded mb-6 font-semibold transition-colors flex items-center gap-2">➕ Añadir Actividad</button>
 
             <h3 class="font-bold text-sm mb-2 text-gray-400 uppercase">Grupos</h3>
             <ul id="lista-grupos-docente" class="space-y-1 text-sm flex-grow">
@@ -70,16 +70,41 @@
 
         <main class="flex-1 p-8 bg-gray-50 overflow-y-auto h-full">
             
-            <!-- VISTA: DASHBOARD -->
+            <!-- VISTA: DASHBOARD DOCENTE -->
             <div id="vista-dashboard" class="block">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-3xl font-bold text-gray-800">Dashboard General</h2>
-                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow text-sm transition-colors">📥 Generar Reporte Global</button>
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow font-semibold transition-colors">📥 Generar Reporte Global</button>
                 </div>
 
-                <h3 id="titulo-grupo-seleccionado" class="text-xl font-bold text-gray-700 mb-4">Reporte por Grupo: Selecciona un grado</h3>
+                <!-- Tarjetas de Estadísticas -->
+                <div class="grid grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <h4 class="text-blue-800 font-bold mb-1 text-sm uppercase">Total Estudiantes Activos</h4>
+                            <p class="text-4xl font-black text-blue-600" id="dash-estudiantes">24</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full text-blue-500 text-2xl">👨‍🎓</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <h4 class="text-green-800 font-bold mb-1 text-sm uppercase">Actividades Creadas</h4>
+                            <p class="text-4xl font-black text-green-600" id="dash-actividades">1</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full text-green-500 text-2xl">📝</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <h4 class="text-purple-800 font-bold mb-1 text-sm uppercase">Promedio General</h4>
+                            <p class="text-4xl font-black text-purple-600" id="dash-promedio">0.0</p>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-full text-purple-500 text-2xl">⭐</div>
+                    </div>
+                </div>
+
+                <h3 id="titulo-grupo-seleccionado" class="text-xl font-bold text-gray-700 mb-4">Reporte por Grupo: Selecciona un grado en el menú lateral</h3>
                 <div id="contenedor-actividades-grupo" class="bg-white border border-gray-200 rounded-lg p-8 text-center text-gray-500 shadow-sm">
-                    <p>Haz clic en un grupo en el menú lateral izquierdo para ver las actividades asignadas y las notas de los estudiantes.</p>
+                    <p class="text-lg">👈 Haz clic en un grupo en el menú lateral izquierdo para ver las actividades asignadas y las notas de los estudiantes.</p>
                 </div>
             </div>
 
@@ -127,7 +152,7 @@
                     <div class="border-t border-gray-200 pt-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-xl font-bold text-gray-800">Preguntas Interactivas</h3>
-                            <button type="button" id="btn-add-pregunta" class="bg-gray-800 text-white px-3 py-1 rounded text-sm hover:bg-gray-700 transition-colors shadow">+ Agregar Pregunta</button>
+                            <button type="button" id="btn-add-pregunta" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors shadow">+ Agregar Pregunta</button>
                         </div>
                         
                         <div id="contenedor-preguntas" class="space-y-4">
@@ -135,7 +160,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-700 transition-colors shadow-lg mt-6">Guardar Actividad en Base de Datos</button>
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-700 transition-colors shadow-lg mt-6">Guardar Actividad y Publicar</button>
                 </form>
             </div>
         </main>
@@ -225,13 +250,13 @@
         let estudianteIdActual = "";
         let nombreEstudianteActual = "";
         
-        // Base de datos simulada de actividades por grado (Hasta conectar GET de Google Sheets)
+        // Base de datos de actividades (Se actualiza automáticamente al crear una nueva)
         const baseActividades = [
             {
                 id: "ACT_DEMO_01",
                 grados: ["6-1", "6-2", "11"],
                 titulo: "Evaluación Sensorial y Tueste de Especialidad",
-                videoId: "M7lc1UVf-VE", // ID de prueba estable de YouTube
+                videoId: "M7lc1UVf-VE", 
                 preguntas: [
                     { tiempo: 10, texto: "¿Cuál es el puntaje mínimo SCA para considerar un café de especialidad?", opciones: ["80 puntos", "83 puntos", "85 puntos"], correcta: 1, respondida: false },
                     { tiempo: 25, texto: "¿A qué temperatura aproximada del agua se sugiere realizar la extracción controlada?", opciones: ["85°C", "90°C", "100°C"], correcta: 2, respondida: false }
@@ -241,40 +266,32 @@
 
         // --- Funciones Globales para Botones ---
 
-        // Función Mejorada de Cerrar Sesión (Limpia sin recargar)
         window.cerrarSesion = function() {
-            // 1. Limpiar variables y almacenamiento temporal
             sessionStorage.clear();
             estudianteIdActual = "";
             nombreEstudianteActual = "";
             actividadActual = null;
             
-            // 2. Vaciar completamente las casillas de los formularios
             document.getElementById('form-estudiante').reset();
             document.getElementById('form-docente').reset();
             
-            // 3. Ocultar los paneles de perfiles
             document.getElementById('panel-estudiante').classList.add('hidden');
             document.getElementById('panel-estudiante').classList.remove('flex');
             
             document.getElementById('panel-docente').classList.add('hidden');
             document.getElementById('panel-docente').classList.remove('flex');
             
-            // 4. Mostrar nuevamente el panel principal de bienvenida
             document.getElementById('login-panel').classList.remove('hidden');
             document.getElementById('login-panel').classList.add('flex');
             
-            // 5. Ocultar los recuadros de usuario y contraseña para elegir el rol desde cero
             document.getElementById('form-estudiante').classList.add('hidden');
             document.getElementById('form-docente').classList.add('hidden');
 
-            // 6. Detener el video si quedó reproduciéndose de fondo
             if (typeof player !== 'undefined' && player && typeof player.stopVideo === 'function') {
                 player.stopVideo();
             }
         };
 
-        // Función para volver al Dashboard Estudiante sin cerrar sesión
         window.volverDashboardEstudiante = function() {
             if (player && typeof player.pauseVideo === 'function') {
                 player.pauseVideo();
@@ -287,6 +304,13 @@
             
             construirDashboardEstudiante(document.getElementById('grado').value);
         };
+
+        // Extraer ID de YouTube desde cualquier formato de URL
+        function extraerIdYouTubeFront(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
 
         // --- Lógica Principal de Eventos ---
         document.addEventListener("DOMContentLoaded", () => {
@@ -309,6 +333,7 @@
                     document.getElementById('login-panel').classList.remove('flex');
                     document.getElementById('panel-docente').classList.remove('hidden');
                     document.getElementById('panel-docente').classList.add('flex');
+                    actualizarEstadisticasDocente();
                 } else {
                     alert('Contraseña incorrecta');
                 }
@@ -320,6 +345,7 @@
                 document.getElementById('vista-actividad').classList.add('hidden');
                 document.getElementById('nav-dashboard').classList.replace('bg-gray-800', 'bg-blue-600');
                 document.getElementById('nav-actividad').classList.replace('bg-green-600', 'bg-gray-800');
+                actualizarEstadisticasDocente();
             });
 
             document.getElementById('nav-actividad').addEventListener('click', () => {
@@ -329,56 +355,85 @@
                 document.getElementById('nav-dashboard').classList.replace('bg-blue-600', 'bg-gray-800');
             });
 
-            // 4. Lógica de Dashboard Docente (Actualización Dinámica)
+            // Actualizar Tarjetas Estadísticas Superiores del Docente
+            function actualizarEstadisticasDocente() {
+                document.getElementById('dash-actividades').innerText = baseActividades.length;
+                
+                let totalNotas = 0;
+                let conteoNotas = 0;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('nota_')) {
+                        totalNotas += parseFloat(localStorage.getItem(key));
+                        conteoNotas++;
+                    }
+                }
+                document.getElementById('dash-promedio').innerText = conteoNotas > 0 ? (totalNotas / conteoNotas).toFixed(1) : "0.0";
+            }
+
+            // 4. Lógica de Dashboard Docente (Tabla de grupos con diseño profesional)
             const listaGrupos = document.querySelectorAll('#lista-grupos-docente li');
             const contenedorActividades = document.getElementById('contenedor-actividades-grupo');
 
             listaGrupos.forEach(li => {
                 li.addEventListener('click', () => {
-                    listaGrupos.forEach(el => el.classList.remove('bg-gray-700', 'border-l-4', 'border-blue-500', 'font-bold'));
-                    li.classList.add('bg-gray-700', 'border-l-4', 'border-blue-500', 'font-bold');
+                    listaGrupos.forEach(el => el.classList.remove('bg-gray-700', 'border-l-4', 'border-blue-500', 'font-bold', 'text-blue-300'));
+                    li.classList.add('bg-gray-700', 'border-l-4', 'border-blue-500', 'font-bold', 'text-blue-300');
                     
                     const gradoSeleccionado = li.getAttribute('data-grado');
                     document.getElementById('titulo-grupo-seleccionado').innerText = `Reporte de Actividades: Grado ${li.innerText}`;
                     
-                    // Filtrar actividades correspondientes a este grado
                     const actividadesGrado = baseActividades.filter(act => act.grados.includes(gradoSeleccionado) || act.grados.includes('Todos'));
                     
                     if(actividadesGrado.length === 0) {
-                        contenedorActividades.innerHTML = `<p class="text-gray-500 py-8">No hay actividades asignadas para este grado.</p>`;
+                        contenedorActividades.innerHTML = `
+                            <div class="py-12 flex flex-col items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                                <span class="text-4xl mb-3">📁</span>
+                                <p class="text-gray-500 font-semibold text-lg">No hay actividades creadas para este grado.</p>
+                            </div>
+                        `;
                         return;
                     }
 
                     let filasHTML = '';
                     actividadesGrado.forEach(act => {
-                        // Buscar si algún estudiante de este grado resolvió la actividad en el LocalStorage
                         let estudiantesQueResolvieron = 0;
                         for (let i = 0; i < localStorage.length; i++) {
                             const key = localStorage.key(i);
-                            if (key.startsWith(`nota_${gradoSeleccionado}`) && key.includes(act.id)) {
+                            if (key.startsWith(`nota_`) && key.includes(act.id)) {
                                 estudiantesQueResolvieron++;
                             }
                         }
 
+                        const badgeClass = estudiantesQueResolvieron > 0 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                        const badgeText = estudiantesQueResolvieron > 0 ? `${estudiantesQueResolvieron} Entregas` : 'Sin Entregas';
+
                         filasHTML += `
-                            <tr class="bg-white border-b hover:bg-gray-50">
-                                <td class="px-6 py-4 font-bold text-gray-900">${act.titulo}</td>
-                                <td class="px-6 py-4 text-green-600 font-semibold">${estudiantesQueResolvieron > 0 ? estudiantesQueResolvieron + ' Entregas' : 'Sin entregas'}</td>
+                            <tr class="bg-white border-b hover:bg-blue-50 transition-colors">
+                                <td class="px-6 py-4 font-bold text-gray-800 flex items-center gap-3">
+                                    <span class="bg-blue-100 text-blue-600 p-2 rounded-lg text-xs shadow-sm">▶</span>
+                                    ${act.titulo}
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${badgeClass}">
+                                        ${badgeText}
+                                    </span>
+                                </td>
                                 <td class="px-6 py-4 text-right">
-                                    <button class="text-blue-600 font-bold hover:underline">Ver Notas</button>
+                                    <button class="text-blue-600 font-bold hover:text-blue-800 hover:underline px-3 py-1 border border-blue-200 rounded-lg bg-blue-50 transition-colors shadow-sm">Ver Notas</button>
                                 </td>
                             </tr>
                         `;
                     });
 
                     contenedorActividades.innerHTML = `
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left text-gray-500 border rounded-lg">
-                                <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b">
+                        <div class="overflow-hidden rounded-lg shadow-sm border border-gray-200">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-200 border-b">
                                     <tr>
-                                        <th class="px-6 py-3">Título de la Actividad</th>
-                                        <th class="px-6 py-3">Estado de Entrega</th>
-                                        <th class="px-6 py-3 text-right">Acción</th>
+                                        <th class="px-6 py-4">Título de la Actividad</th>
+                                        <th class="px-6 py-4 text-center">Estado de Entrega</th>
+                                        <th class="px-6 py-4 text-right">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>${filasHTML}</tbody>
@@ -413,13 +468,13 @@
                 document.getElementById('contenedor-preguntas').appendChild(nuevaPregunta);
             });
 
-            // 6. Crear Actividad - Envío a Sheets
+            // 6. Crear Actividad - Actualización Dinámica
             document.getElementById('form-crear-actividad').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
                 const btnSubmit = e.target.querySelector('button[type="submit"]');
                 const btnOriginalText = btnSubmit.innerText;
-                btnSubmit.innerText = "Guardando en Google Sheets...";
+                btnSubmit.innerText = "Guardando e impactando a estudiantes...";
                 btnSubmit.disabled = true;
 
                 const formData = {
@@ -442,6 +497,26 @@
                     });
                 }
 
+                // Extraer el ID del video y crear la actividad en memoria local INMEDIATAMENTE
+                const ytId = extraerIdYouTubeFront(formData.urlVideo) || "M7lc1UVf-VE";
+                const nuevoIdLocal = "ACT_" + Date.now();
+                
+                baseActividades.push({
+                    id: nuevoIdLocal,
+                    grados: [formData.grado],
+                    titulo: formData.titulo,
+                    videoId: ytId,
+                    preguntas: formData.preguntas.map(p => ({
+                        tiempo: parseInt(p.tiempo),
+                        texto: p.texto,
+                        opciones: p.opciones.split(',').map(item => item.trim()),
+                        correcta: parseInt(p.correcta),
+                        respondida: false
+                    }))
+                });
+
+                actualizarEstadisticasDocente();
+
                 try {
                     const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
@@ -451,17 +526,19 @@
                     const result = await response.json();
                     
                     if(result.success) {
-                        alert("¡Actividad guardada exitosamente!");
+                        alert("¡Actividad guardada exitosamente y lista para los estudiantes!");
                         e.target.reset(); 
                         document.getElementById('contenedor-preguntas').innerHTML = ''; 
                     } else {
-                        alert("Error al guardar: " + (result.error || "Desconocido"));
+                        alert("Error al guardar en Sheets: " + (result.error || "Desconocido"));
                     }
                 } catch (error) {
-                    alert("Error de conexión al guardar actividad.");
+                    // Aunque haya error de internet, la actividad ya quedó cargada en baseActividades local
+                    alert("Se ha creado la actividad localmente para probar, pero hubo un error de red al guardarla en la base de datos.");
                 } finally {
                     btnSubmit.innerText = btnOriginalText;
                     btnSubmit.disabled = false;
+                    document.getElementById('nav-dashboard').click(); // Regresar al dashboard automáticamente
                 }
             });
 
@@ -524,14 +601,12 @@
 
                 baseActividades.forEach(act => {
                     if(act.grados.includes(grado) || act.grados.includes('Todos')) {
-                        // Verificar si ya tiene nota guardada en LocalStorage
                         const notaGuardada = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
                         
                         if (notaGuardada) {
-                            // Actividad Realizada
                             realizadasCount++;
                             listaRealizadas.innerHTML += `
-                                <div class="p-4 border border-green-200 bg-green-50 rounded-lg flex justify-between items-center">
+                                <div class="p-4 border border-green-200 bg-green-50 rounded-lg flex justify-between items-center shadow-sm">
                                     <div>
                                         <h4 class="font-bold text-green-900">${act.titulo}</h4>
                                         <p class="text-xs text-green-700 mt-1">Completada exitosamente</p>
@@ -542,15 +617,14 @@
                                 </div>
                             `;
                         } else {
-                            // Actividad Pendiente
                             pendientesCount++;
                             listaPendientes.innerHTML += `
-                                <div class="p-4 border border-gray-200 bg-gray-50 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div class="p-4 border border-gray-200 bg-gray-50 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
                                     <div>
                                         <h4 class="font-bold text-gray-800">${act.titulo}</h4>
                                         <p class="text-xs text-gray-500 mt-1">Video Interactivo Asignado</p>
                                     </div>
-                                    <button onclick='iniciarNuevaActividad(${JSON.stringify(act)})' class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-bold transition-colors flex items-center justify-center">
+                                    <button onclick='iniciarNuevaActividad(${JSON.stringify(act)})' class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow font-bold transition-colors flex items-center justify-center gap-2">
                                         ▶ Iniciar
                                     </button>
                                 </div>
@@ -559,8 +633,8 @@
                     }
                 });
 
-                if(pendientesCount === 0) listaPendientes.innerHTML = `<p class="text-gray-500 text-sm">¡Excelente! No tienes actividades pendientes.</p>`;
-                if(realizadasCount === 0) listaRealizadas.innerHTML = `<p class="text-gray-500 text-sm">Aún no has completado actividades.</p>`;
+                if(pendientesCount === 0) listaPendientes.innerHTML = `<p class="text-gray-500 text-sm font-semibold p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">¡Excelente! No tienes actividades pendientes.</p>`;
+                if(realizadasCount === 0) listaRealizadas.innerHTML = `<p class="text-gray-500 text-sm font-semibold p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">Aún no has completado actividades.</p>`;
             }
 
             // 9. Lógica del Reproductor de Video
@@ -660,18 +734,13 @@
             }
 
             async function finalizarActividad() {
-                // Borrar estado temporal de interrupción
                 localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
-                
                 const notaFinal = (((intentoActual.correctas / actividadActual.preguntas.length) * 4) + 1).toFixed(1);
-                
-                // Guardar la nota final en LocalStorage para actualizar el Dashboard inmediatamente
                 localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, notaFinal);
                 
                 alert(`¡Actividad completada!\nHas obtenido ${intentoActual.correctas} respuestas correctas.\nNota final: ${notaFinal}`);
                 
                 try {
-                    // Enviar al Google Sheets
                     await fetch(SCRIPT_URL, {
                         method: 'POST',
                         body: JSON.stringify({
@@ -686,7 +755,6 @@
                     console.error("No se pudo guardar la nota en Sheets", error);
                 }
                 
-                // Retornar al dashboard organizado sin cerrar la sesión
                 volverDashboardEstudiante();
             }
         });
