@@ -81,9 +81,13 @@
                 </button>
 
                 <h3 class="font-bold text-xs mb-3 text-gray-500 uppercase tracking-widest px-2 mt-4">Filtro por Grupos</h3>
-                <ul id="lista-grupos-docente" class="space-y-2 text-sm font-medium">
+                <ul id="lista-grupos-docente" class="space-y-2 text-sm font-medium mb-8">
                     <!-- Dinámico -->
                 </ul>
+                
+                <button onclick="window.sincronizarConNube()" class="w-full text-left bg-yellow-600/20 border border-yellow-600/50 text-yellow-500 hover:bg-yellow-600/40 px-5 py-3 rounded-xl font-bold flex items-center gap-3 transition-colors text-sm">
+                    <span>🔄</span> Sincronizar con la Nube
+                </button>
             </div>
             <div class="p-5 border-t border-gray-700/50">
                 <button onclick="window.cerrarSesion()" class="w-full bg-red-900/30 hover:bg-red-900/60 border border-red-800/50 text-red-400 px-4 py-3.5 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 text-sm">
@@ -126,7 +130,7 @@
                 <div class="glass-card border border-gray-100 overflow-hidden mb-10 shadow-sm">
                     <div class="overflow-x-auto">
                         <table class="w-full text-base text-left">
-                            <thead class="text-xs text-gray-500 uppercase font-bold border-b border-gray-100">
+                            <thead class="text-xs text-gray-500 uppercase font-bold border-b border-gray-100 bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-5">Grado</th>
                                     <th class="px-6 py-5">Título</th>
@@ -174,7 +178,6 @@
                 <h2 class="text-3xl font-extrabold text-gray-900 mb-8">Gestión de Estudiantes</h2>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Formulario Nuevo Estudiante -->
                     <div class="col-span-1 glass-card p-8 border border-gray-100 h-fit">
                         <h3 class="text-xl font-bold text-gray-900 mb-6">Añadir Nuevo Estudiante</h3>
                         <form id="form-add-estudiante" class="space-y-5">
@@ -201,7 +204,6 @@
                         </form>
                     </div>
 
-                    <!-- Lista de Estudiantes Locales -->
                     <div class="col-span-2 glass-card p-8 border border-gray-100">
                         <h3 class="text-xl font-bold text-gray-900 mb-2">Estudiantes Añadidos Manualmente</h3>
                         <p class="text-sm text-gray-500 mb-6">Estos estudiantes pueden iniciar sesión inmediatamente. (Sincronización en segundo plano con Sheets).</p>
@@ -264,12 +266,10 @@
                     <div class="border-t border-gray-100 pt-8 mt-6">
                         <h3 class="text-xl font-bold text-gray-900 mb-6">Preguntas del Video</h3>
                         
-                        <!-- Contenedor de preguntas -->
                         <div id="contenedor-preguntas" class="space-y-5 mb-6">
                             <!-- Dinámico -->
                         </div>
 
-                        <!-- Botón Agregar Pregunta movido abajo -->
                         <button type="button" id="btn-add-pregunta" class="w-full bg-gray-100 text-gray-700 border-2 border-dashed border-gray-300 px-5 py-4 rounded-xl text-base font-bold hover:bg-gray-200 hover:border-gray-400 transition-colors flex items-center justify-center gap-2">
                             <span>+</span> Añadir otra pregunta al video
                         </button>
@@ -349,11 +349,24 @@
         let estudianteIdActual = "", nombreEstudianteActual = "", gradoEstudianteActual = "";
         let idActividadEditando = null;
         
-        let baseActividades = JSON.parse(localStorage.getItem('cafelab_actividades')) || [];
-        let baseEstudiantes = JSON.parse(localStorage.getItem('cafelab_estudiantes')) || [];
+        // Carga Segura e Inteligente de Datos Locales (Evita Pantallas en Blanco)
+        let baseActividades = [];
+        try {
+            const tempActs = JSON.parse(localStorage.getItem('cafelab_actividades'));
+            if (Array.isArray(tempActs)) {
+                // Filtrar solo las actividades que tengan formato válido
+                baseActividades = tempActs.filter(a => a && a.id && Array.isArray(a.grados) && a.titulo);
+            }
+        } catch(e) { baseActividades = []; }
+
+        let baseEstudiantes = [];
+        try {
+            const tempEsts = JSON.parse(localStorage.getItem('cafelab_estudiantes'));
+            if (Array.isArray(tempEsts)) baseEstudiantes = tempEsts;
+        } catch(e) { baseEstudiantes = []; }
 
         // ==========================================
-        // UTILIDADES DE SEGURIDAD (ESCUDO XSS) Y NOTIFICACIONES
+        // UTILIDADES Y NOTIFICACIONES
         // ==========================================
         window.escapeHTML = function(str) {
             if (str === null || str === undefined) return '';
@@ -364,7 +377,7 @@
             const container = document.getElementById('toast-container');
             if(!container) return;
             const toast = document.createElement('div');
-            const color = tipo === 'success' ? 'bg-green-600' : (tipo === 'error' ? 'bg-red-600' : 'bg-yellow-500 text-yellow-900');
+            const color = tipo === 'success' ? 'bg-green-600 text-white' : (tipo === 'error' ? 'bg-red-600 text-white' : 'bg-yellow-400 text-yellow-900');
             const icon = tipo === 'success' ? '✅' : (tipo === 'error' ? '❌' : '⚠️');
             toast.className = `${color} px-5 py-3 rounded-xl shadow-xl transform transition-all duration-300 opacity-0 translate-y-4 font-bold text-sm flex items-center gap-3`;
             toast.innerHTML = `<span>${icon}</span> <span>${window.escapeHTML(mensaje)}</span>`;
@@ -377,7 +390,27 @@
             }, 4000);
         };
 
-        // NAVEGACIÓN Y CIERRE DE SESIÓN
+        window.sincronizarConNube = async function() {
+            window.mostrarToast("Sincronizando con Google Sheets...", "success");
+            
+            // Acción Inmediata: Limpiar datos corruptos viejos del navegador si los hay
+            localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
+            window.renderDashboardDocente();
+
+            // Preparación futura para hacer el GET a Google Apps Script
+            try {
+                // const response = await fetch(SCRIPT_URL + "?action=getActividades"); // Se habilitará en Fase 2
+                setTimeout(() => {
+                    window.mostrarToast("Datos locales optimizados. La descarga desde Sheets requerirá actualización del backend (Fase 2).", "warning");
+                }, 1500);
+            } catch (error) {
+                window.mostrarToast("Error de red al intentar sincronizar.", "error");
+            }
+        };
+
+        // ==========================================
+        // FUNCIONES GLOBALES DE NAVEGACIÓN DOCENTE
+        // ==========================================
         window.cerrarSesion = function() {
             sessionStorage.clear();
             document.getElementById('form-estudiante').reset(); document.getElementById('form-docente').reset();
@@ -386,13 +419,6 @@
             document.getElementById('login-panel').classList.remove('hidden'); document.getElementById('login-panel').classList.add('flex');
             document.getElementById('form-estudiante').classList.add('hidden'); document.getElementById('form-docente').classList.add('hidden');
             try { if (player && typeof player.stopVideo === 'function') player.stopVideo(); } catch(e){}
-        };
-
-        window.volverDashboardEstudiante = function() {
-            try { if (player && typeof player.pauseVideo === 'function') player.pauseVideo(); } catch(e) {}
-            document.getElementById('vista-reproductor').classList.add('hidden'); document.getElementById('vista-reproductor').classList.remove('flex');
-            document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.add('flex');
-            construirDashboardEstudiante(gradoEstudianteActual);
         };
 
         window.mostrarVistaDocente = function(idVista) {
@@ -411,7 +437,7 @@
             }
         };
 
-        // FUNCIONES DE ACTIVIDADES (ELIMINAR, EDITAR, ESTADO)
+        // FUNCIONES CRUD DOCENTE
         window.eliminarActividad = function(idActividad) {
             if(confirm("¿Estás seguro de eliminar esta actividad permanentemente?")) {
                 baseActividades = baseActividades.filter(a => a.id !== idActividad);
@@ -522,15 +548,12 @@
             return (match && match[2].length === 11) ? match[2] : "jNQXAC9IVRw"; 
         }
 
-        // ACTIVAR ACTIVIDAD DESDE ESTUDIANTE DE FORMA SEGURA
-        window.iniciarActividadPorId = function(idActividad) {
-            const act = baseActividades.find(a => a.id === idActividad);
-            if(act) window.iniciarNuevaActividad(act);
-        };
-
+        // ==========================================
+        // INICIALIZACIÓN DE LA APLICACIÓN
+        // ==========================================
         document.addEventListener("DOMContentLoaded", () => {
             
-            // Navegación Sidebar
+            // Navegación Básica Docente
             document.getElementById('nav-dashboard').addEventListener('click', () => { window.renderDashboardDocente(); });
             document.getElementById('nav-actividad').addEventListener('click', () => { 
                 idActividadEditando = null;
@@ -543,46 +566,36 @@
             });
             document.getElementById('nav-estudiantes').addEventListener('click', () => { window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes'); });
 
-            // Lógica Login Docente (Paso 1.4: Refactorización preparativa)
+            // Lógica Login Docente
             document.getElementById('form-docente').addEventListener('submit', (e) => {
                 e.preventDefault();
-                // TODO: En Fase 2 moveremos esta validación a Google Apps Script
                 if (document.getElementById('pass-docente').value === 'AdminDocente') {
                     document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
                     document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
                     window.mostrarToast("Sesión iniciada como Docente", "success");
                     window.renderDashboardDocente();
-                } else { 
-                    window.mostrarToast("Contraseña de administrador incorrecta", "error"); 
-                }
+                } else { window.mostrarToast("Contraseña incorrecta", "error"); }
             });
 
-            // Lógica Login Estudiante
+            // Lógica Login Estudiante (Alternancia)
             document.getElementById('btn-show-estudiante').addEventListener('click', () => {
-                document.getElementById('form-estudiante').classList.remove('hidden');
-                document.getElementById('form-docente').classList.add('hidden');
+                document.getElementById('form-estudiante').classList.remove('hidden'); document.getElementById('form-docente').classList.add('hidden');
             });
             document.getElementById('btn-show-docente').addEventListener('click', () => {
-                document.getElementById('form-docente').classList.remove('hidden');
-                document.getElementById('form-estudiante').classList.add('hidden');
+                document.getElementById('form-docente').classList.remove('hidden'); document.getElementById('form-estudiante').classList.add('hidden');
             });
 
-            // Agregar Estudiantes Locales (Con XSS Shield y Toasts)
+            // Agregar Estudiantes Locales (Con XSS Shield)
             window.renderEstudiantesLocales = function() {
                 const tbody = document.getElementById('tabla-estudiantes-locales');
                 tbody.innerHTML = '';
                 baseEstudiantes.forEach(est => {
-                    const seguroGrado = window.escapeHTML(est.grado);
-                    const seguroCodigo = window.escapeHTML(est.codigo);
-                    const seguroNombre = window.escapeHTML(est.nombre);
-                    const seguraPass = window.escapeHTML(est.pass);
-
                     tbody.innerHTML += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="px-6 py-3 font-bold">${seguroGrado}</td>
-                            <td class="px-6 py-3 font-bold text-blue-600">${seguroCodigo}</td>
-                            <td class="px-6 py-3 text-gray-700">${seguroNombre}</td>
-                            <td class="px-6 py-3 text-center text-gray-500 font-mono">${seguraPass}</td>
+                            <td class="px-6 py-3 font-bold">${window.escapeHTML(est.grado)}</td>
+                            <td class="px-6 py-3 font-bold text-blue-600">${window.escapeHTML(est.codigo)}</td>
+                            <td class="px-6 py-3 text-gray-700">${window.escapeHTML(est.nombre)}</td>
+                            <td class="px-6 py-3 text-center text-gray-500 font-mono">${window.escapeHTML(est.pass)}</td>
                         </tr>
                     `;
                 });
@@ -600,14 +613,11 @@
                 window.renderEstudiantesLocales();
                 e.target.reset();
 
-                alert(`Estudiante guardado.\n\nCódigo: ${codigo}\nContraseña generada: ${pass}`);
+                window.mostrarToast(`Estudiante guardado. Pass: ${pass}`, "success");
 
                 try { 
                     await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'agregarEstudiante', payload: {grado, codigo, nombre} }) }); 
-                    window.mostrarToast("Estudiante sincronizado con Google Sheets", "success");
-                } catch(e){
-                    window.mostrarToast("Guardado localmente. Sin conexión a Google Sheets.", "warning");
-                }
+                } catch(e){ window.mostrarToast("Guardado localmente. Sin conexión a Google Sheets.", "warning"); }
             });
 
             // Render Dashboard Docente
@@ -653,21 +663,19 @@
                 const tabla = document.getElementById('tabla-actividades-creadas');
                 tabla.innerHTML = '';
                 [...acts].reverse().forEach(act => {
+                    // Prevenir error si la actividad local es vieja y no tiene los datos correctos
+                    if(!act || !Array.isArray(act.grados)) return; 
+
                     const badge = act.estado === 'Activa' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600';
                     const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
-                    
                     const seguroId = window.escapeHTML(act.id);
-                    const seguroGrados = window.escapeHTML(act.grados.join(', '));
-                    const seguroTitulo = window.escapeHTML(act.titulo);
-                    const seguraFecha = window.escapeHTML(act.fecha);
-                    const seguroEstado = window.escapeHTML(act.estado);
 
                     tabla.innerHTML += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50/80">
-                            <td class="px-6 py-4 font-extrabold text-gray-900">${seguroGrados}</td>
-                            <td class="px-6 py-4 font-medium text-gray-700">${seguroTitulo}</td>
-                            <td class="px-6 py-4 text-gray-400 text-sm">${seguraFecha}</td>
-                            <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-md text-[11px] font-bold uppercase ${badge}">${seguroEstado}</span></td>
+                            <td class="px-6 py-4 font-extrabold text-gray-900">${window.escapeHTML(act.grados.join(', '))}</td>
+                            <td class="px-6 py-4 font-medium text-gray-700">${window.escapeHTML(act.titulo)}</td>
+                            <td class="px-6 py-4 text-gray-400 text-sm">${window.escapeHTML(act.fecha)}</td>
+                            <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-md text-[11px] font-bold uppercase ${badge}">${window.escapeHTML(act.estado)}</span></td>
                             <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
                                 <button onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-gray-600 border px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">${btnEstado}</button>
                                 <button onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors px-3 py-2 rounded-lg">✏️ Editar</button>
@@ -723,9 +731,13 @@
                 document.getElementById('contenedor-preguntas').appendChild(div);
             };
 
-            // Guardar Formulario Actividad (Con Toasts)
+            // Guardar Formulario Actividad
             document.getElementById('form-crear-actividad').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const btnSubmit = e.target.querySelector('button[type="submit"]');
+                const btnOriginalText = btnSubmit.innerText;
+                btnSubmit.innerText = "Guardando..."; btnSubmit.disabled = true;
+
                 const formData = {
                     grado: document.getElementById('grado-destino').value,
                     urlVideo: document.getElementById('url-video').value,
@@ -747,8 +759,7 @@
 
                     let rawOpts = [opt1, opt2, opt3, opt4];
                     let finalOptions = [];
-                    let finalCorrect = 1;
-                    let actualIndex = 1;
+                    let finalCorrect = 1; let actualIndex = 1;
 
                     for(let i = 0; i < 4; i++){
                         if(rawOpts[i].trim() !== ''){
@@ -777,18 +788,17 @@
                 try { 
                     await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload: formData }) }); 
                     window.mostrarToast("Actividad publicada en Google Sheets", "success");
-                } catch (error) {
-                    window.mostrarToast("Actividad guardada localmente (Sin conexión a la nube)", "warning");
-                }
+                } catch (error) { window.mostrarToast("Guardada localmente (Sin conexión a Google Sheets)", "warning"); }
+                
+                btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false;
             });
 
-            // Lógica Login Estudiante (Con Toasts)
+            // Lógica Login Estudiante 
             document.getElementById('form-estudiante').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btnSubmit = e.target.querySelector('button[type="submit"]');
                 const btnOriginalText = btnSubmit.innerText;
-                btnSubmit.innerText = "Verificando...";
-                btnSubmit.disabled = true;
+                btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true;
 
                 const grado = document.getElementById('grado').value;
                 const codigo = document.getElementById('codigo-estudiante').value;
@@ -797,7 +807,7 @@
                 const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo === codigo);
                 
                 if(localEst && localEst.pass === password) {
-                    window.mostrarToast("Sesión iniciada (Modo Local)", "success");
+                    window.mostrarToast("Sesión iniciada", "success");
                     iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
                     btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false;
                 } else {
@@ -805,23 +815,16 @@
                         const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarEstudiante', grado, codigo, password }) });
                         const result = await response.json();
                         if(result.success) {
-                            window.mostrarToast("Sesión iniciada (Verificado en la nube)", "success");
+                            window.mostrarToast("Sesión iniciada", "success");
                             iniciarSesionEstudianteLocal(grado, codigo, result.nombre);
-                        } else {
-                            window.mostrarToast(result.error || "Credenciales incorrectas", "error");
-                        }
-                    } catch (error) { 
-                        window.mostrarToast("Error de red y credenciales no encontradas localmente.", "error"); 
-                    } finally {
-                        btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false;
-                    }
+                        } else { window.mostrarToast(result.error || "Credenciales incorrectas", "error"); }
+                    } catch (error) { window.mostrarToast("Error de red y credenciales no encontradas localmente.", "error"); } 
+                    finally { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
                 }
             });
 
             function iniciarSesionEstudianteLocal(grado, codigo, nombre) {
-                estudianteIdActual = `${grado}-${codigo}`;
-                nombreEstudianteActual = nombre;
-                gradoEstudianteActual = grado; 
+                estudianteIdActual = `${grado}-${codigo}`; nombreEstudianteActual = nombre; gradoEstudianteActual = grado; 
                 document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
                 document.getElementById('panel-estudiante').classList.remove('hidden'); document.getElementById('panel-estudiante').classList.add('flex');
                 document.getElementById('nombre-estudiante-display').innerText = window.escapeHTML(nombre);
@@ -842,8 +845,7 @@
 
                         if (notaGuardada) {
                             rCount++;
-                            const seguraNota = window.escapeHTML(notaGuardada);
-                            listaR.innerHTML += `<div class="p-6 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-gray-900 text-xl">${seguroTitulo}</h4><p class="text-sm text-green-700 font-bold mt-1">Completada</p></div><div class="bg-white px-5 py-3 rounded-lg border border-gray-300 text-gray-900 font-black text-xl shadow-sm">${seguraNota}</div></div>`;
+                            listaR.innerHTML += `<div class="p-6 bg-gray-50 rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-gray-900 text-xl">${seguroTitulo}</h4><p class="text-sm text-green-700 font-bold mt-1">Completada</p></div><div class="bg-white px-5 py-3 rounded-lg border border-gray-300 text-gray-900 font-black text-xl shadow-sm">${window.escapeHTML(notaGuardada)}</div></div>`;
                         } else if (act.estado === 'Activa') { 
                             pCount++;
                             listaP.innerHTML += `<div class="p-6 bg-white rounded-xl border border-blue-200 flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden"><div class="absolute left-0 top-0 w-1.5 h-full bg-blue-600"></div><div class="w-full pl-2"><h4 class="font-bold text-gray-900 text-xl">${seguroTitulo}</h4><p class="text-sm text-gray-500 font-medium mt-1">Video Asignado</p></div><button onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl shadow-md font-bold text-lg">▶ Iniciar</button></div>`;
@@ -855,8 +857,10 @@
             }
 
             // Reproductor Estudiante
-            window.iniciarNuevaActividad = function(actObj) {
-                actividadActual = JSON.parse(JSON.stringify(actObj));
+            window.iniciarActividadPorId = function(idActividad) {
+                const act = baseActividades.find(a => a.id === idActividad);
+                if(!act) return;
+                actividadActual = JSON.parse(JSON.stringify(act));
                 document.getElementById('vista-bienvenida-estudiante').classList.add('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.remove('flex');
                 document.getElementById('vista-reproductor').classList.remove('hidden'); document.getElementById('vista-reproductor').classList.add('flex');
                 document.getElementById('titulo-reproductor').innerText = window.escapeHTML(actividadActual.titulo);
@@ -910,16 +914,14 @@
                 localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
                 const notaFinal = (((intentoActual.correctas / actividadActual.preguntas.length) * 4) + 1).toFixed(1);
                 localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, notaFinal);
-                alert(`¡Completado!\nRespuestas correctas: ${intentoActual.correctas}\nNota final: ${notaFinal}`);
                 
                 window.volverDashboardEstudiante();
+                window.mostrarToast(`¡Completado! Nota: ${notaFinal}`, "success");
 
                 try { 
                     await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', estudianteId: estudianteIdActual, actividadId: actividadActual.id, respuestasCorrectas: intentoActual.correctas, totalPreguntas: actividadActual.preguntas.length }) }); 
                     window.mostrarToast("Calificación enviada a Google Sheets", "success");
-                } catch (error) {
-                    window.mostrarToast("Calificación guardada localmente. Se sincronizará luego.", "warning");
-                }
+                } catch (error) { window.mostrarToast("Calificación guardada localmente", "warning"); }
             }
         });
     </script>
