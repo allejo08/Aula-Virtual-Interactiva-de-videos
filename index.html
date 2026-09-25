@@ -60,7 +60,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Código de Estudiante</label>
-                    <input type="text" id="codigo-estudiante" placeholder="Ej: 12254" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg" required>
+                    <input type="text" id="codigo-estudiante" placeholder="Ej: 12254 (Escribe 'ensayo' para prueba)" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg" required>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Contraseña</label>
@@ -1176,12 +1176,13 @@
                     if(btnSubmit) { btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true; }
 
                     const grado = document.getElementById('grado').value;
-                    const codigo = document.getElementById('codigo-estudiante').value;
-                    const password = document.getElementById('pass-estudiante').value;
+                    const codigo = document.getElementById('codigo-estudiante').value.trim();
+                    const password = document.getElementById('pass-estudiante').value.trim();
+                    const codigoLower = codigo.toLowerCase();
 
-                    if (codigo.trim().toLowerCase() === 'ejemplo') {
+                    if (codigoLower === 'ejemplo' || codigoLower === 'ensayo') {
                         window.mostrarToast("Sesión de Prueba Iniciada", "success");
-                        window.iniciarSesionEstudianteLocal(grado, 'EJEMPLO', 'Estudiante de Prueba');
+                        window.iniciarSesionEstudianteLocal(grado, codigo.toUpperCase(), 'Estudiante de Prueba');
                         if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
                         return;
                     }
@@ -1193,7 +1194,7 @@
                             window.mostrarToast("Sesión iniciada", "success"); 
                             window.iniciarSesionEstudianteLocal(grado, codigo, result.nombre); 
                         } else { 
-                            const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo === codigo);
+                            const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo.toLowerCase() === codigoLower);
                             if(localEst && localEst.pass === password) {
                                 window.mostrarToast("Sesión iniciada (Modo Offline)", "success");
                                 window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
@@ -1202,7 +1203,7 @@
                             }
                         }
                     } catch (error) { 
-                        const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo === codigo);
+                        const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo.toLowerCase() === codigoLower);
                         if(localEst && localEst.pass === password) {
                             window.mostrarToast("Sesión iniciada (Modo Offline)", "success");
                             window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
