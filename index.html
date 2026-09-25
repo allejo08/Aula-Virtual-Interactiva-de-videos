@@ -285,6 +285,16 @@
                         <label class="block text-base font-bold text-gray-700 mb-2">Título de la Clase</label>
                         <input type="text" id="titulo-clase" placeholder="Ej: Análisis Pitch de negocios" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-base focus:ring-2 focus:ring-caramel" required>
                     </div>
+
+                    <div>
+                        <label class="block text-base font-bold text-gray-700 mb-2">Objetivo Pedagógico</label>
+                        <input type="text" id="objetivo-actividad" placeholder="Competencia a desarrollar..." class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-base focus:ring-2 focus:ring-caramel" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-base font-bold text-gray-700 mb-2">Descripción e Instrucciones</label>
+                        <textarea id="descripcion-actividad" rows="3" placeholder="Instrucciones para los estudiantes..." class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-base focus:ring-2 focus:ring-caramel" required></textarea>
+                    </div>
                     
                     <div class="bg-[#F9F7F2] border border-[#EAE4D8] p-6 rounded-xl flex flex-col gap-4">
                         <div class="flex items-center justify-between">
@@ -799,22 +809,27 @@
             return (match && match[2].length === 11) ? match[2] : "M7lc1UVf-VE"; 
         }
 
-        // ==========================================
-        // INICIALIZACIÓN DE LA APLICACIÓN
-        // ==========================================
         document.addEventListener("DOMContentLoaded", () => {
             
             document.getElementById('nav-dashboard').addEventListener('click', () => { window.renderDashboardDocente(filtroGradoActual); });
             document.getElementById('nav-actividad').addEventListener('click', () => { 
                 idActividadEditando = null;
-                document.getElementById('form-crear-actividad').reset();
-                document.getElementById('contenedor-preguntas').innerHTML = '';
-                document.getElementById('titulo-formulario-actividad').innerText = "Crear Nueva Actividad Interactiva";
-                document.getElementById('btn-submit-actividad').innerText = "Guardar Actividad y Publicar";
+                const formAct = document.getElementById('form-crear-actividad');
+                if(formAct) formAct.reset();
+                const contPreg = document.getElementById('contenedor-preguntas');
+                if(contPreg) contPreg.innerHTML = '';
                 
-                document.getElementById('toggle-laboratorio').checked = false;
-                document.getElementById('lab-fields-config').classList.add('hidden');
-                document.getElementById('contenedor-campos-lab').innerHTML = '';
+                const titForm = document.getElementById('titulo-formulario-actividad');
+                if(titForm) titForm.innerText = "Crear Nueva Actividad Interactiva";
+                const btnSub = document.getElementById('btn-submit-actividad');
+                if(btnSub) btnSub.innerText = "Guardar Actividad y Publicar";
+                
+                const toggleLab = document.getElementById('toggle-laboratorio');
+                if(toggleLab) toggleLab.checked = false;
+                const labConf = document.getElementById('lab-fields-config');
+                if(labConf) labConf.classList.add('hidden');
+                const contLab = document.getElementById('contenedor-campos-lab');
+                if(contLab) contLab.innerHTML = '';
 
                 window.crearBloquePregunta(); 
                 window.mostrarVistaDocente('vista-actividad'); 
@@ -840,6 +855,7 @@
 
             window.renderEstudiantesLocales = function() {
                 const tbody = document.getElementById('tabla-estudiantes-locales');
+                if(!tbody) return;
                 tbody.innerHTML = '';
                 baseEstudiantes.forEach((est, index) => {
                     const idPas = `pass-${index}`;
@@ -858,91 +874,105 @@
                 });
             }
 
-            document.getElementById('form-add-estudiante').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const grado = document.getElementById('new-est-grado').value;
-                const codigo = document.getElementById('new-est-codigo').value;
-                const nombre = document.getElementById('new-est-nombre').value;
-                const pass = codigo + nombre.trim().charAt(0).toUpperCase();
+            const formEst = document.getElementById('form-add-estudiante');
+            if(formEst) {
+                formEst.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const grado = document.getElementById('new-est-grado').value;
+                    const codigo = document.getElementById('new-est-codigo').value;
+                    const nombre = document.getElementById('new-est-nombre').value;
+                    const pass = codigo + nombre.trim().charAt(0).toUpperCase();
 
-                baseEstudiantes.push({ grado, codigo, nombre, pass });
-                localStorage.setItem('cafelab_estudiantes', JSON.stringify(baseEstudiantes));
-                window.renderEstudiantesLocales();
-                e.target.reset();
-                window.mostrarToast(`Estudiante guardado. Pass: ${pass}`, "success");
-            });
+                    baseEstudiantes.push({ grado, codigo, nombre, pass });
+                    localStorage.setItem('cafelab_estudiantes', JSON.stringify(baseEstudiantes));
+                    window.renderEstudiantesLocales();
+                    e.target.reset();
+                    window.mostrarToast(`Estudiante guardado. Pass: ${pass}`, "success");
+                });
+            }
 
             window.renderDashboardDocente = function(filtroGrado = null) {
                 filtroGradoActual = filtroGrado; 
                 window.mostrarVistaDocente('vista-dashboard');
-                document.getElementById('kpi-total-actividades').innerText = baseActividades.length;
+                const kpiTot = document.getElementById('kpi-total-actividades');
+                if(kpiTot) kpiTot.innerText = baseActividades.length;
                 
                 const listaGrupos = document.getElementById('lista-grupos-docente');
-                listaGrupos.innerHTML = '';
-                
-                const gradosLabels = []; const promediosData = []; const participacionData = [];
+                if(listaGrupos) {
+                    listaGrupos.innerHTML = '';
+                    const gradosLabels = []; const promediosData = []; const participacionData = [];
 
-                LISTA_GRADOS.forEach(grado => {
-                    const actAsignadas = baseActividades.filter(a => a.grados.includes(grado) || a.grados.includes('Todos')).length;
-                    const isActive = filtroGrado === grado ? 'bg-caramel text-white border-l-4 border-[#EAE4D8]' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200';
-                    const seguroGrado = window.escapeHTML(grado);
-                    listaGrupos.innerHTML += `<li onclick="window.renderDashboardDocente('${seguroGrado}')" class="px-4 py-2.5 cursor-pointer flex justify-between items-center rounded-r-lg transition-colors group mb-1 ${isActive}"><span class="text-sm font-bold">Grado ${seguroGrado}</span><span class="bg-[#2B1B12] text-gray-300 text-xs font-bold px-2.5 py-0.5 rounded-md shadow-inner">${actAsignadas}</span></li>`;
-                    
-                    let totalNotas = 0, count = 0;
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key.startsWith(`nota_${grado}-`)) { 
-                            let valObj = localStorage.getItem(key);
-                            try { let parseado = JSON.parse(valObj); totalNotas += parseFloat(parseado.nota || valObj); } catch(e) { totalNotas += parseFloat(valObj); }
-                            count++; 
+                    LISTA_GRADOS.forEach(grado => {
+                        const actAsignadas = baseActividades.filter(a => a.grados.includes(grado) || a.grados.includes('Todos')).length;
+                        const isActive = filtroGrado === grado ? 'bg-caramel text-white border-l-4 border-[#EAE4D8]' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200';
+                        const seguroGrado = window.escapeHTML(grado);
+                        listaGrupos.innerHTML += `<li onclick="window.renderDashboardDocente('${seguroGrado}')" class="px-4 py-2.5 cursor-pointer flex justify-between items-center rounded-r-lg transition-colors group mb-1 ${isActive}"><span class="text-sm font-bold">Grado ${seguroGrado}</span><span class="bg-[#2B1B12] text-gray-300 text-xs font-bold px-2.5 py-0.5 rounded-md shadow-inner">${actAsignadas}</span></li>`;
+                        
+                        let totalNotas = 0, count = 0;
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key.startsWith(`nota_${grado}-`)) { 
+                                let valObj = localStorage.getItem(key);
+                                try { let parseado = JSON.parse(valObj); totalNotas += parseFloat(parseado.nota || valObj); } catch(e) { totalNotas += parseFloat(valObj); }
+                                count++; 
+                            }
                         }
+                        const promStr = count > 0 ? (totalNotas/count).toFixed(1) : '0';
+                        const porc = actAsignadas > 0 ? (count > 0 ? Math.min(Math.round((count/(actAsignadas*5))*100), 100) : 0) : 0; 
+                        
+                        gradosLabels.push(`Grado ${grado}`);
+                        promediosData.push(parseFloat(promStr));
+                        participacionData.push(porc);
+                    });
+
+                    if(window.myChart1) window.myChart1.destroy();
+                    const ctx1 = document.getElementById('chartPromedios');
+                    if(ctx1) {
+                        window.myChart1 = new Chart(ctx1.getContext('2d'), { type: 'bar', data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#8C522B', borderRadius: 4 }] }, options: { scales: { y: { beginAtZero: true, max: 5 } } } });
                     }
-                    const promStr = count > 0 ? (totalNotas/count).toFixed(1) : '0';
-                    const porc = actAsignadas > 0 ? (count > 0 ? Math.min(Math.round((count/(actAsignadas*5))*100), 100) : 0) : 0; 
-                    
-                    gradosLabels.push(`Grado ${grado}`);
-                    promediosData.push(parseFloat(promStr));
-                    participacionData.push(porc);
-                });
 
-                if(window.myChart1) window.myChart1.destroy();
-                const ctx1 = document.getElementById('chartPromedios').getContext('2d');
-                window.myChart1 = new Chart(ctx1, { type: 'bar', data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#8C522B', borderRadius: 4 }] }, options: { scales: { y: { beginAtZero: true, max: 5 } } } });
-
-                if(window.myChart2) window.myChart2.destroy();
-                const ctx2 = document.getElementById('chartParticipacion').getContext('2d');
-                window.myChart2 = new Chart(ctx2, { type: 'line', data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#3E6B4A', backgroundColor: 'rgba(62, 107, 74, 0.1)', fill: true, tension: 0.3 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } });
+                    if(window.myChart2) window.myChart2.destroy();
+                    const ctx2 = document.getElementById('chartParticipacion');
+                    if(ctx2) {
+                        window.myChart2 = new Chart(ctx2.getContext('2d'), { type: 'line', data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#3E6B4A', backgroundColor: 'rgba(62, 107, 74, 0.1)', fill: true, tension: 0.3 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } });
+                    }
+                }
 
                 let acts = filtroGrado ? baseActividades.filter(a => a.grados.includes(filtroGrado) || a.grados.includes('Todos')) : baseActividades;
-                document.getElementById('titulo-tabla-actividades').innerText = filtroGrado ? `Actividades - Grado ${window.escapeHTML(filtroGrado)}` : `Gestión de Actividades Creadas`;
+                const titTab = document.getElementById('titulo-tabla-actividades');
+                if(titTab) titTab.innerText = filtroGrado ? `Actividades - Grado ${window.escapeHTML(filtroGrado)}` : `Gestión de Actividades Creadas`;
 
                 const tabla = document.getElementById('tabla-actividades-creadas');
-                tabla.innerHTML = '';
-                [...acts].reverse().forEach(act => {
-                    if(!act || !Array.isArray(act.grados)) return; 
-                    const badge = act.estado === 'Activa' ? 'bg-[#3E6B4A]/20 text-[#3E6B4A] border border-[#3E6B4A]/30' : 'bg-gray-200 text-gray-600 border border-gray-300';
-                    const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
-                    const seguroId = window.escapeHTML(act.id);
-                    const labelLab = act.requiereLaboratorio ? '🧪 Sí' : 'No';
+                if(tabla) {
+                    tabla.innerHTML = '';
+                    [...acts].reverse().forEach(act => {
+                        if(!act || !Array.isArray(act.grados)) return; 
+                        const badge = act.estado === 'Activa' ? 'bg-[#3E6B4A]/20 text-[#3E6B4A] border border-[#3E6B4A]/30' : 'bg-gray-200 text-gray-600 border border-gray-300';
+                        const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
+                        const seguroId = window.escapeHTML(act.id);
+                        const labelLab = act.requiereLaboratorio ? '🧪 Sí' : 'No';
 
-                    tabla.innerHTML += `
-                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 font-black text-[#2B1B12]">${window.escapeHTML(act.grados.join(', '))}</td>
-                            <td class="px-6 py-4 font-bold text-gray-700">${window.escapeHTML(act.titulo)}</td>
-                            <td class="px-6 py-4 text-center text-gray-500 font-bold text-sm">${labelLab}</td>
-                            <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-md text-[11px] font-black uppercase ${badge}">${window.escapeHTML(act.estado)}</span></td>
-                            <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
-                                <button onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-gray-600 border border-gray-300 bg-white px-3 py-2 rounded-lg hover:bg-gray-100 shadow-sm">${btnEstado}</button>
-                                <button onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-caramel border border-[#D6BCA2] bg-[#EAE4D8] hover:bg-[#D6BCA2] transition-colors px-3 py-2 rounded-lg shadow-sm">✏️ Editar</button>
-                                <button onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors px-3 py-2 rounded-lg shadow-sm">🗑️</button>
-                                <button onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-[#B37032] border border-[#B37032]/30 bg-[#B37032]/10 hover:bg-[#B37032]/20 transition-colors px-3 py-2 rounded-lg shadow-sm">👁 Reporte</button>
-                            </td>
-                        </tr>
-                    `;
-                });
+                        tabla.innerHTML += `
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-black text-[#2B1B12]">${window.escapeHTML(act.grados.join(', '))}</td>
+                                <td class="px-6 py-4 font-bold text-gray-700">${window.escapeHTML(act.titulo)}</td>
+                                <td class="px-6 py-4 text-center text-gray-500 font-bold text-sm">${labelLab}</td>
+                                <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-md text-[11px] font-black uppercase ${badge}">${window.escapeHTML(act.estado)}</span></td>
+                                <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
+                                    <button onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-gray-600 border border-gray-300 bg-white px-3 py-2 rounded-lg hover:bg-gray-100 shadow-sm">${btnEstado}</button>
+                                    <button onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-caramel border border-[#D6BCA2] bg-[#EAE4D8] hover:bg-[#D6BCA2] transition-colors px-3 py-2 rounded-lg shadow-sm">✏️ Editar</button>
+                                    <button onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors px-3 py-2 rounded-lg shadow-sm">🗑️</button>
+                                    <button onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-[#B37032] border border-[#B37032]/30 bg-[#B37032]/10 hover:bg-[#B37032]/20 transition-colors px-3 py-2 rounded-lg shadow-sm">👁 Reporte</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
             }
 
             window.crearBloquePregunta = function(t='', p='', oArr=[], c='1', f='') {
+                const contPreguntas = document.getElementById('contenedor-preguntas');
+                if(!contPreguntas) return;
                 const div = document.createElement('div');
                 div.className = "p-6 border border-gray-200 rounded-xl bg-white relative mt-4 shadow-sm";
                 
@@ -984,144 +1014,147 @@
                         <option value="4" ${selC === '4' ? 'selected' : ''}>Opción 4</option>
                     </select>
                 `;
-                document.getElementById('contenedor-preguntas').appendChild(div);
+                contPreguntas.appendChild(div);
             };
 
-            // Guardar Formulario Actividad (BLINDADO CONTRA NULOS)
-            document.getElementById('form-crear-actividad').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btnSubmit = e.target.querySelector('button[type="submit"]');
-                const btnOriginalText = btnSubmit.innerText;
-                btnSubmit.innerText = "Guardando..."; btnSubmit.disabled = true;
+            const formCrearAct = document.getElementById('form-crear-actividad');
+            if(formCrearAct) {
+                formCrearAct.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btnSubmit = e.target.querySelector('button[type="submit"]');
+                    const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Guardar";
+                    if(btnSubmit) { btnSubmit.innerText = "Guardando..."; btnSubmit.disabled = true; }
 
-                try {
-                    const inputGrado = document.getElementById('grado-destino').value;
-                    const inputTitulo = document.getElementById('titulo-clase').value;
-                    const inputUrl = document.getElementById('url-video').value;
-                    const inputObjetivo = document.getElementById('objetivo-actividad').value;
-                    const inputDescripcion = document.getElementById('descripcion-actividad').value;
-                    
-                    const toggleLab = document.getElementById('toggle-laboratorio');
-                    const reqLaboratorio = toggleLab ? toggleLab.checked : false;
-                    
-                    let labCampos = [];
-                    if(reqLaboratorio) {
-                        const inputsLab = document.querySelectorAll('.campo-lab-input');
-                        inputsLab.forEach(inp => { if(inp.value && inp.value.trim() !== '') labCampos.push(inp.value.trim()); });
-                    }
+                    try {
+                        const inputGrado = document.getElementById('grado-destino').value;
+                        const inputTitulo = document.getElementById('titulo-clase').value;
+                        const inputUrl = document.getElementById('url-video').value;
+                        const inputObjetivo = document.getElementById('objetivo-actividad').value;
+                        const inputDescripcion = document.getElementById('descripcion-actividad').value;
+                        
+                        const toggleLab = document.getElementById('toggle-laboratorio');
+                        const reqLaboratorio = toggleLab ? toggleLab.checked : false;
+                        
+                        let labCampos = [];
+                        if(reqLaboratorio) {
+                            const inputsLab = document.querySelectorAll('.campo-lab-input');
+                            inputsLab.forEach(inp => { if(inp.value && inp.value.trim() !== '') labCampos.push(inp.value.trim()); });
+                        }
 
-                    let arregloPreguntas = [];
-                    const rows = document.getElementById('contenedor-preguntas').children;
-                    for (let r of rows) {
-                        const timeEl = r.querySelector('.q-time');
-                        const textEl = r.querySelector('.q-text');
-                        const fdbkEl = r.querySelector('.q-feedback');
-                        const opt1El = r.querySelector('.q-opt1');
-                        const opt2El = r.querySelector('.q-opt2');
-                        const opt3El = r.querySelector('.q-opt3');
-                        const opt4El = r.querySelector('.q-opt4');
-                        const correctEl = r.querySelector('.q-correct');
+                        let arregloPreguntas = [];
+                        const rows = document.getElementById('contenedor-preguntas').children;
+                        for (let r of rows) {
+                            const timeEl = r.querySelector('.q-time');
+                            const textEl = r.querySelector('.q-text');
+                            const fdbkEl = r.querySelector('.q-feedback');
+                            const opt1El = r.querySelector('.q-opt1');
+                            const opt2El = r.querySelector('.q-opt2');
+                            const opt3El = r.querySelector('.q-opt3');
+                            const opt4El = r.querySelector('.q-opt4');
+                            const correctEl = r.querySelector('.q-correct');
 
-                        if(!timeEl || !textEl || !opt1El || !opt2El || !correctEl) continue;
+                            if(!timeEl || !textEl || !opt1El || !opt2El || !correctEl) continue;
 
-                        const time = timeEl.value;
-                        const text = textEl.value;
-                        const fdbk = fdbkEl ? fdbkEl.value : '';
-                        const rawOpts = [ opt1El.value, opt2El.value, opt3El ? opt3El.value : '', opt4El ? opt4El.value : '' ];
-                        const correctVal = correctEl.value;
+                            const time = timeEl.value;
+                            const text = textEl.value;
+                            const fdbk = fdbkEl ? fdbkEl.value : '';
+                            const rawOpts = [ opt1El.value, opt2El.value, opt3El ? opt3El.value : '', opt4El ? opt4El.value : '' ];
+                            const correctVal = correctEl.value;
 
-                        let finalOptions = []; let finalCorrect = 1; let actualIndex = 1;
-                        for(let i = 0; i < 4; i++){
-                            if(rawOpts[i] && rawOpts[i].trim() !== ''){
-                                finalOptions.push(rawOpts[i].trim());
-                                if(parseInt(correctVal) === (i + 1)){ finalCorrect = actualIndex; }
-                                actualIndex++;
+                            let finalOptions = []; let finalCorrect = 1; let actualIndex = 1;
+                            for(let i = 0; i < 4; i++){
+                                if(rawOpts[i] && rawOpts[i].trim() !== ''){
+                                    finalOptions.push(rawOpts[i].trim());
+                                    if(parseInt(correctVal) === (i + 1)){ finalCorrect = actualIndex; }
+                                    actualIndex++;
+                                }
+                            }
+                            if(finalOptions.length > 0) {
+                                arregloPreguntas.push({ tiempo: parseInt(time) || 0, texto: text, opciones: finalOptions, correcta: finalCorrect, feedback: fdbk, respondida: false });
                             }
                         }
-                        if(finalOptions.length > 0) {
-                            arregloPreguntas.push({ tiempo: parseInt(time) || 0, texto: text, opciones: finalOptions, correcta: finalCorrect, feedback: fdbk, respondida: false });
+
+                        let payloadEnviar = null;
+
+                        if (idActividadEditando) {
+                            const idx = baseActividades.findIndex(a => a.id === idActividadEditando);
+                            if(idx !== -1) {
+                                baseActividades[idx].grados = [inputGrado];
+                                baseActividades[idx].titulo = inputTitulo;
+                                baseActividades[idx].video = { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) };
+                                baseActividades[idx].pedagogia = { objetivo: inputObjetivo, descripcion: inputDescripcion };
+                                baseActividades[idx].requiereLaboratorio = reqLaboratorio;
+                                baseActividades[idx].laboratorioCampos = labCampos;
+                                baseActividades[idx].preguntas = arregloPreguntas;
+                                payloadEnviar = baseActividades[idx];
+                            }
+                        } else {
+                            const nuevoId = "ACT_" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+                            const d = new Date();
+                            const nuevaActividad = {
+                                id: nuevoId, version: 1, titulo: inputTitulo, grados: [inputGrado], estado: "Activa",
+                                fechaCreacion: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
+                                video: { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) },
+                                pedagogia: { objetivo: inputObjetivo, descripcion: inputDescripcion },
+                                evaluacion: { intentosPermitidos: 1, notaMinima: 3.0 },
+                                requiereLaboratorio: reqLaboratorio, laboratorioCampos: labCampos,
+                                preguntas: arregloPreguntas
+                            };
+                            baseActividades.push(nuevaActividad);
+                            payloadEnviar = nuevaActividad;
                         }
+                        
+                        localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
+                        window.mostrarToast("Actividad guardada con éxito", "success");
+                        document.getElementById('nav-dashboard').click(); 
+
+                        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload: payloadEnviar }) })
+                            .catch(() => console.log("Guardado localmente."));
+
+                    } catch(err) {
+                        console.error("Error al guardar:", err);
+                        window.mostrarToast("Error al procesar el formulario.", "error");
+                    } finally {
+                        if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
+                    }
+                });
+            }
+
+            const formEstLogin = document.getElementById('form-estudiante');
+            if(formEstLogin) {
+                formEstLogin.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btnSubmit = e.target.querySelector('button[type="submit"]');
+                    const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Ingresar";
+                    if(btnSubmit) { btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true; }
+
+                    const grado = document.getElementById('grado').value;
+                    const codigo = document.getElementById('codigo-estudiante').value;
+                    const password = document.getElementById('pass-estudiante').value;
+
+                    if (codigo.trim().toLowerCase() === 'ejemplo') {
+                        window.mostrarToast("Sesión de Prueba Iniciada", "success");
+                        window.iniciarSesionEstudianteLocal(grado, 'EJEMPLO', 'Estudiante de Prueba');
+                        if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
+                        return;
                     }
 
-                    let payloadEnviar = null;
-
-                    if (idActividadEditando) {
-                        const idx = baseActividades.findIndex(a => a.id === idActividadEditando);
-                        if(idx !== -1) {
-                            baseActividades[idx].grados = [inputGrado];
-                            baseActividades[idx].titulo = inputTitulo;
-                            baseActividades[idx].video = { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) };
-                            baseActividades[idx].pedagogia = { objetivo: inputObjetivo, descripcion: inputDescripcion };
-                            baseActividades[idx].requiereLaboratorio = reqLaboratorio;
-                            baseActividades[idx].laboratorioCampos = labCampos;
-                            baseActividades[idx].preguntas = arregloPreguntas;
-                            payloadEnviar = baseActividades[idx];
-                        }
+                    const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo === codigo);
+                    if(localEst && localEst.pass === password) {
+                        window.mostrarToast("Sesión iniciada", "success");
+                        window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
+                        if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
                     } else {
-                        const nuevoId = "ACT_" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
-                        const d = new Date();
-                        const nuevaActividad = {
-                            id: nuevoId, version: 1, titulo: inputTitulo, grados: [inputGrado], estado: "Activa",
-                            fechaCreacion: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
-                            video: { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) },
-                            pedagogia: { objetivo: inputObjetivo, descripcion: inputDescripcion },
-                            evaluacion: { intentosPermitidos: 1, notaMinima: 3.0 },
-                            requiereLaboratorio: reqLaboratorio, laboratorioCampos: labCampos,
-                            preguntas: arregloPreguntas
-                        };
-                        baseActividades.push(nuevaActividad);
-                        payloadEnviar = nuevaActividad;
+                        try {
+                            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarEstudiante', grado, codigo, password }) });
+                            const result = await response.json();
+                            if(result.success) { window.mostrarToast("Sesión iniciada", "success"); window.iniciarSesionEstudianteLocal(grado, codigo, result.nombre); } 
+                            else { window.mostrarToast(result.error || "Credenciales incorrectas", "error"); }
+                        } catch (error) { window.mostrarToast("Error de red y credenciales no encontradas localmente.", "error"); } 
+                        finally { if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; } }
                     }
-                    
-                    localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-                    window.mostrarToast("Actividad guardada con éxito", "success");
-                    document.getElementById('nav-dashboard').click(); 
-
-                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload: payloadEnviar }) })
-                        .catch(() => console.log("Guardado localmente."));
-
-                } catch(err) {
-                    console.error("Error al guardar:", err);
-                    window.mostrarToast("Error al procesar el formulario.", "error");
-                } finally {
-                    btnSubmit.innerText = btnOriginalText; 
-                    btnSubmit.disabled = false;
-                }
-            });
-
-            // Lógica Login Estudiante 
-            document.getElementById('form-estudiante').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btnSubmit = e.target.querySelector('button[type="submit"]');
-                const btnOriginalText = btnSubmit.innerText;
-                btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true;
-
-                const grado = document.getElementById('grado').value;
-                const codigo = document.getElementById('codigo-estudiante').value;
-                const password = document.getElementById('pass-estudiante').value;
-
-                if (codigo.trim().toLowerCase() === 'ejemplo') {
-                    window.mostrarToast("Sesión de Prueba Iniciada", "success");
-                    window.iniciarSesionEstudianteLocal(grado, 'EJEMPLO', 'Estudiante de Prueba');
-                    btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false;
-                    return;
-                }
-
-                const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo === codigo);
-                if(localEst && localEst.pass === password) {
-                    window.mostrarToast("Sesión iniciada", "success");
-                    window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
-                    btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false;
-                } else {
-                    try {
-                        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarEstudiante', grado, codigo, password }) });
-                        const result = await response.json();
-                        if(result.success) { window.mostrarToast("Sesión iniciada", "success"); window.iniciarSesionEstudianteLocal(grado, codigo, result.nombre); } 
-                        else { window.mostrarToast(result.error || "Credenciales incorrectas", "error"); }
-                    } catch (error) { window.mostrarToast("Error de red y credenciales no encontradas localmente.", "error"); } 
-                    finally { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
-                }
-            });
+                });
+            }
 
             window.iniciarSesionEstudianteLocal = function(grado, codigo, nombre) {
                 estudianteIdActual = `${grado}-${codigo}`; nombreEstudianteActual = nombre; gradoEstudianteActual = grado; 
@@ -1134,9 +1167,9 @@
                 window.construirDashboardEstudiante(grado);
             }
 
-            // Dashboard Estudiante
             window.construirDashboardEstudiante = function(grado) {
                 const listaP = document.getElementById('lista-pendientes'), listaR = document.getElementById('lista-realizadas');
+                if(!listaP || !listaR) return;
                 listaP.innerHTML = ''; listaR.innerHTML = ''; let pCount = 0, rCount = 0;
                 baseActividades.forEach(act => {
                     if(act.grados.includes(grado) || act.grados.includes('Todos')) {
@@ -1159,7 +1192,6 @@
                 if(rCount===0) listaR.innerHTML = `<p class="text-gray-500 text-lg font-medium p-8 text-center border border-dashed border-gray-300 rounded-xl bg-white">Aún no hay calificaciones registradas.</p>`;
             }
 
-            // Reproductor Estudiante
             window.iniciarActividadPorId = function(idActividad) {
                 const act = baseActividades.find(a => a.id === idActividad);
                 if(!act) return;
@@ -1254,28 +1286,33 @@
             }
 
             function mostrarPantallaFinalizacion() {
-                document.getElementById('estudiante-reflexion').value = '';
+                const estReflexion = document.getElementById('estudiante-reflexion');
+                if(estReflexion) estReflexion.value = '';
                 const labSection = document.getElementById('estudiante-lab-section');
                 const labInputs = document.getElementById('estudiante-lab-inputs');
-                labInputs.innerHTML = '';
+                if(labInputs) labInputs.innerHTML = '';
 
                 if (actividadActual.requiereLaboratorio && actividadActual.laboratorioCampos && actividadActual.laboratorioCampos.length > 0) {
-                    labSection.classList.remove('hidden');
+                    if(labSection) labSection.classList.remove('hidden');
                     actividadActual.laboratorioCampos.forEach(campo => {
-                        labInputs.innerHTML += `
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">${window.escapeHTML(campo)}</label>
-                                <input type="text" data-campo="${window.escapeHTML(campo)}" class="dyn-lab-input w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-white shadow-sm">
-                            </div>
-                        `;
+                        if(labInputs) {
+                            labInputs.innerHTML += `
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-1">${window.escapeHTML(campo)}</label>
+                                    <input type="text" data-campo="${window.escapeHTML(campo)}" class="dyn-lab-input w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-white shadow-sm">
+                                </div>
+                            `;
+                        }
                     });
-                } else { labSection.classList.add('hidden'); }
+                } else { if(labSection) labSection.classList.add('hidden'); }
                 
-                document.getElementById('final-overlay').classList.remove('hidden');
+                const finalOv = document.getElementById('final-overlay');
+                if(finalOv) finalOv.classList.remove('hidden');
             }
 
             window.guardarEvidenciasYFinalizar = function() {
-                const reflexion = document.getElementById('estudiante-reflexion').value.trim();
+                const refEl = document.getElementById('estudiante-reflexion');
+                const reflexion = refEl ? refEl.value.trim() : "";
                 if (!reflexion) { window.mostrarToast("Por favor, ingresa tus aprendizajes.", "warning"); return; }
 
                 let datosLab = null;
@@ -1288,7 +1325,8 @@
                 intentoActual.reflexion = reflexion;
                 if (datosLab) intentoActual.laboratorio = datosLab;
 
-                document.getElementById('final-overlay').classList.add('hidden');
+                const finalOv = document.getElementById('final-overlay');
+                if(finalOv) finalOv.classList.add('hidden');
                 finalizarActividad();
             }
 
