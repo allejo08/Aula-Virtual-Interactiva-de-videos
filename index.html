@@ -21,13 +21,23 @@
         
         .toggle-checkbox:checked { right: 0; border-color: #3E6B4A; }
         .toggle-checkbox:checked + .toggle-label { background-color: #3E6B4A; }
+        
+        /* Loading Overlay */
+        #loading-overlay { backdrop-filter: blur(5px); }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
+    <!-- OVERLAY DE CARGA (Para Sincronización) -->
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-[#F9F7F2]/80 z-[100] flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-caramel mb-4"></div>
+        <h2 class="text-2xl font-black text-caramel">Sincronizando con CaféLab...</h2>
+        <p class="text-gray-500 font-medium">Descargando datos desde la nube</p>
+    </div>
+
     <!-- LOGIN PANEL -->
     <div id="login-panel" class="flex-grow flex items-center justify-center p-4">
-        <div class="glass-card p-10 w-full max-w-lg">
+        <div class="glass-card p-10 w-full max-w-lg relative">
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-black text-caramel mb-2">CaféLab</h1>
                 <h2 class="text-lg font-bold text-gray-500">Plataforma Interactiva</h2>
@@ -166,8 +176,8 @@
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-3xl font-black text-[#2B1B12]" id="titulo-vista-reporte">Reporte de Calificaciones</h2>
                     <div class="flex gap-3">
-                        <button onclick="window.limpiarNotasLocales()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
-                            🗑️ Limpiar Notas (Caché)
+                        <button onclick="window.limpiarNotasLocales()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm" title="Limpia la caché si borraste la base de datos de Google">
+                            🗑️ Limpiar Caché Local
                         </button>
                         <button onclick="document.getElementById('nav-dashboard').click()" class="bg-white hover:bg-gray-100 text-gray-800 border border-gray-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
                             ⬅ Volver al Dashboard
@@ -240,8 +250,8 @@
                         </form>
                     </div>
                     <div class="col-span-2 glass-card p-8">
-                        <h3 class="text-xl font-bold text-[#2B1B12] mb-2 border-b pb-2">Directorio de Estudiantes Locales</h3>
-                        <p class="text-sm text-gray-500 mb-6">Listado de accesos manuales.</p>
+                        <h3 class="text-xl font-bold text-[#2B1B12] mb-2 border-b pb-2">Directorio de Estudiantes (Sincronizado)</h3>
+                        <p class="text-sm text-gray-500 mb-6">Listado de accesos manuales y de la nube.</p>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left">
                                 <thead class="text-xs text-gray-500 uppercase font-bold border-b border-gray-100 bg-[#F9F7F2]">
@@ -365,9 +375,7 @@
                 <div id="youtube-player" class="w-full h-full absolute inset-0"></div>
                 
                 <div id="question-overlay" class="hidden absolute inset-0 bg-[#2B1B12]/95 flex flex-col items-center justify-center p-8 z-50 text-white">
-                    <div class="bg-white border border-[#EAE4D8] p-12 rounded-3xl max-w-3xl w-full text-center shadow-2xl" id="question-box">
-                        <!-- Las preguntas se inyectan aquí -->
-                    </div>
+                    <div class="bg-white border border-[#EAE4D8] p-12 rounded-3xl max-w-3xl w-full text-center shadow-2xl" id="question-box"></div>
                 </div>
             </div>
             <div class="mt-8 flex justify-center">
@@ -425,7 +433,12 @@
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfZCYVzDmmeRguhLvzeC-bWiHsNdnf81Aiah0k-6OnSOb408pv1mzuucjEMafP1wD_/exec';
+        // ==========================================
+        // 🚨 CONFIGURACIÓN: REEMPLAZA ESTE ENLACE 🚨
+        // ==========================================
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwU-4PYRnAFAo7TrNau5QKyXOOntvlzbvIF2IcotVslMjiZI7qloelbuPqwU83NyBnQ/exec';
+        // ==========================================
+        
         const LISTA_GRADOS = ["6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
         
         let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0 };
@@ -434,31 +447,9 @@
         let filtroGradoActual = null; let datosReporteGlobal = [];
 
         let baseActividades = [];
-        try {
-            const tempActs = JSON.parse(localStorage.getItem('cafelab_actividades')) || [];
-            if (Array.isArray(tempActs)) {
-                baseActividades = tempActs.map(act => {
-                    if(act.videoId && !act.video) {
-                        return {
-                            id: act.id, version: act.version || 1, titulo: act.titulo, grados: act.grados, estado: act.estado || "Activa",
-                            fechaCreacion: act.fecha || new Date().toLocaleDateString(),
-                            video: { provider: 'youtube', id: act.videoId },
-                            pedagogia: { objetivo: act.objetivo || '', descripcion: act.descripcion || '' },
-                            evaluacion: { intentosPermitidos: 1, notaMinima: 3.0 }, preguntas: act.preguntas,
-                            requiereLaboratorio: act.requiereLaboratorio || false, laboratorioCampos: act.laboratorioCampos || []
-                        };
-                    }
-                    return act;
-                }).filter(a => a && a.id && a.video && a.video.id);
-                localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-            }
-        } catch(e) { baseActividades = []; }
-
+        try { const temp = JSON.parse(localStorage.getItem('cafelab_actividades')); if (Array.isArray(temp)) baseActividades = temp; } catch(e) {}
         let baseEstudiantes = [];
-        try {
-            const tempEsts = JSON.parse(localStorage.getItem('cafelab_estudiantes'));
-            if (Array.isArray(tempEsts)) baseEstudiantes = tempEsts;
-        } catch(e) { baseEstudiantes = []; }
+        try { const temp = JSON.parse(localStorage.getItem('cafelab_estudiantes')); if (Array.isArray(temp)) baseEstudiantes = temp; } catch(e) {}
 
         window.escapeHTML = function(str) {
             if (str === null || str === undefined) return '';
@@ -479,21 +470,57 @@
         };
 
         window.limpiarNotasLocales = function() {
-            if(confirm("¿Seguro que deseas borrar todas las calificaciones guardadas localmente?")){
+            if(confirm("¿Seguro que deseas borrar la caché local?")){
                 const keysToRemove = [];
                 for (let i = 0; i < localStorage.length; i++) {
                     if (localStorage.key(i).startsWith('nota_') || localStorage.key(i).startsWith('estado_')) keysToRemove.push(localStorage.key(i));
                 }
                 keysToRemove.forEach(k => localStorage.removeItem(k));
-                window.mostrarToast("Caché de notas y estados eliminada con éxito.", "success");
+                window.mostrarToast("Caché eliminada con éxito.", "success");
                 document.getElementById('nav-dashboard').click();
             }
         };
 
+        // FASE 5: Sincronización Real con Google Apps Script
         window.sincronizarConNube = async function() {
-            window.mostrarToast("Sincronizando...", "success");
-            localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-            window.renderDashboardDocente(filtroGradoActual);
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const result = await response.json();
+                
+                if(result.success && result.data) {
+                    baseActividades = result.data.actividades || [];
+                    baseEstudiantes = result.data.estudiantes || [];
+                    localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
+                    localStorage.setItem('cafelab_estudiantes', JSON.stringify(baseEstudiantes));
+
+                    // Limpiar notas viejas y cargar las de la nube
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        if (localStorage.key(i).startsWith('nota_')) keysToRemove.push(localStorage.key(i));
+                    }
+                    keysToRemove.forEach(k => localStorage.removeItem(k));
+
+                    if(result.data.entregas) {
+                        result.data.entregas.forEach(ent => {
+                            if(ent.estudianteId && ent.actividadId) {
+                                localStorage.setItem(`nota_${ent.estudianteId}_${ent.actividadId}`, JSON.stringify(ent));
+                            }
+                        });
+                    }
+
+                    window.renderDashboardDocente(filtroGradoActual);
+                    window.renderEstudiantesLocales();
+                    window.mostrarToast("Sincronización Completa con la Nube ✅", "success");
+                } else {
+                    window.mostrarToast("No se pudo obtener datos de la nube.", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                window.mostrarToast("Error de conexión con Google Sheets.", "error");
+            } finally {
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }
         };
 
         window.cerrarSesion = function() {
@@ -529,7 +556,7 @@
             if(confirm("¿Estás seguro de eliminar esta actividad?")) {
                 baseActividades = baseActividades.filter(a => a.id !== idActividad);
                 localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-                window.renderDashboardDocente(filtroGradoActual); window.mostrarToast("Actividad eliminada", "success");
+                window.renderDashboardDocente(filtroGradoActual); window.mostrarToast("Actividad eliminada localmente", "success");
             }
         };
 
@@ -836,14 +863,30 @@
             });
             document.getElementById('nav-estudiantes').addEventListener('click', () => { window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes'); });
 
-            document.getElementById('form-docente').addEventListener('submit', (e) => {
+            // FASE 5: Login Docente Conectado al Backend
+            document.getElementById('form-docente').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                if (document.getElementById('pass-docente').value === 'AdminDocente') {
-                    document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
-                    document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
-                    window.mostrarToast("Sesión iniciada como Docente", "success");
-                    window.renderDashboardDocente();
-                } else { window.mostrarToast("Contraseña incorrecta", "error"); }
+                const btnSubmit = e.target.querySelector('button[type="submit"]');
+                const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Ingresar";
+                if(btnSubmit) { btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true; }
+
+                const password = document.getElementById('pass-docente').value;
+
+                try {
+                    const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarDocente', password: password }) });
+                    const result = await response.json();
+                    if(result.success) {
+                        document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
+                        document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
+                        window.sincronizarConNube(); // Descarga los datos de Sheets automáticamente
+                    } else { 
+                        window.mostrarToast(result.error || "Contraseña incorrecta", "error"); 
+                    }
+                } catch(error) {
+                    window.mostrarToast("Error de conexión. Intenta de nuevo.", "error");
+                } finally {
+                    if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
+                }
             });
 
             document.getElementById('btn-show-estudiante').addEventListener('click', () => {
@@ -888,6 +931,9 @@
                     window.renderEstudiantesLocales();
                     e.target.reset();
                     window.mostrarToast(`Estudiante guardado. Pass: ${pass}`, "success");
+
+                    try { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'agregarEstudiante', payload: {grado, codigo, nombre} }) }); 
+                    } catch(err) { console.log(err); }
                 });
             }
 
@@ -927,15 +973,11 @@
 
                     if(window.myChart1) window.myChart1.destroy();
                     const ctx1 = document.getElementById('chartPromedios');
-                    if(ctx1) {
-                        window.myChart1 = new Chart(ctx1.getContext('2d'), { type: 'bar', data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#8C522B', borderRadius: 4 }] }, options: { scales: { y: { beginAtZero: true, max: 5 } } } });
-                    }
+                    if(ctx1) { window.myChart1 = new Chart(ctx1.getContext('2d'), { type: 'bar', data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#8C522B', borderRadius: 4 }] }, options: { scales: { y: { beginAtZero: true, max: 5 } } } }); }
 
                     if(window.myChart2) window.myChart2.destroy();
                     const ctx2 = document.getElementById('chartParticipacion');
-                    if(ctx2) {
-                        window.myChart2 = new Chart(ctx2.getContext('2d'), { type: 'line', data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#3E6B4A', backgroundColor: 'rgba(62, 107, 74, 0.1)', fill: true, tension: 0.3 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } });
-                    }
+                    if(ctx2) { window.myChart2 = new Chart(ctx2.getContext('2d'), { type: 'line', data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#3E6B4A', backgroundColor: 'rgba(62, 107, 74, 0.1)', fill: true, tension: 0.3 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } }); }
                 }
 
                 let acts = filtroGrado ? baseActividades.filter(a => a.grados.includes(filtroGrado) || a.grados.includes('Todos')) : baseActividades;
@@ -1139,20 +1181,30 @@
                         return;
                     }
 
-                    const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo === codigo);
-                    if(localEst && localEst.pass === password) {
-                        window.mostrarToast("Sesión iniciada", "success");
-                        window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
-                        if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
-                    } else {
-                        try {
-                            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarEstudiante', grado, codigo, password }) });
-                            const result = await response.json();
-                            if(result.success) { window.mostrarToast("Sesión iniciada", "success"); window.iniciarSesionEstudianteLocal(grado, codigo, result.nombre); } 
-                            else { window.mostrarToast(result.error || "Credenciales incorrectas", "error"); }
-                        } catch (error) { window.mostrarToast("Error de red y credenciales no encontradas localmente.", "error"); } 
-                        finally { if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; } }
-                    }
+                    try {
+                        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarEstudiante', grado, codigo, password }) });
+                        const result = await response.json();
+                        if(result.success) { 
+                            window.mostrarToast("Sesión iniciada", "success"); 
+                            window.iniciarSesionEstudianteLocal(grado, codigo, result.nombre); 
+                        } else { 
+                            const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo === codigo);
+                            if(localEst && localEst.pass === password) {
+                                window.mostrarToast("Sesión iniciada (Modo Offline)", "success");
+                                window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
+                            } else {
+                                window.mostrarToast(result.error || "Credenciales incorrectas", "error"); 
+                            }
+                        }
+                    } catch (error) { 
+                        const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo === codigo);
+                        if(localEst && localEst.pass === password) {
+                            window.mostrarToast("Sesión iniciada (Modo Offline)", "success");
+                            window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
+                        } else {
+                            window.mostrarToast("Error de red y credenciales no válidas", "error"); 
+                        }
+                    } finally { if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; } }
                 });
             }
 
@@ -1168,6 +1220,14 @@
                 document.getElementById('grado-estudiante-display').innerText = window.escapeHTML(grado);
                 document.getElementById('codigo-estudiante-display').innerText = window.escapeHTML(codigo);
                 window.construirDashboardEstudiante(grado);
+                
+                fetch(SCRIPT_URL).then(res => res.json()).then(result => {
+                    if(result.success && result.data && result.data.actividades) {
+                        baseActividades = result.data.actividades;
+                        localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
+                        window.construirDashboardEstudiante(grado);
+                    }
+                }).catch(e => { window.construirDashboardEstudiante(grado); }); 
             }
 
             window.construirDashboardEstudiante = function(grado) {
