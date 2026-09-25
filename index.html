@@ -36,7 +36,6 @@
                 <button id="btn-show-docente" class="px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-xl transition-colors shadow-md font-bold text-lg w-full">Docente</button>
             </div>
 
-            <!-- Formulario Estudiante -->
             <form id="form-estudiante" class="hidden space-y-5">
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Grado</label>
@@ -59,7 +58,6 @@
                 <button type="submit" class="w-full bg-botanical hover-bg-botanical text-white py-4 rounded-xl font-bold shadow-lg transition-colors text-xl mt-4">Ingresar a mis clases</button>
             </form>
 
-            <!-- Formulario Docente -->
             <form id="form-docente" class="hidden space-y-5">
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Contraseña de Administrador</label>
@@ -137,7 +135,6 @@
                     </div>
                 </div>
 
-                <!-- GRÁFICOS ANALÍTICOS -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
                     <div class="glass-card p-8">
                         <h3 class="text-lg font-bold text-[#2B1B12] mb-4 border-b pb-2">Promedio Académico por Grado</h3>
@@ -174,9 +171,14 @@
             <div id="vista-reportes" class="view-docente hidden max-w-[1400px] mx-auto">
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-3xl font-black text-[#2B1B12]" id="titulo-vista-reporte">Reporte de Calificaciones</h2>
-                    <button onclick="document.getElementById('nav-dashboard').click()" class="bg-white hover:bg-gray-100 text-gray-800 border border-gray-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
-                        ⬅ Volver al Dashboard
-                    </button>
+                    <div class="flex gap-3">
+                        <button onclick="window.limpiarNotasLocales()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
+                            🗑️ Limpiar Notas (Caché)
+                        </button>
+                        <button onclick="document.getElementById('nav-dashboard').click()" class="bg-white hover:bg-gray-100 text-gray-800 border border-gray-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
+                            ⬅ Volver al Dashboard
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Controles de Filtro (Para Reporte Global) -->
@@ -208,7 +210,8 @@
                         <table class="w-full text-base text-left">
                             <thead class="text-xs text-gray-500 uppercase font-bold border-b border-gray-100 bg-[#F9F7F2]">
                                 <tr>
-                                    <th class="px-8 py-5">ID Estudiante</th>
+                                    <th class="px-8 py-5">Grado</th>
+                                    <th class="px-8 py-5">Estudiante</th>
                                     <th class="px-8 py-5">Actividad</th>
                                     <th class="px-8 py-5 text-center">Nota Final (1.0 - 5.0)</th>
                                 </tr>
@@ -397,11 +400,10 @@
         let estudianteIdActual = "", nombreEstudianteActual = "", gradoEstudianteActual = "";
         let idActividadEditando = null, maxTiempoVisto = 0; 
         
-        // Variables para Reportes e Inicialización segura
         let filtroGradoActual = null;
         let datosReporteGlobal = [];
-        let datosReporteActividadContexto = null;
 
+        // Carga de Datos Locales
         let baseActividades = [];
         try {
             const tempActs = JSON.parse(localStorage.getItem('cafelab_actividades')) || [];
@@ -448,6 +450,19 @@
             
             setTimeout(() => { toast.classList.remove('opacity-0', 'translate-y-4'); }, 10);
             setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-4'); setTimeout(() => toast.remove(), 300); }, 4000);
+        };
+
+        // Utilidad para limpiar notas fantasma si borró su Google Sheets
+        window.limpiarNotasLocales = function() {
+            if(confirm("¿Seguro que deseas borrar todas las calificaciones guardadas en ESTE navegador? Úsalo si borraste tu Google Sheets y quieres empezar de cero la plataforma local.")){
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    if (localStorage.key(i).startsWith('nota_')) keysToRemove.push(localStorage.key(i));
+                }
+                keysToRemove.forEach(k => localStorage.removeItem(k));
+                window.mostrarToast("Notas locales eliminadas con éxito.", "success");
+                document.getElementById('nav-dashboard').click();
+            }
         };
 
         window.sincronizarConNube = async function() {
@@ -531,7 +546,7 @@
         };
 
         // ==========================================
-        // SISTEMA DE REPORTES INTELIGENTES (FASE 3 MEJORADA)
+        // SISTEMA DE REPORTES INTELIGENTES Y DETALLADOS
         // ==========================================
 
         window.generarReporteGlobal = function() {
@@ -550,13 +565,22 @@
                 const key = localStorage.key(i);
                 if (key.startsWith('nota_')) {
                     const raw = key.replace('nota_', '');
-                    const estId = raw.split('_ACT_')[0];
+                    const estIdRaw = raw.split('_ACT_')[0]; // Ejemplo: 6-1-12254
                     const actId = 'ACT_' + raw.split('_ACT_')[1];
                     
-                    let gradoDetectado = "Desconocido";
+                    // Extracción inteligente del grado y nombre
+                    let gradoDetectado = "Desconocido", codigoDetectado = estIdRaw;
                     for(let g of LISTA_GRADOS) {
-                        if(estId.startsWith(g + '-')) { gradoDetectado = g; break; }
+                        if(estIdRaw.startsWith(g + '-')) {
+                            gradoDetectado = g;
+                            codigoDetectado = estIdRaw.substring(g.length + 1);
+                            break;
+                        }
                     }
+
+                    let nombreEst = "Cód: " + codigoDetectado;
+                    const estObj = baseEstudiantes.find(e => e.grado === gradoDetectado && e.codigo === codigoDetectado);
+                    if(estObj) nombreEst = estObj.nombre;
 
                     let valObj = localStorage.getItem(key);
                     let val = 0.0;
@@ -564,11 +588,17 @@
                     
                     const nombreAct = baseActividades.find(a => a.id === actId)?.titulo || actId;
 
-                    datosReporteGlobal.push({ estId, grado: gradoDetectado, actId, nombreAct, nota: val });
+                    datosReporteGlobal.push({ estId: estIdRaw, grado: gradoDetectado, nombreEst, actId, nombreAct, nota: val });
                 }
             }
             
-            document.getElementById('filtro-rep-grado').value = 'Todos';
+            // Si venimos del dashboard filtrado, auto-seleccionar el filtro
+            if(filtroGradoActual) {
+                document.getElementById('filtro-rep-grado').value = filtroGradoActual;
+            } else {
+                document.getElementById('filtro-rep-grado').value = 'Todos';
+            }
+            
             selAct.value = 'Todas';
 
             window.actualizarFiltrosReporte();
@@ -588,7 +618,7 @@
             let totalNotas = 0, aprobados = 0;
 
             if(filtrados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-gray-500 font-bold">No hay datos para estos filtros.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 font-bold">No hay datos para estos filtros.</td></tr>`;
                 document.getElementById('kpis-reporte').innerHTML = '';
                 if(window.chartRepGlobal) window.chartRepGlobal.destroy();
                 document.getElementById('contenedor-grafico-reporte').style.display = 'none';
@@ -601,7 +631,8 @@
                 const color = d.nota >= 3.0 ? 'text-botanical' : 'text-red-500';
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-100 hover:bg-gray-50">
-                        <td class="px-8 py-4 font-bold text-gray-800">${window.escapeHTML(d.estId)}</td>
+                        <td class="px-8 py-4 font-black text-[#2B1B12]">${window.escapeHTML(d.grado)}</td>
+                        <td class="px-8 py-4 font-bold text-gray-800">${window.escapeHTML(d.nombreEst)}</td>
                         <td class="px-8 py-4 text-gray-600">${window.escapeHTML(d.nombreAct)}</td>
                         <td class="px-8 py-4 text-center font-black ${color}">${d.nota.toFixed(1)}</td>
                     </tr>
@@ -678,34 +709,42 @@
                     const estIdRaw = key.replace('nota_', '').split('_ACT_')[0];
                     
                     // AISLAMIENTO: Ignorar si no pertenece al grado filtrado
-                    if (filtroGradoActual && !estIdRaw.startsWith(filtroGradoActual + '-')) {
-                        continue; 
+                    if (filtroGradoActual && !estIdRaw.startsWith(filtroGradoActual + '-')) continue; 
+
+                    let gradoDetectado = "Desconocido", codigoDetectado = estIdRaw;
+                    for(let g of LISTA_GRADOS) {
+                        if(estIdRaw.startsWith(g + '-')) {
+                            gradoDetectado = g;
+                            codigoDetectado = estIdRaw.substring(g.length + 1);
+                            break;
+                        }
                     }
 
-                    let valObj = localStorage.getItem(key);
-                    let val = "0.0";
-                    try {
-                        let parseado = JSON.parse(valObj);
-                        val = parseado.nota || valObj;
-                    } catch(e) { val = valObj; }
+                    let nombreEst = "Cód: " + codigoDetectado;
+                    const estObj = baseEstudiantes.find(e => e.grado === gradoDetectado && e.codigo === codigoDetectado);
+                    if(estObj) nombreEst = estObj.nombre;
 
-                    const numVal = parseFloat(val);
-                    notas.push({ estId: estIdRaw, val: numVal, valStr: window.escapeHTML(val.toString()) });
+                    let valObj = localStorage.getItem(key);
+                    let val = 0.0;
+                    try { val = parseFloat(JSON.parse(valObj).nota || valObj); } catch(e) { val = parseFloat(valObj); }
+
+                    notas.push({ grado: gradoDetectado, nombre: nombreEst, val: val, valStr: val.toFixed(1) });
                     
-                    totalNotas += numVal;
-                    if (numVal >= 3.0) aprobados++;
+                    totalNotas += val;
+                    if (val >= 3.0) aprobados++;
                 }
             }
 
             if(notas.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-gray-500 font-bold">No hay entregas registradas para esta actividad${filtroGradoActual ? ' en el grado ' + window.escapeHTML(filtroGradoActual) : ''}.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 font-bold">No hay entregas registradas para esta actividad${filtroGradoActual ? ' en el grado ' + window.escapeHTML(filtroGradoActual) : ''}.</td></tr>`;
                 document.getElementById('kpis-reporte').innerHTML = '';
             } else {
                 notas.forEach(n => {
                     const color = n.val >= 3.0 ? 'text-botanical' : 'text-red-500';
                     tbody.innerHTML += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="px-8 py-4 font-bold text-gray-800">${window.escapeHTML(n.estId)}</td>
+                            <td class="px-8 py-4 font-black text-[#2B1B12]">${window.escapeHTML(n.grado)}</td>
+                            <td class="px-8 py-4 font-bold text-gray-800">${window.escapeHTML(n.nombre)}</td>
                             <td class="px-8 py-4 text-gray-600">${nombreAct}</td>
                             <td class="px-8 py-4 text-center font-black ${color}">${n.valStr}</td>
                         </tr>
@@ -736,7 +775,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             
             // Navegación Básica Docente
-            document.getElementById('nav-dashboard').addEventListener('click', () => { window.renderDashboardDocente(); });
+            document.getElementById('nav-dashboard').addEventListener('click', () => { window.renderDashboardDocente(filtroGradoActual); });
             document.getElementById('nav-actividad').addEventListener('click', () => { 
                 idActividadEditando = null;
                 document.getElementById('form-crear-actividad').reset();
@@ -767,7 +806,7 @@
                 document.getElementById('form-docente').classList.remove('hidden'); document.getElementById('form-estudiante').classList.add('hidden');
             });
 
-            // Agregar Estudiantes Locales (Privacidad Fase 3)
+            // Agregar Estudiantes Locales
             window.renderEstudiantesLocales = function() {
                 const tbody = document.getElementById('tabla-estudiantes-locales');
                 tbody.innerHTML = '';
@@ -806,7 +845,7 @@
                 } catch(e){ window.mostrarToast("Guardado localmente.", "warning"); }
             });
 
-            // Render Dashboard Docente (Dashboard Analítico Fase 3)
+            // Render Dashboard Docente
             window.renderDashboardDocente = function(filtroGrado = null) {
                 filtroGradoActual = filtroGrado; 
                 window.mostrarVistaDocente('vista-dashboard');
