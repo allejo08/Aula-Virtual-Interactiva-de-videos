@@ -423,7 +423,6 @@
         let idActividadEditando = null, maxTiempoVisto = 0; 
         let filtroGradoActual = null; let datosReporteGlobal = [];
 
-        // Inicialización y limpieza de base de datos
         let baseActividades = [];
         try {
             const tempActs = JSON.parse(localStorage.getItem('cafelab_actividades')) || [];
@@ -516,7 +515,6 @@
             }
         };
 
-        // CRUD DOCENTE
         window.eliminarActividad = function(idActividad) {
             if(confirm("¿Estás seguro de eliminar esta actividad?")) {
                 baseActividades = baseActividades.filter(a => a.id !== idActividad);
@@ -565,7 +563,6 @@
             window.mostrarVistaDocente('vista-actividad');
         };
 
-        // VISUALIZAR EVIDENCIAS Y REFLEXIONES (NUEVO REPORTE)
         window.verDetalleEntrega = function(encodedLab, encodedReflexion) {
             const reflexion = encodedReflexion ? decodeURIComponent(encodedReflexion) : 'El estudiante no registró aprendizajes.';
             document.getElementById('view-detalle-reflexion').innerText = reflexion;
@@ -593,7 +590,6 @@
             document.getElementById('view-detalle-overlay').classList.remove('hidden');
         };
 
-        // AGREGAR CAMPOS DE LABORATORIO DINÁMICOS
         window.agregarCampoLabConfig = function(val = '') {
             const div = document.createElement('div');
             div.className = "flex gap-2 items-center";
@@ -604,7 +600,6 @@
             document.getElementById('contenedor-campos-lab').appendChild(div);
         };
 
-        // REPORTES
         window.generarReporteGlobal = function() {
             document.getElementById('titulo-vista-reporte').innerText = "Reporte Global e Interactivo";
             document.getElementById('filtros-reporte-global').classList.remove('hidden');
@@ -947,7 +942,6 @@
                 });
             }
 
-            // CREAR BLOQUE PREGUNTA CON FEEDBACK
             window.crearBloquePregunta = function(t='', p='', oArr=[], c='1', f='') {
                 const div = document.createElement('div');
                 div.className = "p-6 border border-gray-200 rounded-xl bg-white relative mt-4 shadow-sm";
@@ -993,7 +987,7 @@
                 document.getElementById('contenedor-preguntas').appendChild(div);
             };
 
-            // Guardar Formulario Actividad
+            // Guardar Formulario Actividad (BLINDADO CONTRA NULOS)
             document.getElementById('form-crear-actividad').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btnSubmit = e.target.querySelector('button[type="submit"]');
@@ -1007,31 +1001,46 @@
                     const inputObjetivo = document.getElementById('objetivo-actividad').value;
                     const inputDescripcion = document.getElementById('descripcion-actividad').value;
                     
-                    const reqLaboratorio = document.getElementById('toggle-laboratorio').checked;
+                    const toggleLab = document.getElementById('toggle-laboratorio');
+                    const reqLaboratorio = toggleLab ? toggleLab.checked : false;
+                    
                     let labCampos = [];
                     if(reqLaboratorio) {
                         const inputsLab = document.querySelectorAll('.campo-lab-input');
-                        inputsLab.forEach(inp => { if(inp.value.trim() !== '') labCampos.push(inp.value.trim()); });
+                        inputsLab.forEach(inp => { if(inp.value && inp.value.trim() !== '') labCampos.push(inp.value.trim()); });
                     }
 
                     let arregloPreguntas = [];
                     const rows = document.getElementById('contenedor-preguntas').children;
                     for (let r of rows) {
-                        const time = r.querySelector('.q-time').value;
-                        const text = r.querySelector('.q-text').value;
-                        const fdbk = r.querySelector('.q-feedback') ? r.querySelector('.q-feedback').value : '';
-                        const rawOpts = [ r.querySelector('.q-opt1').value, r.querySelector('.q-opt2').value, r.querySelector('.q-opt3').value, r.querySelector('.q-opt4').value ];
-                        const correctVal = r.querySelector('.q-correct').value;
+                        const timeEl = r.querySelector('.q-time');
+                        const textEl = r.querySelector('.q-text');
+                        const fdbkEl = r.querySelector('.q-feedback');
+                        const opt1El = r.querySelector('.q-opt1');
+                        const opt2El = r.querySelector('.q-opt2');
+                        const opt3El = r.querySelector('.q-opt3');
+                        const opt4El = r.querySelector('.q-opt4');
+                        const correctEl = r.querySelector('.q-correct');
+
+                        if(!timeEl || !textEl || !opt1El || !opt2El || !correctEl) continue;
+
+                        const time = timeEl.value;
+                        const text = textEl.value;
+                        const fdbk = fdbkEl ? fdbkEl.value : '';
+                        const rawOpts = [ opt1El.value, opt2El.value, opt3El ? opt3El.value : '', opt4El ? opt4El.value : '' ];
+                        const correctVal = correctEl.value;
 
                         let finalOptions = []; let finalCorrect = 1; let actualIndex = 1;
                         for(let i = 0; i < 4; i++){
-                            if(rawOpts[i].trim() !== ''){
+                            if(rawOpts[i] && rawOpts[i].trim() !== ''){
                                 finalOptions.push(rawOpts[i].trim());
                                 if(parseInt(correctVal) === (i + 1)){ finalCorrect = actualIndex; }
                                 actualIndex++;
                             }
                         }
-                        arregloPreguntas.push({ tiempo: parseInt(time), texto: text, opciones: finalOptions, correcta: finalCorrect, feedback: fdbk, respondida: false });
+                        if(finalOptions.length > 0) {
+                            arregloPreguntas.push({ tiempo: parseInt(time) || 0, texto: text, opciones: finalOptions, correcta: finalCorrect, feedback: fdbk, respondida: false });
+                        }
                     }
 
                     let payloadEnviar = null;
@@ -1065,15 +1074,15 @@
                     }
                     
                     localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
+                    window.mostrarToast("Actividad guardada con éxito", "success");
                     document.getElementById('nav-dashboard').click(); 
 
                     fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload: payloadEnviar }) })
-                        .then(() => { window.mostrarToast("Actividad publicada en Google Sheets", "success"); })
-                        .catch(() => { window.mostrarToast("Guardada localmente (Sin conexión a Google Sheets)", "warning"); });
+                        .catch(() => console.log("Guardado localmente."));
 
                 } catch(err) {
-                    console.error(err);
-                    window.mostrarToast("Error al guardar la actividad.", "error");
+                    console.error("Error al guardar:", err);
+                    window.mostrarToast("Error al procesar el formulario.", "error");
                 } finally {
                     btnSubmit.innerText = btnOriginalText; 
                     btnSubmit.disabled = false;
@@ -1117,7 +1126,8 @@
             window.iniciarSesionEstudianteLocal = function(grado, codigo, nombre) {
                 estudianteIdActual = `${grado}-${codigo}`; nombreEstudianteActual = nombre; gradoEstudianteActual = grado; 
                 document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
-                document.getElementById('panel-estudiante').classList.remove('hidden'); document.getElementById('panel-estudiante').classList.add('flex');
+                document.getElementById('panel-estudiante').classList.add('hidden'); document.getElementById('panel-estudiante').classList.remove('flex');
+                document.getElementById('panel-estudiante').classList.add('flex');
                 document.getElementById('nombre-estudiante-display').innerText = window.escapeHTML(nombre);
                 document.getElementById('grado-estudiante-display').innerText = window.escapeHTML(grado);
                 document.getElementById('codigo-estudiante-display').innerText = window.escapeHTML(codigo);
@@ -1149,7 +1159,7 @@
                 if(rCount===0) listaR.innerHTML = `<p class="text-gray-500 text-lg font-medium p-8 text-center border border-dashed border-gray-300 rounded-xl bg-white">Aún no hay calificaciones registradas.</p>`;
             }
 
-            // Reproductor Estudiante y Anti-Trampas
+            // Reproductor Estudiante
             window.iniciarActividadPorId = function(idActividad) {
                 const act = baseActividades.find(a => a.id === idActividad);
                 if(!act) return;
@@ -1243,7 +1253,6 @@
                 });
             }
 
-            // PANTALLA FINAL OBLIGATORIA (LABORATORIO DINÁMICO)
             function mostrarPantallaFinalizacion() {
                 document.getElementById('estudiante-reflexion').value = '';
                 const labSection = document.getElementById('estudiante-lab-section');
