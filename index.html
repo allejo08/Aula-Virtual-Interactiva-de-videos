@@ -431,11 +431,7 @@
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
 
     <script>
-        // ==========================================
-        // 🚨 CONFIGURACIÓN: REEMPLAZA ESTE ENLACE 🚨
-        // ==========================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwU-4PYRnAFAo7TrNau5QKyXOOntvlzbvIF2IcotVslMjiZI7qloelbuPqwU83NyBnQ/exec';
-        // ==========================================
         
         const LISTA_GRADOS = ["6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
         
@@ -479,7 +475,6 @@
             }
         };
 
-        // FASE 5: Sincronización Real con Google Apps Script usando POST (Evita CORS)
         window.sincronizarConNube = async function() {
             document.getElementById('loading-overlay').classList.remove('hidden');
             try {
@@ -495,7 +490,6 @@
                     localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
                     localStorage.setItem('cafelab_estudiantes', JSON.stringify(baseEstudiantes));
 
-                    // Limpiar notas viejas y cargar las de la nube
                     const keysToRemove = [];
                     for (let i = 0; i < localStorage.length; i++) {
                         if (localStorage.key(i).startsWith('nota_')) keysToRemove.push(localStorage.key(i));
@@ -514,10 +508,11 @@
                     window.renderEstudiantesLocales();
                     window.mostrarToast("Sincronización Completa con la Nube ✅", "success");
                 } else {
-                    window.mostrarToast("No se pudo obtener datos de la nube.", "error");
+                    console.error("Backend reportó error:", result.error);
+                    window.mostrarToast(result.error || "No se pudo obtener datos de la nube.", "error");
                 }
             } catch (error) {
-                console.error(error);
+                console.error("Error de Fetch:", error);
                 window.mostrarToast("Error de conexión con Google Sheets.", "error");
             } finally {
                 document.getElementById('loading-overlay').classList.add('hidden');
@@ -864,7 +859,6 @@
             });
             document.getElementById('nav-estudiantes').addEventListener('click', () => { window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes'); });
 
-            // FASE 5: Login Docente Conectado al Backend
             document.getElementById('form-docente').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btnSubmit = e.target.querySelector('button[type="submit"]');
@@ -1222,7 +1216,6 @@
                 document.getElementById('codigo-estudiante-display').innerText = window.escapeHTML(codigo);
                 window.construirDashboardEstudiante(grado);
                 
-                // FASE 5: Sincronización silenciosa del estudiante usando POST
                 fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obtenerDatos' }) }).then(res => res.json()).then(result => {
                     if(result.success && result.data && result.data.actividades) {
                         baseActividades = result.data.actividades;
