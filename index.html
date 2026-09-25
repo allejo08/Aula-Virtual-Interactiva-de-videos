@@ -39,11 +39,12 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Código de Estudiante</label>
-                    <input type="text" id="codigo-estudiante" placeholder="Ej: 12254" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg" required>
+                    <input type="text" id="codigo-estudiante" placeholder="Ej: 12254 (Escribe 'Ejemplo' para prueba)" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg" required>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Contraseña</label>
-                    <input type="password" id="pass-estudiante" placeholder="Ej: 12254Z" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg" required>
+                    <!-- SE QUITÓ EL 'required' PARA PERMITIR EL USUARIO EJEMPLO -->
+                    <input type="password" id="pass-estudiante" placeholder="Ej: 12254Z (Vacío si eres 'Ejemplo')" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg">
                 </div>
                 <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold shadow-lg transition-colors text-xl mt-4">Ingresar a mis clases</button>
             </form>
@@ -178,6 +179,7 @@
                 <h2 class="text-3xl font-extrabold text-gray-900 mb-8">Gestión de Estudiantes</h2>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Formulario Nuevo Estudiante -->
                     <div class="col-span-1 glass-card p-8 border border-gray-100 h-fit">
                         <h3 class="text-xl font-bold text-gray-900 mb-6">Añadir Nuevo Estudiante</h3>
                         <form id="form-add-estudiante" class="space-y-5">
@@ -204,6 +206,7 @@
                         </form>
                     </div>
 
+                    <!-- Lista de Estudiantes Locales -->
                     <div class="col-span-2 glass-card p-8 border border-gray-100">
                         <h3 class="text-xl font-bold text-gray-900 mb-2">Estudiantes Añadidos Manualmente</h3>
                         <p class="text-sm text-gray-500 mb-6">Estos estudiantes pueden iniciar sesión inmediatamente. (Sincronización en segundo plano con Sheets).</p>
@@ -270,7 +273,8 @@
                             <!-- Dinámico -->
                         </div>
 
-                        <button type="button" id="btn-add-pregunta" class="w-full bg-gray-100 text-gray-700 border-2 border-dashed border-gray-300 px-5 py-4 rounded-xl text-base font-bold hover:bg-gray-200 hover:border-gray-400 transition-colors flex items-center justify-center gap-2">
+                        <!-- SOLUCIÓN: Botón arreglado añadiendo el evento onclick explícito -->
+                        <button type="button" id="btn-add-pregunta" onclick="window.crearBloquePregunta()" class="w-full bg-gray-100 text-gray-700 border-2 border-dashed border-gray-300 px-5 py-4 rounded-xl text-base font-bold hover:bg-gray-200 hover:border-gray-400 transition-colors flex items-center justify-center gap-2">
                             <span>+</span> Añadir otra pregunta al video
                         </button>
                     </div>
@@ -328,6 +332,7 @@
                 </div>
             </div>
             <div class="mt-8 flex justify-center">
+                <!-- SOLUCIÓN: Botón arreglado conectándolo al contexto global -->
                 <button onclick="window.volverDashboardEstudiante()" class="text-gray-700 hover:text-blue-600 text-lg font-bold transition-colors border border-gray-300 px-8 py-4 rounded-xl bg-gray-50 hover:bg-blue-50 shadow-sm">
                     ⏸ Pausar y regresar a mi Dashboard
                 </button>
@@ -335,7 +340,7 @@
         </div>
     </div>
 
-    <!-- CONTENEDOR DE NOTIFICACIONES (TOASTS) -->
+    <!-- CONTENEDOR DE NOTIFICACIONES -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
 
     <script>
@@ -347,10 +352,7 @@
         
         let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0 };
         let estudianteIdActual = "", nombreEstudianteActual = "", gradoEstudianteActual = "";
-        let idActividadEditando = null;
-        
-        // PASO 1.5: Variable Global de Escudo Anti-Trampas
-        let maxTiempoVisto = 0; 
+        let idActividadEditando = null, maxTiempoVisto = 0; 
         
         // Carga Segura e Inteligente de Datos Locales
         let baseActividades = [];
@@ -403,7 +405,7 @@
         };
 
         // ==========================================
-        // FUNCIONES GLOBALES DE NAVEGACIÓN DOCENTE
+        // FUNCIONES GLOBALES DE NAVEGACIÓN Y REPRODUCTOR
         // ==========================================
         window.cerrarSesion = function() {
             sessionStorage.clear();
@@ -419,7 +421,11 @@
             try { if (player && typeof player.pauseVideo === 'function') player.pauseVideo(); } catch(e) {}
             document.getElementById('vista-reproductor').classList.add('hidden'); document.getElementById('vista-reproductor').classList.remove('flex');
             document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.add('flex');
-            construirDashboardEstudiante(gradoEstudianteActual);
+            
+            // SOLUCIÓN: Aseguramos que la función de reconstrucción exista en el ámbito de Window
+            if(window.construirDashboardEstudiante) {
+                window.construirDashboardEstudiante(gradoEstudianteActual);
+            }
         };
 
         window.mostrarVistaDocente = function(idVista) {
@@ -467,10 +473,11 @@
             document.getElementById('btn-submit-actividad').innerText = "Actualizar Actividad";
 
             document.getElementById('grado-destino').value = act.grados[0];
-            document.getElementById('url-video').value = `https://youtube.com/watch?v=${act.videoId}`;
+            const urlRecup = act.video && act.video.id ? act.video.id : act.videoId;
+            document.getElementById('url-video').value = `https://youtube.com/watch?v=${urlRecup}`;
             document.getElementById('titulo-clase').value = act.titulo;
-            document.getElementById('objetivo-actividad').value = act.objetivo || "";
-            document.getElementById('descripcion-actividad').value = act.descripcion || "";
+            document.getElementById('objetivo-actividad').value = (act.pedagogia && act.pedagogia.objetivo) ? act.pedagogia.objetivo : (act.objetivo || "");
+            document.getElementById('descripcion-actividad').value = (act.pedagogia && act.pedagogia.descripcion) ? act.pedagogia.descripcion : (act.descripcion || "");
 
             const cont = document.getElementById('contenedor-preguntas');
             cont.innerHTML = '';
@@ -499,10 +506,9 @@
                     let valObj = localStorage.getItem(key);
                     let val = "0.0";
                     try {
-                        // PASO 1.5: Soportar el nuevo formato seguro de notas
                         let parseado = JSON.parse(valObj);
                         val = window.escapeHTML(parseado.nota || valObj);
-                    } catch(e) { val = window.escapeHTML(valObj); } // Retrocompatibilidad
+                    } catch(e) { val = window.escapeHTML(valObj); } 
                     
                     const nombreAct = window.escapeHTML(baseActividades.find(a => a.id === actId)?.titulo || actId);
                     const numVal = parseFloat(val);
@@ -557,10 +563,11 @@
             window.mostrarVistaDocente('vista-reportes');
         };
 
+        // SOLUCIÓN: Extracción a prueba de fallos + Video genérico si falla
         function extraerIdYouTubeFront(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
             const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : "jNQXAC9IVRw"; 
+            return (match && match[2].length === 11) ? match[2] : "M7lc1UVf-VE"; 
         }
 
         // ==========================================
@@ -686,7 +693,6 @@
                 tabla.innerHTML = '';
                 [...acts].reverse().forEach(act => {
                     if(!act || !Array.isArray(act.grados)) return; 
-
                     const badge = act.estado === 'Activa' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600';
                     const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
                     const seguroId = window.escapeHTML(act.id);
@@ -695,7 +701,7 @@
                         <tr class="border-b border-gray-100 hover:bg-gray-50/80">
                             <td class="px-6 py-4 font-extrabold text-gray-900">${window.escapeHTML(act.grados.join(', '))}</td>
                             <td class="px-6 py-4 font-medium text-gray-700">${window.escapeHTML(act.titulo)}</td>
-                            <td class="px-6 py-4 text-gray-400 text-sm">${window.escapeHTML(act.fecha)}</td>
+                            <td class="px-6 py-4 text-gray-400 text-sm">${window.escapeHTML(act.fechaCreacion || act.fecha)}</td>
                             <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-md text-[11px] font-bold uppercase ${badge}">${window.escapeHTML(act.estado)}</span></td>
                             <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
                                 <button onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-gray-600 border px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">${btnEstado}</button>
@@ -713,10 +719,8 @@
                 const div = document.createElement('div');
                 div.className = "p-6 border border-gray-200 rounded-xl bg-gray-50 relative mt-4 shadow-sm";
                 
-                const opt1 = window.escapeHTML(oArr[0] || '');
-                const opt2 = window.escapeHTML(oArr[1] || '');
-                const opt3 = window.escapeHTML(oArr[2] || '');
-                const opt4 = window.escapeHTML(oArr[3] || '');
+                const opt1 = window.escapeHTML(oArr[0] || ''); const opt2 = window.escapeHTML(oArr[1] || '');
+                const opt3 = window.escapeHTML(oArr[2] || ''); const opt4 = window.escapeHTML(oArr[3] || '');
                 const selC = c.toString();
 
                 div.innerHTML = `
@@ -759,29 +763,21 @@
                 const btnOriginalText = btnSubmit.innerText;
                 btnSubmit.innerText = "Guardando..."; btnSubmit.disabled = true;
 
-                const formData = {
-                    grado: document.getElementById('grado-destino').value,
-                    urlVideo: document.getElementById('url-video').value,
-                    titulo: document.getElementById('titulo-clase').value,
-                    objetivo: document.getElementById('objetivo-actividad').value,
-                    descripcion: document.getElementById('descripcion-actividad').value,
-                    preguntas: []
-                };
+                const inputGrado = document.getElementById('grado-destino').value;
+                const inputTitulo = document.getElementById('titulo-clase').value;
+                const inputUrl = document.getElementById('url-video').value;
+                const inputObjetivo = document.getElementById('objetivo-actividad').value;
+                const inputDescripcion = document.getElementById('descripcion-actividad').value;
+                let arregloPreguntas = [];
 
                 const rows = document.getElementById('contenedor-preguntas').children;
                 for (let r of rows) {
                     const time = r.querySelector('.q-time').value;
                     const text = r.querySelector('.q-text').value;
-                    const opt1 = r.querySelector('.q-opt1').value;
-                    const opt2 = r.querySelector('.q-opt2').value;
-                    const opt3 = r.querySelector('.q-opt3').value;
-                    const opt4 = r.querySelector('.q-opt4').value;
+                    const rawOpts = [ r.querySelector('.q-opt1').value, r.querySelector('.q-opt2').value, r.querySelector('.q-opt3').value, r.querySelector('.q-opt4').value ];
                     const correctVal = r.querySelector('.q-correct').value;
 
-                    let rawOpts = [opt1, opt2, opt3, opt4];
-                    let finalOptions = [];
-                    let finalCorrect = 1; let actualIndex = 1;
-
+                    let finalOptions = []; let finalCorrect = 1; let actualIndex = 1;
                     for(let i = 0; i < 4; i++){
                         if(rawOpts[i].trim() !== ''){
                             finalOptions.push(rawOpts[i].trim());
@@ -789,32 +785,41 @@
                             actualIndex++;
                         }
                     }
-
-                    formData.preguntas.push({ tiempo: parseInt(time), texto: text, opciones: finalOptions, correcta: finalCorrect, respondida: false });
+                    arregloPreguntas.push({ tiempo: parseInt(time), texto: text, opciones: finalOptions, correcta: finalCorrect, respondida: false });
                 }
-
-                const nuevoId = "ACT_" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
 
                 if (idActividadEditando) {
                     const idx = baseActividades.findIndex(a => a.id === idActividadEditando);
-                    baseActividades[idx] = { ...baseActividades[idx], grados: [formData.grado], titulo: formData.titulo, objetivo: formData.objetivo, descripcion: formData.descripcion, videoId: extraerIdYouTubeFront(formData.urlVideo), preguntas: formData.preguntas };
+                    baseActividades[idx].grados = [inputGrado];
+                    baseActividades[idx].titulo = inputTitulo;
+                    baseActividades[idx].video = { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) };
+                    baseActividades[idx].pedagogia = { objetivo: inputObjetivo, descripcion: inputDescripcion };
+                    baseActividades[idx].preguntas = arregloPreguntas;
                 } else {
+                    const nuevoId = "ACT_" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
                     const d = new Date();
-                    baseActividades.push({ id: nuevoId, grados: [formData.grado], titulo: formData.titulo, objetivo: formData.objetivo, descripcion: formData.descripcion, videoId: extraerIdYouTubeFront(formData.urlVideo), fecha: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`, estado: "Activa", preguntas: formData.preguntas });
+                    baseActividades.push({
+                        id: nuevoId, version: 1, titulo: inputTitulo, grados: [inputGrado], estado: "Activa",
+                        fechaCreacion: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
+                        video: { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) },
+                        pedagogia: { objetivo: inputObjetivo, descripcion: inputDescripcion },
+                        evaluacion: { intentosPermitidos: 1, notaMinima: 3.0 },
+                        preguntas: arregloPreguntas
+                    });
                 }
                 
                 localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
                 document.getElementById('nav-dashboard').click(); 
 
                 try { 
-                    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload: formData }) }); 
+                    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload: baseActividades[baseActividades.length -1] }) }); 
                     window.mostrarToast("Actividad publicada en Google Sheets", "success");
                 } catch (error) { window.mostrarToast("Guardada localmente (Sin conexión a Google Sheets)", "warning"); }
                 
                 btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false;
             });
 
-            // Lógica Login Estudiante 
+            // Lógica Login Estudiante (SOLUCIÓN: Estudiante "Ejemplo" Dinámico)
             document.getElementById('form-estudiante').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btnSubmit = e.target.querySelector('button[type="submit"]');
@@ -825,11 +830,19 @@
                 const codigo = document.getElementById('codigo-estudiante').value;
                 const password = document.getElementById('pass-estudiante').value;
 
+                // Acceso instantáneo si escriben 'Ejemplo'
+                if (codigo.trim().toLowerCase() === 'ejemplo') {
+                    window.mostrarToast("Sesión de Prueba (Ejemplo) Iniciada", "success");
+                    window.iniciarSesionEstudianteLocal(grado, 'EJEMPLO', 'Estudiante de Prueba');
+                    btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false;
+                    return;
+                }
+
                 const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo === codigo);
                 
                 if(localEst && localEst.pass === password) {
                     window.mostrarToast("Sesión iniciada", "success");
-                    iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
+                    window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
                     btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false;
                 } else {
                     try {
@@ -837,27 +850,15 @@
                         const result = await response.json();
                         if(result.success) {
                             window.mostrarToast("Sesión iniciada", "success");
-                            iniciarSesionEstudianteLocal(grado, codigo, result.nombre);
+                            window.iniciarSesionEstudianteLocal(grado, codigo, result.nombre);
                         } else { window.mostrarToast(result.error || "Credenciales incorrectas", "error"); }
                     } catch (error) { window.mostrarToast("Error de red y credenciales no encontradas localmente.", "error"); } 
                     finally { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
                 }
             });
 
-            function iniciarSesionEstudianteLocal(grado, codigo, nombre) {
-                estudianteIdActual = `${grado}-${codigo}`;
-                nombreEstudianteActual = nombre;
-                gradoEstudianteActual = grado; 
-                document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
-                document.getElementById('panel-estudiante').classList.remove('hidden'); document.getElementById('panel-estudiante').classList.add('flex');
-                document.getElementById('nombre-estudiante-display').innerText = window.escapeHTML(nombre);
-                document.getElementById('grado-estudiante-display').innerText = window.escapeHTML(grado);
-                document.getElementById('codigo-estudiante-display').innerText = window.escapeHTML(codigo);
-                construirDashboardEstudiante(grado);
-            }
-
-            // Dashboard Estudiante
-            function construirDashboardEstudiante(grado) {
+            // Función globalizada para Dashboard de Estudiante
+            window.construirDashboardEstudiante = function(grado) {
                 const listaP = document.getElementById('lista-pendientes'), listaR = document.getElementById('lista-realizadas');
                 listaP.innerHTML = ''; listaR.innerHTML = ''; let pCount = 0, rCount = 0;
                 baseActividades.forEach(act => {
@@ -885,7 +886,17 @@
                 if(rCount===0) listaR.innerHTML = `<p class="text-gray-500 text-lg font-medium p-8 text-center border border-dashed border-gray-300 rounded-xl">Aún no hay calificaciones registradas.</p>`;
             }
 
-            // Reproductor Estudiante (Paso 1.5: ANTI-TRAMPAS)
+            window.iniciarSesionEstudianteLocal = function(grado, codigo, nombre) {
+                estudianteIdActual = `${grado}-${codigo}`; nombreEstudianteActual = nombre; gradoEstudianteActual = grado; 
+                document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
+                document.getElementById('panel-estudiante').classList.remove('hidden'); document.getElementById('panel-estudiante').classList.add('flex');
+                document.getElementById('nombre-estudiante-display').innerText = window.escapeHTML(nombre);
+                document.getElementById('grado-estudiante-display').innerText = window.escapeHTML(grado);
+                document.getElementById('codigo-estudiante-display').innerText = window.escapeHTML(codigo);
+                window.construirDashboardEstudiante(grado);
+            }
+
+            // Reproductor Estudiante (ANTI-TRAMPAS INCLUIDO)
             window.iniciarActividadPorId = function(idActividad) {
                 const act = baseActividades.find(a => a.id === idActividad);
                 if(!act) return;
@@ -893,9 +904,8 @@
                 document.getElementById('vista-bienvenida-estudiante').classList.add('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.remove('flex');
                 document.getElementById('vista-reproductor').classList.remove('hidden'); document.getElementById('vista-reproductor').classList.add('flex');
                 document.getElementById('titulo-reproductor').innerText = window.escapeHTML(actividadActual.titulo);
-                intentoActual = { correctas: 0, resueltas: 0 }; 
-                document.getElementById('progreso-text').innerText = "0%";
-                maxTiempoVisto = 0; // Reinicio del Anti-Trampas
+                intentoActual = { correctas: 0, resueltas: 0 }; document.getElementById('progreso-text').innerText = "0%";
+                maxTiempoVisto = 0; 
                 prepararReproductor();
             };
 
@@ -903,19 +913,26 @@
                 const estG = JSON.parse(localStorage.getItem(`estado_${actividadActual.id}_${estudianteIdActual}`));
                 let tIn = 0;
                 if (estG && confirm("Tienes una sesión guardada. ¿Reanudar?")) {
-                    actividadActual.preguntas = estG.preguntas; 
-                    intentoActual = estG.intento; 
-                    tIn = estG.ultimoTiempo;
-                    maxTiempoVisto = estG.maxTiempoVisto || tIn; // Recuperar máximo visto
+                    actividadActual.preguntas = estG.preguntas; intentoActual = estG.intento; tIn = estG.ultimoTiempo;
+                    maxTiempoVisto = estG.maxTiempoVisto || tIn;
                     document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
-                } else {
-                    maxTiempoVisto = 0; // Si no reanuda, empieza de cero
-                }
+                } else { maxTiempoVisto = 0; }
 
                 try {
-                    if (player && typeof player.loadVideoById === 'function') { player.loadVideoById({videoId: actividadActual.videoId, startSeconds: Math.floor(tIn)}); } 
+                    const vId = actividadActual.video ? actividadActual.video.id : actividadActual.videoId; 
+                    
+                    // SOLUCIÓN ERROR 153: Origen seguro forzado para esquivar bloqueos de creadores
+                    let originSeguro = window.location.origin;
+                    if(!originSeguro || originSeguro === 'null' || originSeguro.includes('file://')) originSeguro = 'https://cafelab.co';
+
+                    if (player && typeof player.loadVideoById === 'function') { player.loadVideoById({videoId: vId, startSeconds: Math.floor(tIn)}); } 
                     else {
-                        player = new YT.Player('youtube-player', { videoId: actividadActual.videoId, playerVars: { 'autoplay': 1, 'controls': 0, 'start': Math.floor(tIn), 'rel': 0, 'modestbranding': 1, 'origin': window.location.origin }, events: { 'onStateChange': (e) => { if (e.data == YT.PlayerState.PLAYING) { intervaloVideo = setInterval(verificarTiempo, 1000); } else { clearInterval(intervaloVideo); } } } });
+                        player = new YT.Player('youtube-player', { 
+                            videoId: vId, 
+                            host: 'https://www.youtube-nocookie.com',
+                            playerVars: { 'autoplay': 1, 'controls': 0, 'start': Math.floor(tIn), 'rel': 0, 'modestbranding': 1, 'origin': originSeguro }, 
+                            events: { 'onStateChange': (e) => { if (e.data == YT.PlayerState.PLAYING) { intervaloVideo = setInterval(verificarTiempo, 1000); } else { clearInterval(intervaloVideo); } } } 
+                        });
                     }
                 } catch(e){}
             }
@@ -924,18 +941,14 @@
                 if (!player || typeof player.getCurrentTime !== 'function') return;
                 const tAct = player.getCurrentTime();
 
-                // =====================================
-                // PASO 1.5: SISTEMA ANTI-TRAMPAS (Seek)
-                // =====================================
+                // ESCUDO ANTI-SEEK (Evita que adelanten el video más de 3 segundos)
                 if (tAct > maxTiempoVisto + 3) { 
-                    // Si el estudiante adelanta el video más de 3 segundos (margen de lag)
                     player.seekTo(maxTiempoVisto);
-                    window.mostrarToast("⚠️ No está permitido adelantar el video. Debes ver la clase completa.", "warning");
+                    window.mostrarToast("⚠️ No puedes adelantar el video. Debes ver la clase completa.", "warning");
                     return;
                 }
-                if(tAct > maxTiempoVisto) { maxTiempoVisto = tAct; } // Avanza legalmente
+                if(tAct > maxTiempoVisto) { maxTiempoVisto = tAct; } 
 
-                // Guardado de estado con Anti-Trampa
                 localStorage.setItem(`estado_${actividadActual.id}_${estudianteIdActual}`, JSON.stringify({ ultimoTiempo: tAct, maxTiempoVisto: maxTiempoVisto, preguntas: actividadActual.preguntas, intento: intentoActual }));
                 
                 actividadActual.preguntas.forEach((pregunta, index) => {
@@ -965,22 +978,26 @@
                 localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
                 const notaFinal = (((intentoActual.correctas / actividadActual.preguntas.length) * 4) + 1).toFixed(1);
                 
-                // =====================================
-                // PASO 1.5: PROTECCIÓN BÁSICA DE LA NOTA
-                // =====================================
-                const payloadNota = JSON.stringify({
+                const entrega = {
+                    idEntrega: "ENT_" + Date.now().toString(36).toUpperCase(),
+                    estudianteId: estudianteIdActual,
+                    actividadId: actividadActual.id,
+                    versionActividad: actividadActual.version || 1,
+                    correctas: intentoActual.correctas,
+                    resueltas: intentoActual.resueltas,
                     nota: notaFinal,
-                    validador: btoa(notaFinal + "_" + estudianteIdActual + "_CafeLab") // Pequeño hash de integridad
-                });
-                localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, payloadNota);
+                    fecha: new Date().toLocaleString(),
+                    validador: btoa(notaFinal + "_" + estudianteIdActual + "_CafeLab")
+                };
+                
+                localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, JSON.stringify(entrega));
                 
                 window.volverDashboardEstudiante();
                 window.mostrarToast(`¡Completado! Nota: ${notaFinal}`, "success");
 
                 try { 
-                    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', estudianteId: estudianteIdActual, actividadId: actividadActual.id, respuestasCorrectas: intentoActual.correctas, totalPreguntas: actividadActual.preguntas.length }) }); 
-                    window.mostrarToast("Calificación enviada a Google Sheets", "success");
-                } catch (error) { window.mostrarToast("Calificación guardada localmente. Se sincronizará luego.", "warning"); }
+                    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) }); 
+                } catch (error) { window.mostrarToast("Calificación guardada localmente.", "warning"); }
             }
         });
     </script>
