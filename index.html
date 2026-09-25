@@ -35,9 +35,6 @@
             box-shadow: 0 12px 28px -6px rgba(124, 58, 237, 0.45);
             transform: translateY(-2px);
         }
-        .histudy-gradient-teal {
-            background: linear-gradient(135deg, #0D9488 0%, #059669 100%);
-        }
         .text-gradient {
             background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #C026D3 100%);
             -webkit-background-clip: text;
@@ -71,7 +68,6 @@
 
     <!-- LOGIN PANEL -->
     <div id="login-panel" class="flex-grow flex items-center justify-center p-6 relative overflow-hidden">
-        <!-- Elementos de luz ambiental estilo HiStudy -->
         <div class="absolute -top-32 -left-32 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-indigo-300/30 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -214,7 +210,6 @@
         </aside>
 
         <main class="flex-1 p-8 sm:p-10 overflow-y-auto h-full">
-            <!-- VISTA: DASHBOARD DOCENTE -->
             <div id="vista-dashboard" class="view-docente block max-w-[1400px] mx-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
@@ -472,7 +467,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Objetivo Pedagógico</label>
-                        <input type="text" id="objetivo-actividad" placeholder="Competencia científica o técnica a desarrollar..." class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 outline-none text-sm font-semibold focus:ring-2 focus:ring-indigo-500" required>
+                        <input type="text" id="objetivo-actividad" placeholder="Competencia científica o técnica a desarrollar..." class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 outline-none text-sm font-semibold focus:ring-2 focus:ring-caramel" required>
                     </div>
                     
                     <div>
@@ -801,12 +796,28 @@
             window.renderLucide();
         };
 
-        window.eliminarActividad = function(idActividad) {
-            if(confirm("¿Estás seguro de eliminar esta actividad?")) {
+        // Eliminación bidireccional segura
+        window.eliminarActividad = async function(idActividad) {
+            if(confirm("¿Estás seguro de eliminar esta actividad permanentemente?")) {
                 window.baseActividades = window.baseActividades.filter(a => a.id !== idActividad);
                 localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
                 window.renderDashboardDocente(window.filtroGradoActual); 
-                window.mostrarToast("Actividad eliminada", "success");
+                window.mostrarToast("Eliminando de la nube...", "info");
+
+                try {
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'eliminarActividad', id: idActividad })
+                    });
+                    const res = await response.json();
+                    if(res.success) {
+                        window.mostrarToast("Actividad eliminada de la nube con éxito", "success");
+                    } else {
+                        window.mostrarToast("Eliminada localmente.", "warning");
+                    }
+                } catch(e) {
+                    window.mostrarToast("Eliminada localmente.", "warning");
+                }
             }
         };
 
@@ -931,7 +942,7 @@
                                     </div>
                                     <div class="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-400 text-emerald-800 font-bold text-xs flex items-center gap-2 shadow-sm">
                                         <i data-lucide="check" class="w-4 h-4 shrink-0 text-emerald-600"></i>
-                                        <span><strong>Opción correcta que debía seleccionar:</strong> ${window.escapeHTML(r.opcionCorrecta)}</span>
+                                        <span><strong>Opción correcta que debía responder:</strong> ${window.escapeHTML(r.opcionCorrecta)}</span>
                                     </div>
                                 </div>
                             `;
@@ -1711,6 +1722,20 @@
                             try { entregaObj = JSON.parse(notaGuardadaObj); } catch(e) { entregaObj = { nota: notaGuardadaObj }; }
                             
                             const val = entregaObj.nota != null ? entregaObj.nota : '0.0';
+                            const numVal = parseFloat(val);
+                            const esGanada = numVal >= 3.0;
+                            
+                            // Colores condicionales según aprobación o reprobación
+                            const badgeColor = esGanada 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                : 'bg-rose-50 text-rose-700 border-rose-200';
+                            const badgeTexto = esGanada ? 'Aprobada' : 'Reprobada';
+                            const badgeIcon = esGanada ? 'check-circle' : 'alert-circle';
+                            
+                            const notaBoxColor = esGanada
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                : 'bg-rose-50 text-rose-700 border-rose-300';
+
                             const fechaRespondida = window.escapeHTML(entregaObj.fecha || 'Fecha no registrada');
                             const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
 
@@ -1718,10 +1743,16 @@
                                 <div class="p-5 bg-white rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-slate-200 shadow-sm hover:border-indigo-200 transition-all">
                                     <div>
                                         <h4 class="font-bold text-slate-900 text-sm sm:text-base">${seguroTitulo}</h4>
-                                        <div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-teal-700 font-bold">
-                                            <span class="flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Completada</span>
+                                        <div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs font-bold">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border ${badgeColor}">
+                                                <i data-lucide="${badgeIcon}" class="w-3.5 h-3.5"></i>
+                                                <span>${badgeTexto}</span>
+                                            </span>
                                             <span class="text-slate-300">•</span>
-                                            <span class="text-slate-500 font-medium flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${fechaRespondida}</span>
+                                            <span class="text-slate-500 font-medium flex items-center gap-1">
+                                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> 
+                                                <span>${fechaRespondida}</span>
+                                            </span>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
@@ -1729,7 +1760,7 @@
                                             <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                                             <span>Ver Detalle</span>
                                         </button>
-                                        <div class="bg-indigo-50/60 px-3.5 py-1.5 rounded-xl border border-indigo-100 text-indigo-900 font-black text-lg shadow-inner">
+                                        <div class="px-3.5 py-1.5 rounded-xl border-2 font-black text-lg shadow-inner ${notaBoxColor}">
                                             ${val}
                                         </div>
                                     </div>
