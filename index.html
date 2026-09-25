@@ -154,7 +154,7 @@
         </div>
     </div>
 
-    <!-- PANEL DOCENTE -->
+    <!-- PANEL DOCENTE (ADMINISTRADOR) -->
     <div id="panel-docente" class="hidden flex-grow flex h-screen overflow-hidden">
         <aside class="w-72 sidebar-bg text-slate-300 flex flex-col h-full shrink-0 shadow-2xl z-10 border-r border-indigo-950">
             <div class="p-6 flex items-center justify-between border-b border-white/10">
@@ -177,9 +177,9 @@
                     <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
                     <span>Dashboard</span>
                 </button>
-                <button id="nav-actividad" onclick="window.prepararNuevaActividad()" class="nav-btn w-full text-left hover:bg-white/5 px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all text-sm text-slate-300 hover:text-white">
-                    <i data-lucide="video" class="w-4 h-4"></i>
-                    <span>Añadir Actividad</span>
+                <button id="nav-actividad" onclick="window.mostrarVistaDocente('vista-hub-actividades')" class="nav-btn w-full text-left hover:bg-white/5 px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all text-sm text-slate-300 hover:text-white">
+                    <i data-lucide="layers" class="w-4 h-4"></i>
+                    <span>Gestionar Actividades</span>
                 </button>
                 <button id="nav-estudiantes" onclick="window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes');" class="nav-btn w-full text-left hover:bg-white/5 px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all text-sm text-slate-300 hover:text-white">
                     <i data-lucide="users" class="w-4 h-4"></i>
@@ -303,6 +303,93 @@
                             </thead>
                             <tbody id="tabla-actividades-creadas" class="divide-y divide-slate-100"></tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: HUB DE GESTIÓN DE ACTIVIDADES -->
+            <div id="vista-hub-actividades" class="view-docente hidden max-w-[1400px] mx-auto">
+                <div class="mb-8">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-gradient text-xs font-bold mb-2">
+                        <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                        Módulos Pedagógicos
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Gestionar Actividades</h2>
+                    <p class="text-sm text-slate-500 font-medium mt-1">Selecciona el tipo de experiencia interactiva que deseas diseñar y asignar a los grupos</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    <!-- Módulo 1: Videos Interactivos (ACTIVO) -->
+                    <div onclick="window.prepararNuevaActividad()" class="glass-card p-8 border-2 border-indigo-200/80 hover:border-indigo-500 cursor-pointer transition-all hover:-translate-y-1 group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-all"></div>
+                        <div class="flex items-start justify-between mb-5">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                                <i data-lucide="play-square" class="w-7 h-7"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Activo
+                            </span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">Videos Interactivos</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-6 font-medium">Clases en video con preguntas obligatorias intermedias, anti-adelanto, registro de variables de laboratorio y reflexiones evaluadas.</p>
+                        <div class="flex items-center gap-2 text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
+                            <span>Crear o editar actividades en video</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 2: Evaluaciones y Quizzes (FUTURO) -->
+                    <div class="glass-card p-8 border border-slate-200/80 bg-white/70 hover:border-slate-300 transition-all relative overflow-hidden">
+                        <div class="flex items-start justify-between mb-5">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-fuchsia-500 to-pink-600 text-white flex items-center justify-center shadow-lg shadow-fuchsia-500/20 opacity-80">
+                                <i data-lucide="help-circle" class="w-7 h-7"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+                                Próximamente
+                            </span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-slate-800 mb-2">Evaluaciones y Quizzes</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-6 font-medium">Banco de preguntas tipo Saber, pruebas de selección múltiple con tiempo límite, retroalimentación formativa y calificación automatizada.</p>
+                        <div class="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                            <i data-lucide="clock" class="w-4 h-4"></i>
+                            <span>En desarrollo para próximas fases</span>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 3: Lectura Interactiva y Fluidez (FUTURO) -->
+                    <div class="glass-card p-8 border border-slate-200/80 bg-white/70 hover:border-slate-300 transition-all relative overflow-hidden">
+                        <div class="flex items-start justify-between mb-5">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center shadow-lg shadow-teal-500/20 opacity-80">
+                                <i data-lucide="book-open-check" class="w-7 h-7"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+                                Próximamente
+                            </span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-slate-800 mb-2">Lectura Interactiva y Fluidez</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-6 font-medium">Entrenador de velocidad y comprensión lectora con textos científicos de café, cronómetro de palabras por minuto y control de comprensión.</p>
+                        <div class="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                            <i data-lucide="clock" class="w-4 h-4"></i>
+                            <span>En desarrollo para próximas fases</span>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 4: Talleres y Prácticas de Campo (FUTURO) -->
+                    <div class="glass-card p-8 border border-slate-200/80 bg-white/70 hover:border-slate-300 transition-all relative overflow-hidden">
+                        <div class="flex items-start justify-between mb-5">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 opacity-80">
+                                <i data-lucide="sprout" class="w-7 h-7"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+                                Próximamente
+                            </span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-slate-800 mb-2">Talleres y Prácticas de Campo</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-6 font-medium">Fichas de recolección en campo, protocolos de fermentación controlada, secado, tostión y registro de catación sensorial SCA.</p>
+                        <div class="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                            <i data-lucide="clock" class="w-4 h-4"></i>
+                            <span>En desarrollo para próximas fases</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -440,14 +527,21 @@
                 </div>
             </div>
 
-            <!-- VISTA: AÑADIR / EDITAR ACTIVIDAD (CON SELECCIÓN MÚLTIPLE DE GRADOS Y DOCENTE) -->
+            <!-- VISTA: VIDEOS INTERACTIVOS (FORMULARIO CON SELECCIÓN MÚLTIPLE DE GRADOS Y DOCENTE) -->
             <div id="vista-actividad" class="view-docente hidden max-w-5xl mx-auto">
-                <div class="mb-8">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-gradient text-xs font-bold mb-2">
+                <div class="flex items-center justify-between mb-6">
+                    <button type="button" onclick="window.mostrarVistaDocente('vista-hub-actividades')" class="inline-flex items-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition-all">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Volver a Módulos</span>
+                    </button>
+                    <div class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
                         <i data-lucide="video" class="w-3.5 h-3.5"></i>
-                        Creador de Contenido
+                        Módulo: Videos Interactivos
                     </div>
-                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight" id="titulo-formulario-actividad">Crear Nueva Actividad Interactiva</h2>
+                </div>
+
+                <div class="mb-8">
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight" id="titulo-formulario-actividad">Crear Nueva Actividad de Video Interactivo</h2>
                     <p class="text-sm text-slate-500 font-medium mt-1">Configura el video con validaciones intermedias, registros de laboratorio y grados destino</p>
                 </div>
                 
@@ -461,9 +555,7 @@
                                 Marcar / Desmarcar Todos
                             </button>
                         </div>
-                        <div id="contenedor-grados-destino" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200">
-                            <!-- Inyección dinámica de checkboxes -->
-                        </div>
+                        <div id="contenedor-grados-destino" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200"></div>
                         <p class="text-[11px] text-slate-400 font-medium mt-1.5 ml-1">Los estudiantes de los grados seleccionados y los usuarios en la categoría Docente verán esta actividad.</p>
                     </div>
 
@@ -479,7 +571,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Objetivo Pedagógico</label>
-                        <input type="text" id="objetivo-actividad" placeholder="Competencia científica o técnica a desarrollar..." class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 outline-none text-sm font-semibold focus:ring-2 focus:ring-caramel" required>
+                        <input type="text" id="objetivo-actividad" placeholder="Competencia científica o técnica a desarrollar..." class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 outline-none text-sm font-semibold focus:ring-2 focus:ring-indigo-500" required>
                     </div>
                     
                     <div>
@@ -649,7 +741,7 @@
                     <h3 class="text-xl font-black text-slate-900 tracking-tight">Detalle de la Entrega y Evaluación</h3>
                 </div>
                 <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-slate-400 hover:text-rose-600 font-bold p-1 rounded-lg transition-colors">
-                    <i data-lucide="x" class="w-6 h-6"></i>
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             
@@ -800,11 +892,17 @@
         window.mostrarVistaDocente = function(idVista) {
             document.querySelectorAll('.view-docente').forEach(v => v.classList.add('hidden'));
             document.getElementById(idVista).classList.remove('hidden');
+            
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.className = "nav-btn w-full text-left hover:bg-white/5 px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all text-sm text-slate-300 hover:text-white";
             });
-            let btnId = idVista === 'vista-dashboard' ? 'nav-dashboard' : (idVista === 'vista-estudiantes' ? 'nav-estudiantes' : 'nav-actividad');
-            if(idVista !== 'vista-reportes') {
+            
+            let btnId = null;
+            if (idVista === 'vista-dashboard') btnId = 'nav-dashboard';
+            else if (idVista === 'vista-hub-actividades' || idVista === 'vista-actividad') btnId = 'nav-actividad';
+            else if (idVista === 'vista-estudiantes') btnId = 'nav-estudiantes';
+
+            if(btnId) {
                 const b = document.getElementById(btnId);
                 if(b) { b.className = "nav-btn w-full text-left bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-all text-sm shadow-md shadow-indigo-600/30"; }
             }
@@ -845,7 +943,6 @@
             }
         };
 
-        // Render de checkboxes para selección múltiple de destinos
         window.renderSelectoresGradosDestino = function(seleccionados = []) {
             const cont = document.getElementById('contenedor-grados-destino');
             if (!cont) return;
@@ -880,7 +977,7 @@
             const contPreg = document.getElementById('contenedor-preguntas');
             if(contPreg) contPreg.innerHTML = '';
             
-            document.getElementById('titulo-formulario-actividad').innerText = "Crear Nueva Actividad Interactiva";
+            document.getElementById('titulo-formulario-actividad').innerText = "Crear Nueva Actividad de Video Interactivo";
             document.getElementById('btn-submit-actividad').innerText = "Guardar Actividad y Publicar";
             
             document.getElementById('toggle-laboratorio').checked = false;
@@ -1356,7 +1453,6 @@
             window.renderLucide();
         };
 
-        // REINICIO INDIVIDUAL DE ACTIVIDAD
         window.reiniciarActividadEstudiante = async function(estudianteId, actividadId, nombreEstudiante) {
             if(confirm(`¿Deseas reiniciar la actividad para ${nombreEstudiante}? Se eliminará su nota para que pueda volver a presentarla.`)) {
                 localStorage.removeItem(`nota_${estudianteId}_${actividadId}`);
@@ -1381,7 +1477,6 @@
             }
         };
 
-        // REINICIO PARA TODO EL GRUPO
         window.reiniciarGrupoActual = async function() {
             if (!window.reporteActividadActualId) return;
             const targetGrado = window.filtroGradoActual || 'Todos';
@@ -1422,7 +1517,6 @@
             }
         };
 
-        // RENDER DIRECTORIO ESTUDIANTES Y DOCENTES CON BOTÓN DE BASURA
         window.renderEstudiantesLocales = function() {
             const tbody = document.getElementById('tabla-estudiantes-locales');
             if(!tbody) return;
@@ -1467,7 +1561,6 @@
             window.renderLucide();
         };
 
-        // ELIMINAR ESTUDIANTE O DOCENTE DEL DIRECTORIO Y DE SHEETS
         window.eliminarUsuarioDirectorio = async function(grado, codigo, nombre) {
             if (confirm(`¿Estás seguro de eliminar a ${nombre} (${grado} - ${codigo}) del sistema y de Google Sheets?`)) {
                 window.baseEstudiantes = window.baseEstudiantes.filter(e => !(String(e.grado) === String(grado) && String(e.codigo).trim().toLowerCase() === String(codigo).trim().toLowerCase()));
@@ -1494,7 +1587,6 @@
             if(btnSubmit) { btnSubmit.innerText = "Guardando..."; btnSubmit.disabled = true; }
 
             try {
-                // Captura múltiple de grados seleccionados
                 const checkedBoxes = document.querySelectorAll('.checkbox-grado-destino:checked');
                 let gradosSeleccionados = Array.from(checkedBoxes).map(cb => cb.value);
                 
@@ -1504,7 +1596,6 @@
                     return;
                 }
 
-                // Si seleccionó todas las opciones disponibles, se cataloga como 'Todos' manteniendo las etiquetas
                 if (gradosSeleccionados.length === OPCIONES_DESTINO.length) {
                     gradosSeleccionados = ['Todos', ...OPCIONES_DESTINO];
                 }
@@ -1645,7 +1736,6 @@
             }
         };
 
-        // AGREGAR ESTUDIANTE O DOCENTE CON ENVÍO INMEDIATO A SHEETS
         window.agregarEstudiante = async function(e) {
             e.preventDefault();
             const grado = document.getElementById('new-est-grado').value;
@@ -1749,7 +1839,6 @@
                 window.baseActividades.forEach(act => {
                     if(!act || !act.grados || !Array.isArray(act.grados)) return;
 
-                    // El usuario ve la actividad si su grado está marcado, si está marcado 'Todos', o si tiene rol Docente y está asignada a Docente
                     const esVisible = act.grados.includes(grado) || act.grados.includes('Todos');
 
                     if(esVisible) {
@@ -1934,7 +2023,7 @@
                             const msjFeedback = pregunta.feedback ? window.escapeHTML(pregunta.feedback) : (esCorrecta ? '¡Excelente! Continúa con la clase.' : 'Presta atención al siguiente fragmento del video.');
                             
                             qBox.innerHTML = `
-                                <div class="p-8 rounded-2xl border ${boxColor} mb-6 shadow-sm">
+                                <div class="p-6 rounded-2xl border ${boxColor} mb-6 shadow-sm">
                                     <h4 class="text-xl font-black mb-2 flex items-center justify-center gap-2">
                                         <i data-lucide="${esCorrecta ? 'check-circle-2' : 'x-circle'}" class="w-6 h-6"></i>
                                         <span>${esCorrecta ? '¡Respuesta Correcta!' : 'Respuesta Incorrecta'}</span>
