@@ -138,7 +138,7 @@
             <!-- Form Docente -->
             <form id="form-docente" onsubmit="window.loginDocente(event)" class="hidden space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Contraseña Administrador</label>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Contraseña Administrador / Docente</label>
                     <div class="relative">
                         <input type="password" id="pass-docente" placeholder="Contraseña de acceso" class="w-full p-4 pl-11 border border-slate-200 rounded-2xl bg-white/70 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm font-semibold" required>
                         <div class="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none">
@@ -183,7 +183,7 @@
                 </button>
                 <button id="nav-estudiantes" onclick="window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes');" class="nav-btn w-full text-left hover:bg-white/5 px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all text-sm text-slate-300 hover:text-white">
                     <i data-lucide="users" class="w-4 h-4"></i>
-                    <span>Gestión Estudiantes</span>
+                    <span>Gestión de estudiantes y docentes</span>
                 </button>
 
                 <div class="pt-6 pb-2">
@@ -210,6 +210,7 @@
         </aside>
 
         <main class="flex-1 p-8 sm:p-10 overflow-y-auto h-full">
+            <!-- VISTA: DASHBOARD DOCENTE -->
             <div id="vista-dashboard" class="view-docente block max-w-[1400px] mx-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
@@ -308,16 +309,20 @@
 
             <!-- VISTA: REPORTES INTERACTIVOS HTML -->
             <div id="vista-reportes" class="view-docente hidden max-w-[1400px] mx-auto">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-gradient text-xs font-bold mb-2">
                             <i data-lucide="clipboard-list" class="w-3.5 h-3.5"></i>
                             Historial Evaluativo
                         </div>
                         <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight" id="titulo-vista-reporte">Reporte de Calificaciones</h2>
-                        <p class="text-sm text-slate-500 font-medium mt-1">Inspección de evidencias, respuestas y reflexiones</p>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Inspección de evidencias y administración de intentos</p>
                     </div>
-                    <div class="flex gap-3">
+                    <div class="flex flex-wrap gap-2.5">
+                        <button type="button" id="btn-reiniciar-grupo" onclick="window.reiniciarGrupoActual()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-4 py-2.5 rounded-xl font-bold transition-all text-xs flex items-center gap-2 shadow-sm">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            <span id="btn-reiniciar-grupo-texto">Reiniciar Actividad para Todo el Grupo</span>
+                        </button>
                         <button type="button" onclick="window.limpiarNotasLocales()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-4 py-2.5 rounded-xl font-bold transition-all text-xs flex items-center gap-2 shadow-sm" title="Limpia la caché si borraste la base de datos de Google">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                             <span>Limpiar Caché</span>
@@ -353,11 +358,12 @@
                         <table class="w-full text-sm text-left">
                             <thead class="text-xs text-slate-400 uppercase font-black border-b border-slate-100 bg-slate-50/70">
                                 <tr>
-                                    <th class="px-8 py-4">Grado</th>
-                                    <th class="px-8 py-4">Estudiante</th>
+                                    <th class="px-8 py-4">Grado / Rol</th>
+                                    <th class="px-8 py-4">Estudiante / Integrante</th>
                                     <th class="px-8 py-4">Actividad</th>
                                     <th class="px-8 py-4 text-center">Evidencias / Evaluación</th>
                                     <th class="px-8 py-4 text-center">Nota Final</th>
+                                    <th class="px-8 py-4 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-datos-reporte" class="divide-y divide-slate-100"></tbody>
@@ -366,35 +372,36 @@
                 </div>
             </div>
 
-            <!-- VISTA: GESTIÓN DE ESTUDIANTES -->
+            <!-- VISTA: GESTIÓN DE ESTUDIANTES Y DOCENTES -->
             <div id="vista-estudiantes" class="view-docente hidden max-w-[1400px] mx-auto">
                 <div class="mb-8">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-gradient text-xs font-bold mb-2">
                         <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-                        Directorio Escolar
+                        Directorio Institucional
                     </div>
-                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Gestión de Estudiantes</h2>
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Gestión de estudiantes y docentes</h2>
                     <p class="text-sm text-slate-500 font-medium mt-1">Control de accesos y credenciales sincronizadas con Google Sheets</p>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="col-span-1 glass-card p-8 h-fit">
                         <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-3">
                             <i data-lucide="user-plus" class="w-5 h-5 text-indigo-600"></i>
-                            <h3 class="text-base font-extrabold text-slate-900">Añadir Estudiante</h3>
+                            <h3 class="text-base font-extrabold text-slate-900">Añadir Integrante</h3>
                         </div>
                         <form id="form-add-estudiante" onsubmit="window.agregarEstudiante(event)" class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Grado</label>
-                                <select id="new-est-grado" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50/60 outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold" required>
-                                    <option value="6-1">Sexto 1</option><option value="6-2">Sexto 2</option>
-                                    <option value="7">Séptimo</option><option value="8-1">Octavo 1</option>
-                                    <option value="8-2">Octavo 2</option><option value="9">Noveno</option>
-                                    <option value="10">Décimo</option><option value="11">Once</option>
+                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Categoría / Grado</label>
+                                <select id="new-est-grado" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50/60 outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold cursor-pointer" required>
+                                    <option value="Docente">Docente</option>
+                                    <option value="6-1">Sexto 1 (6-1)</option><option value="6-2">Sexto 2 (6-2)</option>
+                                    <option value="7">Séptimo (7°)</option><option value="8-1">Octavo 1 (8-1)</option>
+                                    <option value="8-2">Octavo 2 (8-2)</option><option value="9">Noveno (9°)</option>
+                                    <option value="10">Décimo (10°)</option><option value="11">Once (11°)</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Código</label>
-                                <input type="text" id="new-est-codigo" placeholder="Ej: 15420" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50/60 outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold" required>
+                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Código / ID</label>
+                                <input type="text" id="new-est-codigo" placeholder="Ej: 15420 o DOC01" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50/60 outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Apellidos y Nombres</label>
@@ -402,7 +409,7 @@
                             </div>
                             <button type="submit" class="w-full histudy-gradient-btn text-white py-3.5 rounded-xl font-bold shadow-md transition-all mt-4 text-sm flex items-center justify-center gap-2">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
-                                <span>Agregar Estudiante</span>
+                                <span>Guardar en Base de Datos</span>
                             </button>
                         </form>
                     </div>
@@ -410,7 +417,7 @@
                         <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
                             <div class="flex items-center gap-2">
                                 <i data-lucide="contact-2" class="w-5 h-5 text-indigo-600"></i>
-                                <h3 class="text-base font-extrabold text-slate-900">Directorio de Estudiantes</h3>
+                                <h3 class="text-base font-extrabold text-slate-900">Directorio Institucional (Estudiantes y Docentes)</h3>
                             </div>
                             <span class="text-xs text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">Cloud Sync</span>
                         </div>
@@ -418,10 +425,11 @@
                             <table class="w-full text-sm text-left">
                                 <thead class="text-xs text-slate-400 uppercase font-black border-b border-slate-100 bg-slate-50/70">
                                     <tr>
-                                        <th class="px-6 py-3.5">Grado</th>
-                                        <th class="px-6 py-3.5">Código</th>
+                                        <th class="px-6 py-3.5">Categoría / Grado</th>
+                                        <th class="px-6 py-3.5">Código / ID</th>
                                         <th class="px-6 py-3.5">Nombre Completo</th>
                                         <th class="px-6 py-3.5 text-center">Contraseña</th>
+                                        <th class="px-6 py-3.5 text-right">Eliminar</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-estudiantes-locales" class="divide-y divide-slate-100"></tbody>
@@ -682,7 +690,9 @@
         let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0, respuestas: [] };
         let estudianteIdActual = "", nombreEstudianteActual = "", gradoEstudianteActual = "";
         let idActividadEditando = null, maxTiempoVisto = 0; 
-        window.filtroGradoActual = null; window.datosReporteGlobal = [];
+        window.filtroGradoActual = null; 
+        window.reporteActividadActualId = null;
+        window.datosReporteGlobal = [];
 
         window.baseActividades = [];
         try { const temp = JSON.parse(localStorage.getItem('cafelab_actividades')); if (Array.isArray(temp)) window.baseActividades = temp; } catch(e) {}
@@ -796,7 +806,6 @@
             window.renderLucide();
         };
 
-        // Eliminación bidireccional segura
         window.eliminarActividad = async function(idActividad) {
             if(confirm("¿Estás seguro de eliminar esta actividad permanentemente?")) {
                 window.baseActividades = window.baseActividades.filter(a => a.id !== idActividad);
@@ -811,7 +820,7 @@
                     });
                     const res = await response.json();
                     if(res.success) {
-                        window.mostrarToast("Actividad eliminada de la nube con éxito", "success");
+                        window.mostrarToast("Actividad eliminada con éxito", "success");
                     } else {
                         window.mostrarToast("Eliminada localmente.", "warning");
                     }
@@ -1007,10 +1016,14 @@
         };
 
         window.generarReporteGlobal = function() {
+            window.reporteActividadActualId = null;
             document.getElementById('titulo-vista-reporte').innerText = "Reporte Global e Interactivo";
             document.getElementById('filtros-reporte-global').classList.remove('hidden');
             document.getElementById('contenedor-grafico-reporte').style.display = 'block';
             
+            const btnReiniciarG = document.getElementById('btn-reiniciar-grupo');
+            if (btnReiniciarG) btnReiniciarG.classList.add('hidden');
+
             const selAct = document.getElementById('filtro-rep-actividad');
             selAct.innerHTML = '<option value="Todas">Todas las Actividades</option>';
             window.baseActividades.forEach(a => { selAct.innerHTML += `<option value="${a.id}">${window.escapeHTML(a.titulo)}</option>`; });
@@ -1026,6 +1039,9 @@
                     let gradoDetectado = "Desconocido", codigoDetectado = estIdRaw;
                     for(let g of LISTA_GRADOS) {
                         if(estIdRaw.startsWith(g + '-')) { gradoDetectado = g; codigoDetectado = estIdRaw.substring(g.length + 1); break; }
+                    }
+                    if(estIdRaw.startsWith("Docente-")) {
+                        gradoDetectado = "Docente"; codigoDetectado = estIdRaw.substring(8);
                     }
 
                     let nombreEst = "Cód: " + codigoDetectado;
@@ -1069,7 +1085,7 @@
             let totalNotas = 0, aprobados = 0;
 
             if(filtrados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400 font-bold text-sm">No hay entregas registradas para estos filtros.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 font-bold text-sm">No hay entregas registradas para estos filtros.</td></tr>`;
                 document.getElementById('kpis-reporte').innerHTML = '';
                 if(window.chartRepGlobal) window.chartRepGlobal.destroy();
                 document.getElementById('contenedor-grafico-reporte').style.display = 'none';
@@ -1094,13 +1110,23 @@
                     <span>Ver Evidencias</span>
                 </button>`;
 
+                const safeEstId = window.escapeHTML(d.estId);
+                const safeActId = window.escapeHTML(d.actId);
+                const safeNombreEst = window.escapeHTML(d.nombreEst);
+
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/70 transition-colors">
                         <td class="px-8 py-4 font-black text-slate-900">${window.escapeHTML(d.grado)}</td>
-                        <td class="px-8 py-4 font-bold text-slate-800">${window.escapeHTML(d.nombreEst)}</td>
+                        <td class="px-8 py-4 font-bold text-slate-800">${safeNombreEst}</td>
                         <td class="px-8 py-4 text-slate-600 text-sm">${window.escapeHTML(d.nombreAct)}</td>
                         <td class="px-8 py-4 text-center">${labBtn}</td>
                         <td class="px-8 py-4 text-center font-black ${color} text-base">${d.nota.toFixed(1)}</td>
+                        <td class="px-8 py-4 text-right">
+                            <button type="button" onclick="window.reiniciarActividadEstudiante('${safeEstId}', '${safeActId}', '${safeNombreEst}')" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1 shadow-sm" title="Permite que este estudiante vuelva a presentar la actividad">
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                                <span>Reiniciar</span>
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
@@ -1164,6 +1190,7 @@
         };
 
         window.generarReporteActividad = function(idActividad) {
+            window.reporteActividadActualId = idActividad;
             const act = window.baseActividades.find(a => a.id === idActividad);
             const nombreAct = window.escapeHTML(act?.titulo || idActividad);
             let tituloStr = `Reporte: ${nombreAct}`;
@@ -1171,6 +1198,14 @@
             document.getElementById('titulo-vista-reporte').innerText = tituloStr;
             document.getElementById('filtros-reporte-global').classList.add('hidden');
             document.getElementById('contenedor-grafico-reporte').style.display = 'none';
+
+            // Configurar botón de reinicio para grupo
+            const btnReiniciarG = document.getElementById('btn-reiniciar-grupo');
+            const txtReiniciarG = document.getElementById('btn-reiniciar-grupo-texto');
+            if (btnReiniciarG && txtReiniciarG) {
+                btnReiniciarG.classList.remove('hidden');
+                txtReiniciarG.innerText = window.filtroGradoActual ? `Reiniciar Actividad para Grado ${window.filtroGradoActual}` : `Reiniciar Actividad para Todos los Grupos`;
+            }
 
             const tbody = document.getElementById('tabla-datos-reporte');
             tbody.innerHTML = '';
@@ -1186,6 +1221,9 @@
                     let gradoDetectado = "Desconocido", codigoDetectado = estIdRaw;
                     for(let g of LISTA_GRADOS) {
                         if(estIdRaw.startsWith(g + '-')) { gradoDetectado = g; codigoDetectado = estIdRaw.substring(g.length + 1); break; }
+                    }
+                    if(estIdRaw.startsWith("Docente-")) {
+                        gradoDetectado = "Docente"; codigoDetectado = estIdRaw.substring(8);
                     }
 
                     let nombreEst = "Cód: " + codigoDetectado;
@@ -1203,14 +1241,14 @@
                         fechaData = parseado.fecha || "";
                     } catch(e) { val = parseFloat(valObj); }
 
-                    notas.push({ grado: gradoDetectado, nombre: nombreEst, val: val, valStr: val.toFixed(1), lab: labData, reflexion: refData, respuestas: respData, fecha: fechaData });
+                    notas.push({ estId: estIdRaw, grado: gradoDetectado, nombre: nombreEst, val: val, valStr: val.toFixed(1), lab: labData, reflexion: refData, respuestas: respData, fecha: fechaData });
                     totalNotas += val;
                     if (val >= 3.0) aprobados++;
                 }
             }
 
             if(notas.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400 font-bold text-sm">No hay entregas registradas para esta actividad${window.filtroGradoActual ? ' en el grado ' + window.escapeHTML(window.filtroGradoActual) : ''}.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 font-bold text-sm">No hay entregas registradas para esta actividad${window.filtroGradoActual ? ' en el grado ' + window.escapeHTML(window.filtroGradoActual) : ''}.</td></tr>`;
                 document.getElementById('kpis-reporte').innerHTML = '';
             } else {
                 notas.forEach(n => {
@@ -1228,13 +1266,23 @@
                         <span>Ver Evidencias</span>
                     </button>`;
 
+                    const safeEstId = window.escapeHTML(n.estId);
+                    const safeActId = window.escapeHTML(idActividad);
+                    const safeNombre = window.escapeHTML(n.nombre);
+
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50/70 transition-colors">
                             <td class="px-8 py-4 font-black text-slate-900">${window.escapeHTML(n.grado)}</td>
-                            <td class="px-8 py-4 font-bold text-slate-800">${window.escapeHTML(n.nombre)}</td>
+                            <td class="px-8 py-4 font-bold text-slate-800">${safeNombre}</td>
                             <td class="px-8 py-4 text-slate-600 text-sm">${nombreAct}</td>
                             <td class="px-8 py-4 text-center">${labBtn}</td>
                             <td class="px-8 py-4 text-center font-black ${color} text-base">${n.valStr}</td>
+                            <td class="px-8 py-4 text-right">
+                                <button type="button" onclick="window.reiniciarActividadEstudiante('${safeEstId}', '${safeActId}', '${safeNombre}')" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1 shadow-sm" title="Permite que este estudiante vuelva a presentar la actividad">
+                                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                                    <span>Reiniciar</span>
+                                </button>
+                            </td>
                         </tr>
                     `;
                 });
@@ -1275,27 +1323,135 @@
             window.renderLucide();
         };
 
+        // REINICIO INDIVIDUAL DE ACTIVIDAD
+        window.reiniciarActividadEstudiante = async function(estudianteId, actividadId, nombreEstudiante) {
+            if(confirm(`¿Deseas reiniciar la actividad para ${nombreEstudiante}? Se eliminará su nota para que pueda volver a presentarla.`)) {
+                localStorage.removeItem(`nota_${estudianteId}_${actividadId}`);
+                localStorage.removeItem(`estado_${actividadId}_${estudianteId}`);
+                window.mostrarToast(`Reinicio local para ${nombreEstudiante}`, "info");
+
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'reiniciarEntregaEstudiante', estudianteId, actividadId })
+                    });
+                    window.mostrarToast(`Actividad reiniciada para ${nombreEstudiante}`, "success");
+                } catch(e) {
+                    console.log("Reinicio local ejecutado.");
+                }
+
+                if (window.reporteActividadActualId) {
+                    window.generarReporteActividad(window.reporteActividadActualId);
+                } else {
+                    window.generarReporteGlobal();
+                }
+            }
+        };
+
+        // REINICIO PARA TODO EL GRUPO
+        window.reiniciarGrupoActual = async function() {
+            if (!window.reporteActividadActualId) return;
+            const targetGrado = window.filtroGradoActual || 'Todos';
+            const msgConfirm = targetGrado === 'Todos' 
+                ? "¿Estás seguro de reiniciar esta actividad para TODOS los integrantes de todos los grupos?" 
+                : `¿Estás seguro de reiniciar esta actividad para todos los estudiantes de ${targetGrado}?`;
+            
+            if(confirm(msgConfirm)) {
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('nota_') && key.includes(window.reporteActividadActualId)) {
+                        const rawEstId = key.replace('nota_', '').split('_ACT_')[0];
+                        if (targetGrado === 'Todos' || rawEstId.startsWith(targetGrado + '-')) {
+                            keysToRemove.push(key);
+                            keysToRemove.push(`estado_${window.reporteActividadActualId}_${rawEstId}`);
+                        }
+                    }
+                }
+                keysToRemove.forEach(k => localStorage.removeItem(k));
+                window.mostrarToast(`Reiniciando grupo en la nube...`, "info");
+
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ 
+                            action: 'reiniciarEntregaGrupo', 
+                            grado: targetGrado, 
+                            actividadId: window.reporteActividadActualId 
+                        })
+                    });
+                    window.mostrarToast("Actividad reiniciada con éxito para el grupo", "success");
+                } catch(e) {
+                    window.mostrarToast("Grupo reiniciado localmente", "warning");
+                }
+
+                window.generarReporteActividad(window.reporteActividadActualId);
+            }
+        };
+
+        // RENDER DIRECTORIO ESTUDIANTES Y DOCENTES CON BOTÓN DE BASURA
         window.renderEstudiantesLocales = function() {
             const tbody = document.getElementById('tabla-estudiantes-locales');
             if(!tbody) return;
             tbody.innerHTML = '';
+            
+            if (!window.baseEstudiantes || window.baseEstudiantes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400 font-bold text-xs">No hay integrantes registrados en el directorio.</td></tr>`;
+                return;
+            }
+
             window.baseEstudiantes.forEach((est, index) => {
                 const idPas = `pass-${index}`;
+                const esDocente = String(est.grado).toLowerCase() === 'docente';
+                const badgeRol = esDocente
+                    ? `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-purple-100 text-purple-700 border border-purple-200">Docente</span>`
+                    : `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-indigo-50 text-indigo-700 border border-indigo-100">${window.escapeHTML(est.grado)}</span>`;
+
+                const safeGrado = window.escapeHTML(est.grado);
+                const safeCodigo = window.escapeHTML(est.codigo);
+                const safeNombre = window.escapeHTML(est.nombre);
+
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50/70 transition-colors">
-                        <td class="px-6 py-3.5 font-black text-slate-900">${window.escapeHTML(est.grado)}</td>
-                        <td class="px-6 py-3.5 font-bold text-indigo-600">${window.escapeHTML(est.codigo)}</td>
-                        <td class="px-6 py-3.5 text-slate-800 font-semibold">${window.escapeHTML(est.nombre)}</td>
+                        <td class="px-6 py-3.5 font-black text-slate-900">${badgeRol}</td>
+                        <td class="px-6 py-3.5 font-bold text-indigo-600">${safeCodigo}</td>
+                        <td class="px-6 py-3.5 text-slate-800 font-semibold">${safeNombre}</td>
                         <td class="px-6 py-3.5 text-center text-slate-500 font-mono text-xs">
                             <span id="${idPas}-txt" class="hidden">${window.escapeHTML(est.pass)}</span>
                             <span id="${idPas}-dots">••••••••</span>
-                            <button type="button" onclick="document.getElementById('${idPas}-txt').classList.toggle('hidden'); document.getElementById('${idPas}-dots').classList.toggle('hidden');" class="ml-2 text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg text-slate-700 font-bold transition-all">
+                            <button type="button" onclick="document.getElementById('${idPas}-txt').classList.toggle('hidden'); document.getElementById('${idPas}-dots').classList.toggle('hidden');" class="ml-2 text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-lg text-slate-700 font-bold transition-all">
                                 👁
+                            </button>
+                        </td>
+                        <td class="px-6 py-3.5 text-right">
+                            <button type="button" onclick="window.eliminarUsuarioDirectorio('${safeGrado}', '${safeCodigo}', '${safeNombre}')" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-2 rounded-xl border border-transparent hover:border-rose-200 transition-all inline-flex items-center" title="Eliminar integrante">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </td>
                     </tr>
                 `;
             });
+            window.renderLucide();
+        };
+
+        // ELIMINAR ESTUDIANTE O DOCENTE DEL DIRECTORIO Y DE SHEETS
+        window.eliminarUsuarioDirectorio = async function(grado, codigo, nombre) {
+            if (confirm(`¿Estás seguro de eliminar a ${nombre} (${grado} - ${codigo}) del sistema y de Google Sheets?`)) {
+                window.baseEstudiantes = window.baseEstudiantes.filter(e => !(String(e.grado) === String(grado) && String(e.codigo).trim().toLowerCase() === String(codigo).trim().toLowerCase()));
+                localStorage.setItem('cafelab_estudiantes', JSON.stringify(window.baseEstudiantes));
+                window.renderEstudiantesLocales();
+                window.mostrarToast(`Eliminando a ${nombre}...`, "info");
+
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'eliminarUsuario', grado, codigo })
+                    });
+                    window.mostrarToast(`${nombre} eliminado de la base de datos`, "success");
+                } catch(e) {
+                    window.mostrarToast("Eliminado localmente", "warning");
+                }
+            }
         };
 
         window.renderDashboardDocente = function(filtroGrado = null) {
@@ -1611,6 +1767,7 @@
             }
         };
 
+        // AGREGAR ESTUDIANTE O DOCENTE CON ENVÍO INMEDIATO A SHEETS
         window.agregarEstudiante = async function(e) {
             e.preventDefault();
             const grado = document.getElementById('new-est-grado').value;
@@ -1622,9 +1779,13 @@
             localStorage.setItem('cafelab_estudiantes', JSON.stringify(window.baseEstudiantes));
             window.renderEstudiantesLocales();
             e.target.reset();
-            window.mostrarToast(`Estudiante guardado. Pass: ${pass}`, "success");
+            window.mostrarToast(`${grado === 'Docente' ? 'Docente' : 'Estudiante'} guardado. Pass: ${pass}`, "success");
 
-            try { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'agregarEstudiante', payload: {grado, codigo, nombre} }) }); 
+            try { 
+                await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'agregarEstudiante', payload: {grado, codigo, nombre} }) 
+                }); 
             } catch(err) { console.log(err); }
         };
 
@@ -1725,7 +1886,6 @@
                             const numVal = parseFloat(val);
                             const esGanada = numVal >= 3.0;
                             
-                            // Colores condicionales según aprobación o reprobación
                             const badgeColor = esGanada 
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                                 : 'bg-rose-50 text-rose-700 border-rose-200';
