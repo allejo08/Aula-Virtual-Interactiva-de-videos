@@ -1159,8 +1159,11 @@
             window.iniciarSesionEstudianteLocal = function(grado, codigo, nombre) {
                 estudianteIdActual = `${grado}-${codigo}`; nombreEstudianteActual = nombre; gradoEstudianteActual = grado; 
                 document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
-                document.getElementById('panel-estudiante').classList.add('hidden'); document.getElementById('panel-estudiante').classList.remove('flex');
-                document.getElementById('panel-estudiante').classList.add('flex');
+                
+                const panelEst = document.getElementById('panel-estudiante');
+                panelEst.classList.remove('hidden'); 
+                panelEst.classList.add('flex');
+
                 document.getElementById('nombre-estudiante-display').innerText = window.escapeHTML(nombre);
                 document.getElementById('grado-estudiante-display').innerText = window.escapeHTML(grado);
                 document.getElementById('codigo-estudiante-display').innerText = window.escapeHTML(codigo);
