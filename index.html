@@ -18,23 +18,20 @@
         .bg-botanical { background-color: #3E6B4A; }
         .hover-bg-botanical:hover { background-color: #2B4A33; }
         .text-botanical { color: #3E6B4A; }
-        
         .toggle-checkbox:checked { right: 0; border-color: #3E6B4A; }
         .toggle-checkbox:checked + .toggle-label { background-color: #3E6B4A; }
-        
         #loading-overlay { backdrop-filter: blur(5px); }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <!-- OVERLAY DE CARGA -->
     <div id="loading-overlay" class="hidden fixed inset-0 bg-[#F9F7F2]/80 z-[100] flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-caramel mb-4"></div>
         <h2 class="text-2xl font-black text-caramel">Sincronizando con CaféLab...</h2>
-        <p class="text-gray-500 font-medium">Descargando datos desde la nube</p>
+        <p class="text-gray-500 font-medium">Conectando con la base de datos</p>
     </div>
 
-    <!-- LOGIN PANEL -->
+    <!-- PANEL LOGIN -->
     <div id="login-panel" class="flex-grow flex items-center justify-center p-4">
         <div class="glass-card p-10 w-full max-w-lg relative">
             <div class="text-center mb-8">
@@ -43,11 +40,11 @@
             </div>
             
             <div class="flex justify-center space-x-4 mb-8">
-                <button id="btn-show-estudiante" class="px-6 py-3 bg-caramel hover-bg-caramel text-white rounded-xl transition-colors shadow-md font-bold text-lg w-full">Estudiante</button>
-                <button id="btn-show-docente" class="px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-xl transition-colors shadow-md font-bold text-lg w-full">Docente</button>
+                <button type="button" onclick="document.getElementById('form-estudiante').classList.remove('hidden'); document.getElementById('form-docente').classList.add('hidden');" class="px-6 py-3 bg-caramel hover-bg-caramel text-white rounded-xl transition-colors shadow-md font-bold text-lg w-full">Estudiante</button>
+                <button type="button" onclick="document.getElementById('form-docente').classList.remove('hidden'); document.getElementById('form-estudiante').classList.add('hidden');" class="px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-xl transition-colors shadow-md font-bold text-lg w-full">Docente</button>
             </div>
 
-            <form id="form-estudiante" class="hidden space-y-5">
+            <form id="form-estudiante" onsubmit="window.loginEstudiante(event)" class="hidden space-y-5">
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Grado</label>
                     <select id="grado" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-[#8C522B] outline-none text-lg" required>
@@ -60,21 +57,21 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Código de Estudiante</label>
-                    <input type="text" id="codigo-estudiante" placeholder="Ej: 12254 (Escribe 'ensayo' para prueba)" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg" required>
+                    <input type="text" id="codigo-estudiante" placeholder="Ej: 12254" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg" required>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Contraseña</label>
                     <input type="password" id="pass-estudiante" placeholder="Ej: 12254Z" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg">
                 </div>
-                <button type="submit" class="w-full bg-botanical hover-bg-botanical text-white py-4 rounded-xl font-bold shadow-lg transition-colors text-xl mt-4">Ingresar a mis clases</button>
+                <button type="submit" id="btn-submit-estudiante" class="w-full bg-botanical hover-bg-botanical text-white py-4 rounded-xl font-bold shadow-lg transition-colors text-xl mt-4">Ingresar a mis clases</button>
             </form>
 
-            <form id="form-docente" class="hidden space-y-5">
+            <form id="form-docente" onsubmit="window.loginDocente(event)" class="hidden space-y-5">
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Contraseña de Administrador</label>
                     <input type="password" id="pass-docente" placeholder="Ingrese contraseña" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg" required>
                 </div>
-                <button type="submit" class="w-full bg-caramel hover-bg-caramel text-white py-4 rounded-xl font-bold shadow-lg transition-colors text-xl mt-4">Ingresar al Dashboard</button>
+                <button type="submit" id="btn-submit-docente" class="w-full bg-caramel hover-bg-caramel text-white py-4 rounded-xl font-bold shadow-lg transition-colors text-xl mt-4">Ingresar al Dashboard</button>
             </form>
         </div>
     </div>
@@ -88,36 +85,35 @@
             </div>
             
             <div class="p-5 flex-grow overflow-y-auto">
-                <button id="nav-dashboard" class="nav-btn w-full text-left bg-caramel text-white px-5 py-3.5 rounded-xl mb-3 font-bold flex items-center gap-3 transition-colors shadow-md text-sm">
+                <button id="nav-dashboard" onclick="window.renderDashboardDocente(window.filtroGradoActual)" class="nav-btn w-full text-left bg-caramel text-white px-5 py-3.5 rounded-xl mb-3 font-bold flex items-center gap-3 transition-colors shadow-md text-sm">
                     <span>📊</span> Dashboard
                 </button>
-                <button id="nav-actividad" class="nav-btn w-full text-left hover:bg-white/10 px-5 py-3.5 rounded-xl mb-3 font-bold flex items-center gap-3 transition-colors text-sm text-gray-400 hover:text-white">
+                <button id="nav-actividad" onclick="window.prepararNuevaActividad()" class="nav-btn w-full text-left hover:bg-white/10 px-5 py-3.5 rounded-xl mb-3 font-bold flex items-center gap-3 transition-colors text-sm text-gray-400 hover:text-white">
                     <span>📝</span> Añadir Actividad
                 </button>
-                <button id="nav-estudiantes" class="nav-btn w-full text-left hover:bg-white/10 px-5 py-3.5 rounded-xl mb-8 font-bold flex items-center gap-3 transition-colors text-sm text-gray-400 hover:text-white">
+                <button id="nav-estudiantes" onclick="window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes');" class="nav-btn w-full text-left hover:bg-white/10 px-5 py-3.5 rounded-xl mb-8 font-bold flex items-center gap-3 transition-colors text-sm text-gray-400 hover:text-white">
                     <span>👥</span> Gestión Estudiantes
                 </button>
 
                 <h3 class="font-bold text-xs mb-3 text-gray-500 uppercase tracking-widest px-2 mt-4">Filtro por Grupos</h3>
                 <ul id="lista-grupos-docente" class="space-y-2 text-sm font-medium mb-8"></ul>
                 
-                <button onclick="window.sincronizarConNube()" class="w-full text-left bg-yellow-600/10 border border-yellow-600/30 text-yellow-500 hover:bg-yellow-600/20 px-5 py-3 rounded-xl font-bold flex items-center gap-3 transition-colors text-sm shadow-sm border">
+                <button type="button" onclick="window.sincronizarConNube()" class="w-full text-left bg-yellow-600/10 border border-yellow-600/30 text-yellow-500 hover:bg-yellow-600/20 px-5 py-3 rounded-xl font-bold flex items-center gap-3 transition-colors text-sm shadow-sm border">
                     <span>🔄</span> Sincronizar Nube
                 </button>
             </div>
             <div class="p-5 border-t border-gray-700/50">
-                <button onclick="window.cerrarSesion()" class="w-full bg-red-900/30 hover:bg-red-900/60 border border-red-800/50 text-red-400 px-4 py-3.5 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 text-sm">
+                <button type="button" onclick="window.cerrarSesion()" class="w-full bg-red-900/30 hover:bg-red-900/60 border border-red-800/50 text-red-400 px-4 py-3.5 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 text-sm">
                     🚪 Cerrar Sesión
                 </button>
             </div>
         </aside>
 
         <main class="flex-1 p-10 overflow-y-auto h-full">
-            <!-- VISTA: DASHBOARD DOCENTE -->
             <div id="vista-dashboard" class="view-docente block max-w-[1400px] mx-auto">
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-4xl font-black text-[#2B1B12]">Dashboard Analítico</h2>
-                    <button onclick="window.generarReporteGlobal()" class="bg-[#2B1B12] hover:bg-black text-white px-6 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2 text-sm">
+                    <button type="button" onclick="window.generarReporteGlobal()" class="bg-[#2B1B12] hover:bg-black text-white px-6 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2 text-sm">
                         <span>📋</span> Ver Reporte Global HTML
                     </button>
                 </div>
@@ -170,15 +166,14 @@
                 </div>
             </div>
 
-            <!-- VISTA: REPORTES INTERACTIVOS HTML -->
             <div id="vista-reportes" class="view-docente hidden max-w-[1400px] mx-auto">
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-3xl font-black text-[#2B1B12]" id="titulo-vista-reporte">Reporte de Calificaciones</h2>
                     <div class="flex gap-3">
-                        <button onclick="window.limpiarNotasLocales()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm" title="Limpia la caché si borraste la base de datos de Google">
+                        <button type="button" onclick="window.limpiarNotasLocales()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
                             🗑️ Limpiar Caché Local
                         </button>
-                        <button onclick="document.getElementById('nav-dashboard').click()" class="bg-white hover:bg-gray-100 text-gray-800 border border-gray-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
+                        <button type="button" onclick="document.getElementById('nav-dashboard').click()" class="bg-white hover:bg-gray-100 text-gray-800 border border-gray-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
                             ⬅ Volver al Dashboard
                         </button>
                     </div>
@@ -221,13 +216,12 @@
                 </div>
             </div>
 
-            <!-- VISTA: GESTIÓN DE ESTUDIANTES -->
             <div id="vista-estudiantes" class="view-docente hidden max-w-[1400px] mx-auto">
                 <h2 class="text-3xl font-black text-[#2B1B12] mb-8">Gestión de Estudiantes</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="col-span-1 glass-card p-8 h-fit">
                         <h3 class="text-xl font-bold text-[#2B1B12] mb-6 border-b pb-2">Añadir Estudiante</h3>
-                        <form id="form-add-estudiante" class="space-y-5">
+                        <form id="form-add-estudiante" onsubmit="window.agregarEstudiante(event)" class="space-y-5">
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-1">Grado</label>
                                 <select id="new-est-grado" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 outline-none focus:ring-2 focus:ring-caramel" required>
@@ -250,7 +244,7 @@
                     </div>
                     <div class="col-span-2 glass-card p-8">
                         <h3 class="text-xl font-bold text-[#2B1B12] mb-2 border-b pb-2">Directorio de Estudiantes (Sincronizado)</h3>
-                        <p class="text-sm text-gray-500 mb-6">Listado de accesos manuales y de la nube.</p>
+                        <p class="text-sm text-gray-500 mb-6">Listado de accesos del colegio.</p>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left">
                                 <thead class="text-xs text-gray-500 uppercase font-bold border-b border-gray-100 bg-[#F9F7F2]">
@@ -268,11 +262,10 @@
                 </div>
             </div>
 
-            <!-- VISTA: AÑADIR / EDITAR ACTIVIDAD -->
             <div id="vista-actividad" class="view-docente hidden max-w-5xl mx-auto">
                 <h2 class="text-3xl font-black text-[#2B1B12] mb-8" id="titulo-formulario-actividad">Crear Nueva Actividad Interactiva</h2>
                 
-                <form id="form-crear-actividad" class="glass-card p-10 space-y-8">
+                <form id="form-crear-actividad" onsubmit="window.guardarActividad(event)" class="glass-card p-10 space-y-8">
                     <div class="grid grid-cols-2 gap-8">
                         <div>
                             <label class="block text-base font-bold text-gray-700 mb-2">Grado Destino</label>
@@ -309,7 +302,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <h4 class="text-lg font-bold text-[#2B1B12]">🧪 Requerir Registro de Laboratorio</h4>
-                                <p class="text-sm text-gray-600">Pedir a los estudiantes que registren variables físicas medidas en la práctica.</p>
+                                <p class="text-sm text-gray-600">Pedir variables físicas medidas en la práctica.</p>
                             </div>
                             <div class="relative inline-block w-12 mr-2 align-middle select-none">
                                 <input type="checkbox" id="toggle-laboratorio" onchange="document.getElementById('lab-fields-config').classList.toggle('hidden', !this.checked)" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out"/>
@@ -317,7 +310,7 @@
                             </div>
                         </div>
                         <div id="lab-fields-config" class="hidden border-t border-[#EAE4D8] pt-4 mt-2">
-                            <p class="text-sm font-bold text-gray-700 mb-3">Define los nombres de las variables a medir (Ej: Temperatura, pH, Peso):</p>
+                            <p class="text-sm font-bold text-gray-700 mb-3">Define los nombres de las variables a medir (Ej: Temperatura, pH, Brix):</p>
                             <div id="contenedor-campos-lab" class="space-y-3 mb-4"></div>
                             <button type="button" onclick="window.agregarCampoLabConfig()" class="text-sm text-botanical font-bold hover:underline">+ Añadir variable métrica</button>
                         </div>
@@ -345,7 +338,7 @@
                     <h2 class="text-3xl font-extrabold text-[#2B1B12]">Hola, <span id="nombre-estudiante-display" class="text-caramel">Estudiante</span> 👋</h2>
                     <p class="text-gray-500 text-lg mt-2 font-medium">Grado: <span id="grado-estudiante-display" class="text-gray-900 font-bold"></span> | Código: <span id="codigo-estudiante-display" class="text-gray-900 font-bold"></span></p>
                 </div>
-                <button onclick="window.cerrarSesion()" class="text-red-600 hover:text-red-800 font-bold transition-colors flex items-center gap-2 border border-red-200 bg-red-50 px-6 py-3 rounded-xl text-base shadow-sm">
+                <button type="button" onclick="window.cerrarSesion()" class="text-red-600 hover:text-red-800 font-bold transition-colors flex items-center gap-2 border border-red-200 bg-red-50 px-6 py-3 rounded-xl text-base shadow-sm">
                     🚪 Cerrar Sesión
                 </button>
             </div>
@@ -378,7 +371,7 @@
                 </div>
             </div>
             <div class="mt-8 flex justify-center">
-                <button onclick="window.volverDashboardEstudiante()" class="text-gray-700 hover:text-caramel text-lg font-bold transition-colors border border-gray-300 px-8 py-4 rounded-xl bg-gray-50 hover:bg-[#EAE4D8] shadow-sm">
+                <button type="button" onclick="window.volverDashboardEstudiante()" class="text-gray-700 hover:text-caramel text-lg font-bold transition-colors border border-gray-300 px-8 py-4 rounded-xl bg-gray-50 hover:bg-[#EAE4D8] shadow-sm">
                     ⏸ Pausar y regresar a mi Dashboard
                 </button>
             </div>
@@ -390,7 +383,7 @@
         <div class="bg-white border border-[#EAE4D8] p-10 rounded-3xl max-w-2xl w-full text-center shadow-2xl text-[#2B1B12] my-auto">
             <div class="text-5xl mb-4">🎓</div>
             <h3 class="text-3xl font-black mb-2 text-caramel">¡Video Completado!</h3>
-            <p class="text-gray-600 mb-6 font-medium">Por favor, completa la siguiente información para guardar tu calificación.</p>
+            <p class="text-gray-600 mb-6 font-medium">Completa la siguiente información para registrar tu entrega.</p>
             
             <div id="estudiante-lab-section" class="hidden text-left mb-6 bg-[#F9F7F2] p-6 rounded-xl border border-[#EAE4D8]">
                 <h4 class="font-bold text-lg mb-4 text-[#2B1B12] border-b border-[#EAE4D8] pb-2">🧪 Variables del Experimento</h4>
@@ -402,16 +395,16 @@
                 <textarea id="estudiante-reflexion" rows="4" placeholder="Escribe aquí tu reflexión y observaciones del proceso..." class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-caramel outline-none text-base" required></textarea>
             </div>
 
-            <button onclick="window.guardarEvidenciasYFinalizar()" class="w-full bg-botanical hover-bg-botanical text-white py-5 rounded-xl font-bold shadow-lg text-xl transition-colors">Guardar Evidencias y Finalizar</button>
+            <button type="button" onclick="window.guardarEvidenciasYFinalizar()" class="w-full bg-botanical hover-bg-botanical text-white py-5 rounded-xl font-bold shadow-lg text-xl transition-colors">Guardar Evidencias y Finalizar</button>
         </div>
     </div>
 
-    <!-- MODAL PARA VER DETALLES (DOCENTE) -->
+    <!-- MODAL VISOR DE DETALLES (DOCENTE) -->
     <div id="view-detalle-overlay" class="hidden fixed inset-0 bg-[#2B1B12]/95 flex flex-col items-center justify-center p-8 z-50">
         <div class="bg-white border border-[#EAE4D8] p-10 rounded-3xl max-w-2xl w-full shadow-2xl text-[#2B1B12] max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <h3 class="text-2xl font-black text-caramel">Detalle de la Entrega</h3>
-                <button onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-gray-500 hover:text-red-500 font-bold text-xl">✕</button>
+                <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-gray-500 hover:text-red-500 font-bold text-xl">✕</button>
             </div>
             
             <div id="view-detalle-lab-container" class="mb-6 hidden">
@@ -424,7 +417,7 @@
                 <p class="text-[#2B1B12] font-medium whitespace-pre-wrap" id="view-detalle-reflexion">--</p>
             </div>
 
-            <button onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-4 rounded-xl font-bold transition-colors">Cerrar Detalle</button>
+            <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-4 rounded-xl font-bold transition-colors">Cerrar Detalle</button>
         </div>
     </div>
 
@@ -437,12 +430,12 @@
         let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0 };
         let estudianteIdActual = "", nombreEstudianteActual = "", gradoEstudianteActual = "";
         let idActividadEditando = null, maxTiempoVisto = 0; 
-        let filtroGradoActual = null; let datosReporteGlobal = [];
+        window.filtroGradoActual = null; window.datosReporteGlobal = [];
 
-        let baseActividades = [];
-        try { const temp = JSON.parse(localStorage.getItem('cafelab_actividades')); if (Array.isArray(temp)) baseActividades = temp; } catch(e) {}
-        let baseEstudiantes = [];
-        try { const temp = JSON.parse(localStorage.getItem('cafelab_estudiantes')); if (Array.isArray(temp)) baseEstudiantes = temp; } catch(e) {}
+        window.baseActividades = [];
+        try { const temp = JSON.parse(localStorage.getItem('cafelab_actividades')); if (Array.isArray(temp)) window.baseActividades = temp; } catch(e) {}
+        window.baseEstudiantes = [];
+        try { const temp = JSON.parse(localStorage.getItem('cafelab_estudiantes')); if (Array.isArray(temp)) window.baseEstudiantes = temp; } catch(e) {}
 
         window.escapeHTML = function(str) {
             if (str === null || str === undefined) return '';
@@ -463,7 +456,7 @@
         };
 
         window.limpiarNotasLocales = function() {
-            if(confirm("¿Seguro que deseas borrar la caché local?")){
+            if(confirm("¿Seguro que deseas borrar la caché local de este navegador?")){
                 const keysToRemove = [];
                 for (let i = 0; i < localStorage.length; i++) {
                     if (localStorage.key(i).startsWith('nota_') || localStorage.key(i).startsWith('estado_')) keysToRemove.push(localStorage.key(i));
@@ -481,10 +474,10 @@
                 const result = await response.json();
                 
                 if(result.success && result.data) {
-                    baseActividades = result.data.actividades || [];
-                    baseEstudiantes = result.data.estudiantes || [];
-                    localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-                    localStorage.setItem('cafelab_estudiantes', JSON.stringify(baseEstudiantes));
+                    window.baseActividades = result.data.actividades || [];
+                    window.baseEstudiantes = result.data.estudiantes || [];
+                    localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
+                    localStorage.setItem('cafelab_estudiantes', JSON.stringify(window.baseEstudiantes));
 
                     const keysToRemove = [];
                     for (let i = 0; i < localStorage.length; i++) {
@@ -504,9 +497,9 @@
                     window.mostrarToast(result.error || "No se pudo obtener datos.", "error");
                 }
             } catch (error) {
-                window.mostrarToast("Error de conexión. Trabajando offline.", "warning");
+                window.mostrarToast("Modo Offline activado.", "warning");
             } finally {
-                window.renderDashboardDocente(filtroGradoActual);
+                window.renderDashboardDocente(window.filtroGradoActual);
                 window.renderEstudiantesLocales();
                 document.getElementById('loading-overlay').classList.add('hidden');
             }
@@ -537,29 +530,48 @@
             });
             let btnId = idVista === 'vista-dashboard' ? 'nav-dashboard' : (idVista === 'vista-estudiantes' ? 'nav-estudiantes' : 'nav-actividad');
             if(idVista !== 'vista-reportes') {
-                document.getElementById(btnId).classList.add('bg-caramel', 'text-white'); document.getElementById(btnId).classList.remove('text-gray-400', 'bg-transparent');
+                const b = document.getElementById(btnId);
+                if(b) { b.classList.add('bg-caramel', 'text-white'); b.classList.remove('text-gray-400', 'bg-transparent'); }
             }
         };
 
         window.eliminarActividad = function(idActividad) {
             if(confirm("¿Estás seguro de eliminar esta actividad?")) {
-                baseActividades = baseActividades.filter(a => a.id !== idActividad);
-                localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-                window.renderDashboardDocente(filtroGradoActual); window.mostrarToast("Actividad eliminada localmente", "success");
+                window.baseActividades = window.baseActividades.filter(a => a.id !== idActividad);
+                localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
+                window.renderDashboardDocente(window.filtroGradoActual); window.mostrarToast("Actividad eliminada", "success");
             }
         };
 
         window.toggleEstadoActividad = function(idActividad) {
-            const index = baseActividades.findIndex(a => a.id === idActividad);
+            const index = window.baseActividades.findIndex(a => a.id === idActividad);
             if (index > -1) {
-                baseActividades[index].estado = baseActividades[index].estado === 'Activa' ? 'Desactivada' : 'Activa';
-                localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-                window.renderDashboardDocente(filtroGradoActual); window.mostrarToast(`Actividad actualizada`, "success");
+                window.baseActividades[index].estado = window.baseActividades[index].estado === 'Activa' ? 'Desactivada' : 'Activa';
+                localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
+                window.renderDashboardDocente(window.filtroGradoActual); window.mostrarToast("Actividad actualizada", "success");
             }
         };
 
+        window.prepararNuevaActividad = function() {
+            idActividadEditando = null;
+            const formAct = document.getElementById('form-crear-actividad');
+            if(formAct) formAct.reset();
+            const contPreg = document.getElementById('contenedor-preguntas');
+            if(contPreg) contPreg.innerHTML = '';
+            
+            document.getElementById('titulo-formulario-actividad').innerText = "Crear Nueva Actividad Interactiva";
+            document.getElementById('btn-submit-actividad').innerText = "Guardar Actividad y Publicar";
+            
+            document.getElementById('toggle-laboratorio').checked = false;
+            document.getElementById('lab-fields-config').classList.add('hidden');
+            document.getElementById('contenedor-campos-lab').innerHTML = '';
+
+            window.crearBloquePregunta(); 
+            window.mostrarVistaDocente('vista-actividad'); 
+        };
+
         window.editarActividad = function(idActividad) {
-            const act = baseActividades.find(a => a.id === idActividad);
+            const act = window.baseActividades.find(a => a.id === idActividad);
             if(!act) return;
             idActividadEditando = act.id;
             document.getElementById('titulo-formulario-actividad').innerText = "Editar Actividad Interactiva";
@@ -584,13 +596,17 @@
 
             const cont = document.getElementById('contenedor-preguntas');
             cont.innerHTML = '';
-            act.preguntas.forEach(p => { window.crearBloquePregunta(p.tiempo, p.texto, p.opciones, p.correcta, p.feedback); });
+            if(act.preguntas && act.preguntas.length > 0) {
+                act.preguntas.forEach(p => { window.crearBloquePregunta(p.tiempo, p.texto, p.opciones, p.correcta, p.feedback); });
+            } else {
+                window.crearBloquePregunta();
+            }
 
             window.mostrarVistaDocente('vista-actividad');
         };
 
         window.verDetalleEntrega = function(encodedLab, encodedReflexion) {
-            const reflexion = encodedReflexion ? decodeURIComponent(encodedReflexion) : 'El estudiante no registró aprendizajes.';
+            const reflexion = encodedReflexion && encodedReflexion !== 'null' ? decodeURIComponent(encodedReflexion) : 'El estudiante no registró aprendizajes.';
             document.getElementById('view-detalle-reflexion').innerText = reflexion;
 
             const labGrid = document.getElementById('view-detalle-lab-grid');
@@ -620,7 +636,7 @@
             const div = document.createElement('div');
             div.className = "flex gap-2 items-center";
             div.innerHTML = `
-                <input type="text" value="${window.escapeHTML(val)}" placeholder="Nombre de la variable (Ej: Temperatura °C)" class="campo-lab-input w-full p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel">
+                <input type="text" value="${window.escapeHTML(val)}" placeholder="Nombre de variable (Ej: pH)" class="campo-lab-input w-full p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel">
                 <button type="button" onclick="this.parentElement.remove()" class="text-red-500 font-bold hover:bg-red-50 px-3 py-2 rounded-lg border border-transparent hover:border-red-200 transition-colors">✕</button>
             `;
             document.getElementById('contenedor-campos-lab').appendChild(div);
@@ -633,9 +649,9 @@
             
             const selAct = document.getElementById('filtro-rep-actividad');
             selAct.innerHTML = '<option value="Todas">Todas las Actividades</option>';
-            baseActividades.forEach(a => { selAct.innerHTML += `<option value="${a.id}">${window.escapeHTML(a.titulo)}</option>`; });
+            window.baseActividades.forEach(a => { selAct.innerHTML += `<option value="${a.id}">${window.escapeHTML(a.titulo)}</option>`; });
 
-            datosReporteGlobal = [];
+            window.datosReporteGlobal = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key.startsWith('nota_')) {
@@ -649,7 +665,7 @@
                     }
 
                     let nombreEst = "Cód: " + codigoDetectado;
-                    const estObj = baseEstudiantes.find(e => e.grado === gradoDetectado && String(e.codigo) === codigoDetectado);
+                    const estObj = window.baseEstudiantes.find(e => e.grado === gradoDetectado && String(e.codigo).toLowerCase() === codigoDetectado.toLowerCase());
                     if(estObj) nombreEst = estObj.nombre;
 
                     let valObj = localStorage.getItem(key);
@@ -661,12 +677,12 @@
                         refData = parseado.reflexion || "";
                     } catch(e) { val = parseFloat(valObj); }
                     
-                    const nombreAct = baseActividades.find(a => a.id === actId)?.titulo || actId;
-                    datosReporteGlobal.push({ estId: estIdRaw, grado: gradoDetectado, nombreEst, actId, nombreAct, nota: val, lab: labData, reflexion: refData });
+                    const nombreAct = window.baseActividades.find(a => a.id === actId)?.titulo || actId;
+                    window.datosReporteGlobal.push({ estId: estIdRaw, grado: gradoDetectado, nombreEst, actId, nombreAct, nota: val, lab: labData, reflexion: refData });
                 }
             }
             
-            if(filtroGradoActual) document.getElementById('filtro-rep-grado').value = filtroGradoActual;
+            if(window.filtroGradoActual) document.getElementById('filtro-rep-grado').value = window.filtroGradoActual;
             else document.getElementById('filtro-rep-grado').value = 'Todos';
             selAct.value = 'Todas';
 
@@ -678,7 +694,7 @@
             const fGrado = document.getElementById('filtro-rep-grado').value;
             const fAct = document.getElementById('filtro-rep-actividad').value;
 
-            let filtrados = datosReporteGlobal;
+            let filtrados = window.datosReporteGlobal || [];
             if (fGrado !== 'Todos') filtrados = filtrados.filter(d => d.grado === fGrado);
             if (fAct !== 'Todas') filtrados = filtrados.filter(d => d.actId === fAct);
 
@@ -701,7 +717,7 @@
                 
                 const safeLab = d.lab ? encodeURIComponent(JSON.stringify(d.lab)) : 'null';
                 const safeRef = encodeURIComponent(d.reflexion || '');
-                const labBtn = `<button onclick="window.verDetalleEntrega('${safeLab}', '${safeRef}')" class="text-xs bg-[#EAE4D8] hover:bg-[#D6BCA2] text-caramel font-bold px-3 py-1.5 rounded-lg border border-[#D6BCA2] whitespace-nowrap">Ver Evidencias 👁</button>`;
+                const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeLab}', '${safeRef}')" class="text-xs bg-[#EAE4D8] hover:bg-[#D6BCA2] text-caramel font-bold px-3 py-1.5 rounded-lg border border-[#D6BCA2] whitespace-nowrap">Ver Evidencias 👁</button>`;
 
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-100 hover:bg-gray-50">
@@ -744,10 +760,10 @@
         }
 
         window.generarReporteActividad = function(idActividad) {
-            const act = baseActividades.find(a => a.id === idActividad);
+            const act = window.baseActividades.find(a => a.id === idActividad);
             const nombreAct = window.escapeHTML(act?.titulo || idActividad);
             let tituloStr = `Reporte: ${nombreAct}`;
-            if (filtroGradoActual) tituloStr += ` (Grado ${window.escapeHTML(filtroGradoActual)})`;
+            if (window.filtroGradoActual) tituloStr += ` (Grado ${window.escapeHTML(window.filtroGradoActual)})`;
             document.getElementById('titulo-vista-reporte').innerText = tituloStr;
             document.getElementById('filtros-reporte-global').classList.add('hidden');
             document.getElementById('contenedor-grafico-reporte').style.display = 'none';
@@ -761,7 +777,7 @@
                 const key = localStorage.key(i);
                 if (key.startsWith('nota_') && key.includes(idActividad)) {
                     const estIdRaw = key.replace('nota_', '').split('_ACT_')[0];
-                    if (filtroGradoActual && !estIdRaw.startsWith(filtroGradoActual + '-')) continue; 
+                    if (window.filtroGradoActual && !estIdRaw.startsWith(window.filtroGradoActual + '-')) continue; 
 
                     let gradoDetectado = "Desconocido", codigoDetectado = estIdRaw;
                     for(let g of LISTA_GRADOS) {
@@ -769,7 +785,7 @@
                     }
 
                     let nombreEst = "Cód: " + codigoDetectado;
-                    const estObj = baseEstudiantes.find(e => e.grado === gradoDetectado && String(e.codigo) === codigoDetectado);
+                    const estObj = window.baseEstudiantes.find(e => e.grado === gradoDetectado && String(e.codigo).toLowerCase() === codigoDetectado.toLowerCase());
                     if(estObj) nombreEst = estObj.nombre;
 
                     let valObj = localStorage.getItem(key);
@@ -788,14 +804,14 @@
             }
 
             if(notas.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500 font-bold">No hay entregas registradas para esta actividad${filtroGradoActual ? ' en el grado ' + window.escapeHTML(filtroGradoActual) : ''}.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500 font-bold">No hay entregas registradas para esta actividad${window.filtroGradoActual ? ' en el grado ' + window.escapeHTML(window.filtroGradoActual) : ''}.</td></tr>`;
                 document.getElementById('kpis-reporte').innerHTML = '';
             } else {
                 notas.forEach(n => {
                     const color = n.val >= 3.0 ? 'text-botanical' : 'text-red-500';
                     const safeLab = n.lab ? encodeURIComponent(JSON.stringify(n.lab)) : 'null';
                     const safeRef = encodeURIComponent(n.reflexion || '');
-                    const labBtn = `<button onclick="window.verDetalleEntrega('${safeLab}', '${safeRef}')" class="text-xs bg-[#EAE4D8] hover:bg-[#D6BCA2] text-caramel font-bold px-3 py-1.5 rounded-lg border border-[#D6BCA2] whitespace-nowrap">Ver Evidencias 👁</button>`;
+                    const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeLab}', '${safeRef}')" class="text-xs bg-[#EAE4D8] hover:bg-[#D6BCA2] text-caramel font-bold px-3 py-1.5 rounded-lg border border-[#D6BCA2] whitespace-nowrap">Ver Evidencias 👁</button>`;
 
                     tbody.innerHTML += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
@@ -823,7 +839,7 @@
             const tbody = document.getElementById('tabla-estudiantes-locales');
             if(!tbody) return;
             tbody.innerHTML = '';
-            baseEstudiantes.forEach((est, index) => {
+            window.baseEstudiantes.forEach((est, index) => {
                 const idPas = `pass-${index}`;
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-100 hover:bg-gray-50">
@@ -841,10 +857,11 @@
         }
 
         window.renderDashboardDocente = function(filtroGrado = null) {
-            filtroGradoActual = filtroGrado; 
+            window.filtroGradoActual = filtroGrado; 
             window.mostrarVistaDocente('vista-dashboard');
+            
             const kpiTot = document.getElementById('kpi-total-actividades');
-            if(kpiTot) kpiTot.innerText = baseActividades.length;
+            if(kpiTot) kpiTot.innerText = window.baseActividades.length;
             
             const listaGrupos = document.getElementById('lista-grupos-docente');
             if(listaGrupos) {
@@ -852,8 +869,12 @@
                 const gradosLabels = []; const promediosData = []; const participacionData = [];
 
                 LISTA_GRADOS.forEach(grado => {
-                    const actAsignadas = baseActividades.filter(a => a.grados.includes(grado) || a.grados.includes('Todos')).length;
-                    const isActive = filtroGrado === grado ? 'bg-caramel text-white border-l-4 border-[#EAE4D8]' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200';
+                    const actAsignadas = window.baseActividades.filter(a => {
+                        if(!a || !a.grados || !Array.isArray(a.grados)) return false;
+                        return a.grados.includes(grado) || a.grados.includes('Todos');
+                    }).length;
+                    
+                    const isActive = window.filtroGradoActual === grado ? 'bg-caramel text-white border-l-4 border-[#EAE4D8]' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200';
                     const seguroGrado = window.escapeHTML(grado);
                     listaGrupos.innerHTML += `<li onclick="window.renderDashboardDocente('${seguroGrado}')" class="px-4 py-2.5 cursor-pointer flex justify-between items-center rounded-r-lg transition-colors group mb-1 ${isActive}"><span class="text-sm font-bold">Grado ${seguroGrado}</span><span class="bg-[#2B1B12] text-gray-300 text-xs font-bold px-2.5 py-0.5 rounded-md shadow-inner">${actAsignadas}</span></li>`;
                     
@@ -883,9 +904,13 @@
                 if(ctx2) { window.myChart2 = new Chart(ctx2.getContext('2d'), { type: 'line', data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#3E6B4A', backgroundColor: 'rgba(62, 107, 74, 0.1)', fill: true, tension: 0.3 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } }); }
             }
 
-            let acts = filtroGrado ? baseActividades.filter(a => a.grados.includes(filtroGrado) || a.grados.includes('Todos')) : baseActividades;
+            let acts = window.filtroGradoActual ? window.baseActividades.filter(a => {
+                if(!a || !a.grados || !Array.isArray(a.grados)) return false;
+                return a.grados.includes(window.filtroGradoActual) || a.grados.includes('Todos');
+            }) : window.baseActividades;
+            
             const titTab = document.getElementById('titulo-tabla-actividades');
-            if(titTab) titTab.innerText = filtroGrado ? `Actividades - Grado ${window.escapeHTML(filtroGrado)}` : `Gestión de Actividades Creadas`;
+            if(titTab) titTab.innerText = window.filtroGradoActual ? `Actividades - Grado ${window.escapeHTML(window.filtroGradoActual)}` : `Gestión de Actividades Creadas`;
 
             const tabla = document.getElementById('tabla-actividades-creadas');
             if(tabla) {
@@ -904,10 +929,10 @@
                             <td class="px-6 py-4 text-center text-gray-500 font-bold text-sm">${labelLab}</td>
                             <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-md text-[11px] font-black uppercase ${badge}">${window.escapeHTML(act.estado)}</span></td>
                             <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
-                                <button onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-gray-600 border border-gray-300 bg-white px-3 py-2 rounded-lg hover:bg-gray-100 shadow-sm">${btnEstado}</button>
-                                <button onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-caramel border border-[#D6BCA2] bg-[#EAE4D8] hover:bg-[#D6BCA2] transition-colors px-3 py-2 rounded-lg shadow-sm">✏️ Editar</button>
-                                <button onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors px-3 py-2 rounded-lg shadow-sm">🗑️</button>
-                                <button onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-[#B37032] border border-[#B37032]/30 bg-[#B37032]/10 hover:bg-[#B37032]/20 transition-colors px-3 py-2 rounded-lg shadow-sm">👁 Reporte</button>
+                                <button type="button" onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-gray-600 border border-gray-300 bg-white px-3 py-2 rounded-lg hover:bg-gray-100 shadow-sm">${btnEstado}</button>
+                                <button type="button" onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-caramel border border-[#D6BCA2] bg-[#EAE4D8] hover:bg-[#D6BCA2] transition-colors px-3 py-2 rounded-lg shadow-sm">✏️ Editar</button>
+                                <button type="button" onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors px-3 py-2 rounded-lg shadow-sm">🗑️</button>
+                                <button type="button" onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-[#B37032] border border-[#B37032]/30 bg-[#B37032]/10 hover:bg-[#B37032]/20 transition-colors px-3 py-2 rounded-lg shadow-sm">👁 Reporte</button>
                             </td>
                         </tr>
                     `;
@@ -962,6 +987,214 @@
             contPreguntas.appendChild(div);
         };
 
+        window.guardarActividad = async function(e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btn-submit-actividad');
+            const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Guardar";
+            if(btnSubmit) { btnSubmit.innerText = "Guardando..."; btnSubmit.disabled = true; }
+
+            try {
+                const inputGrado = document.getElementById('grado-destino').value;
+                const inputTitulo = document.getElementById('titulo-clase').value;
+                const inputUrl = document.getElementById('url-video').value;
+                const inputObjetivo = document.getElementById('objetivo-actividad').value;
+                const inputDescripcion = document.getElementById('descripcion-actividad').value;
+                
+                const toggleLab = document.getElementById('toggle-laboratorio');
+                const reqLaboratorio = toggleLab ? toggleLab.checked : false;
+                
+                let labCampos = [];
+                if(reqLaboratorio) {
+                    const inputsLab = document.querySelectorAll('.campo-lab-input');
+                    inputsLab.forEach(inp => { if(inp.value && inp.value.trim() !== '') labCampos.push(inp.value.trim()); });
+                }
+
+                let arregloPreguntas = [];
+                const rows = document.getElementById('contenedor-preguntas').children;
+                for (let r of rows) {
+                    const timeEl = r.querySelector('.q-time');
+                    const textEl = r.querySelector('.q-text');
+                    const fdbkEl = r.querySelector('.q-feedback');
+                    const opt1El = r.querySelector('.q-opt1');
+                    const opt2El = r.querySelector('.q-opt2');
+                    const opt3El = r.querySelector('.q-opt3');
+                    const opt4El = r.querySelector('.q-opt4');
+                    const correctEl = r.querySelector('.q-correct');
+
+                    if(!timeEl || !textEl || !opt1El || !opt2El || !correctEl) continue;
+
+                    const time = timeEl.value;
+                    const text = textEl.value;
+                    const fdbk = fdbkEl ? fdbkEl.value : '';
+                    const rawOpts = [ opt1El.value, opt2El.value, opt3El ? opt3El.value : '', opt4El ? opt4El.value : '' ];
+                    const correctVal = correctEl.value;
+
+                    let finalOptions = []; let finalCorrect = 1; let actualIndex = 1;
+                    for(let i = 0; i < 4; i++){
+                        if(rawOpts[i] && rawOpts[i].trim() !== ''){
+                            finalOptions.push(rawOpts[i].trim());
+                            if(parseInt(correctVal) === (i + 1)){ finalCorrect = actualIndex; }
+                            actualIndex++;
+                        }
+                    }
+                    if(finalOptions.length > 0) {
+                        arregloPreguntas.push({ tiempo: parseInt(time) || 0, texto: text, opciones: finalOptions, correcta: finalCorrect, feedback: fdbk, respondida: false });
+                    }
+                }
+
+                let payloadEnviar = null;
+
+                if (idActividadEditando) {
+                    const idx = window.baseActividades.findIndex(a => a.id === idActividadEditando);
+                    if(idx !== -1) {
+                        window.baseActividades[idx].grados = [inputGrado];
+                        window.baseActividades[idx].titulo = inputTitulo || "Sin Título";
+                        window.baseActividades[idx].video = { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) };
+                        window.baseActividades[idx].pedagogia = { objetivo: inputObjetivo, descripcion: inputDescripcion };
+                        window.baseActividades[idx].requiereLaboratorio = reqLaboratorio;
+                        window.baseActividades[idx].laboratorioCampos = labCampos;
+                        window.baseActividades[idx].preguntas = arregloPreguntas;
+                        payloadEnviar = window.baseActividades[idx];
+                    }
+                } else {
+                    const nuevoId = "ACT_" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+                    const d = new Date();
+                    const nuevaActividad = {
+                        id: nuevoId, version: 1, titulo: inputTitulo || "Sin Título", grados: [inputGrado || "Todos"], estado: "Activa",
+                        fechaCreacion: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
+                        video: { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) },
+                        pedagogia: { objetivo: inputObjetivo, descripcion: inputDescripcion },
+                        evaluacion: { intentosPermitidos: 1, notaMinima: 3.0 },
+                        requiereLaboratorio: reqLaboratorio, laboratorioCampos: labCampos,
+                        preguntas: arregloPreguntas
+                    };
+                    window.baseActividades.push(nuevaActividad);
+                    payloadEnviar = nuevaActividad;
+                }
+                
+                localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
+                window.mostrarToast("Actividad guardada con éxito", "success");
+                document.getElementById('nav-dashboard').click(); 
+
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload: payloadEnviar }) })
+                    .catch(() => console.log("Guardado localmente."));
+
+            } catch(err) {
+                console.error("Error al guardar:", err);
+                window.mostrarToast("Error al procesar el formulario.", "error");
+            } finally {
+                if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
+            }
+        };
+
+        window.loginDocente = async function(e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btn-submit-docente');
+            const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Ingresar";
+            if(btnSubmit) { btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true; }
+
+            const password = document.getElementById('pass-docente').value.trim();
+
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarDocente', password: password }) });
+                const result = await response.json();
+                if(result.success) {
+                    document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
+                    document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
+                    window.sincronizarConNube(); 
+                } else { 
+                    if(password === "AdminCafeLab") {
+                        window.mostrarToast("Sesión iniciada (Modo Offline)", "warning");
+                        document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
+                        document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
+                        window.renderDashboardDocente(window.filtroGradoActual);
+                    } else {
+                        window.mostrarToast(result.error || "Contraseña incorrecta", "error"); 
+                    }
+                }
+            } catch(error) {
+                if(password === "AdminCafeLab") {
+                    window.mostrarToast("Sesión iniciada (Modo Offline)", "warning");
+                    document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
+                    document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
+                    window.renderDashboardDocente(window.filtroGradoActual);
+                } else {
+                    window.mostrarToast("Error de conexión. Intenta de nuevo.", "error");
+                }
+            } finally {
+                if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
+            }
+        };
+
+        window.agregarEstudiante = async function(e) {
+            e.preventDefault();
+            const grado = document.getElementById('new-est-grado').value;
+            const codigo = document.getElementById('new-est-codigo').value.trim();
+            const nombre = document.getElementById('new-est-nombre').value.trim();
+            const pass = codigo + nombre.charAt(0).toUpperCase();
+
+            window.baseEstudiantes.push({ grado, codigo, nombre, pass });
+            localStorage.setItem('cafelab_estudiantes', JSON.stringify(window.baseEstudiantes));
+            window.renderEstudiantesLocales();
+            e.target.reset();
+            window.mostrarToast(`Estudiante guardado. Pass: ${pass}`, "success");
+
+            try { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'agregarEstudiante', payload: {grado, codigo, nombre} }) }); 
+            } catch(err) { console.log(err); }
+        };
+
+        window.loginEstudiante = async function(e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btn-submit-estudiante');
+            const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Ingresar";
+            if(btnSubmit) { btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true; }
+
+            const grado = document.getElementById('grado').value;
+            const codigo = document.getElementById('codigo-estudiante').value.trim();
+            const password = document.getElementById('pass-estudiante').value.trim();
+            const codigoLower = codigo.toLowerCase();
+
+            // BYPASS UNIVERSAL PARA PRUEBAS
+            if (codigoLower === 'ejemplo' || codigoLower === 'ensayo') {
+                window.mostrarToast("Sesión de Prueba Iniciada", "success");
+                window.iniciarSesionEstudianteLocal(grado, codigo.toUpperCase(), 'Estudiante de Prueba');
+                if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
+                return;
+            }
+
+            try {
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'validarEstudiante', grado, codigo, password }) 
+                });
+                const result = await response.json();
+                
+                if(result.success) { 
+                    window.mostrarToast("Sesión iniciada", "success"); 
+                    window.iniciarSesionEstudianteLocal(grado, codigo, result.nombre); 
+                } else { 
+                    // Fallback a base local
+                    const localEst = window.baseEstudiantes.find(es => String(es.grado) === grado && String(es.codigo).trim().toLowerCase() === codigoLower);
+                    if(localEst && String(localEst.pass).trim() === password) {
+                        window.mostrarToast("Sesión iniciada (Modo Local)", "success");
+                        window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
+                    } else {
+                        window.mostrarToast(result.error || "Credenciales incorrectas", "error"); 
+                    }
+                }
+            } catch (error) { 
+                const localEst = window.baseEstudiantes.find(es => String(es.grado) === grado && String(es.codigo).trim().toLowerCase() === codigoLower);
+                if(localEst && String(localEst.pass).trim() === password) {
+                    window.mostrarToast("Sesión iniciada (Modo Offline)", "success");
+                    window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
+                } else {
+                    window.mostrarToast("Error de conexión y credenciales no válidas", "error"); 
+                }
+            } finally { 
+                if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; } 
+            }
+        };
+
         window.iniciarSesionEstudianteLocal = function(grado, codigo, nombre) {
             estudianteIdActual = `${grado}-${codigo}`; nombreEstudianteActual = nombre; gradoEstudianteActual = grado; 
             document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
@@ -973,44 +1206,53 @@
             document.getElementById('nombre-estudiante-display').innerText = window.escapeHTML(nombre);
             document.getElementById('grado-estudiante-display').innerText = window.escapeHTML(grado);
             document.getElementById('codigo-estudiante-display').innerText = window.escapeHTML(codigo);
+            
             window.construirDashboardEstudiante(grado);
             
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obtenerDatos' }) }).then(res => res.json()).then(result => {
                 if(result.success && result.data && result.data.actividades) {
-                    baseActividades = result.data.actividades;
-                    localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
+                    window.baseActividades = result.data.actividades;
+                    localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
                     window.construirDashboardEstudiante(grado);
                 }
             }).catch(e => { window.construirDashboardEstudiante(grado); }); 
-        }
+        };
 
         window.construirDashboardEstudiante = function(grado) {
-            const listaP = document.getElementById('lista-pendientes'), listaR = document.getElementById('lista-realizadas');
-            if(!listaP || !listaR) return;
-            listaP.innerHTML = ''; listaR.innerHTML = ''; let pCount = 0, rCount = 0;
-            baseActividades.forEach(act => {
-                if(act.grados.includes(grado) || act.grados.includes('Todos')) {
-                    const notaGuardadaObj = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
-                    const seguroTitulo = window.escapeHTML(act.titulo);
-                    const seguroId = window.escapeHTML(act.id);
+            try {
+                const listaP = document.getElementById('lista-pendientes'), listaR = document.getElementById('lista-realizadas');
+                if(!listaP || !listaR) return;
+                listaP.innerHTML = ''; listaR.innerHTML = ''; let pCount = 0, rCount = 0;
+                
+                window.baseActividades.forEach(act => {
+                    if(!act || !act.grados || !Array.isArray(act.grados)) return;
 
-                    if (notaGuardadaObj) {
-                        rCount++;
-                        let val = "0.0";
-                        try { let parseado = JSON.parse(notaGuardadaObj); val = window.escapeHTML(parseado.nota || notaGuardadaObj); } catch(e) { val = window.escapeHTML(notaGuardadaObj); }
-                        listaR.innerHTML += `<div class="p-6 bg-white rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4><p class="text-sm text-botanical font-bold mt-1">Completada</p></div><div class="bg-[#F9F7F2] px-5 py-3 rounded-lg border border-[#EAE4D8] text-[#2B1B12] font-black text-xl shadow-inner">${val}</div></div>`;
-                    } else if (act.estado === 'Activa') { 
-                        pCount++;
-                        listaP.innerHTML += `<div class="p-6 bg-white rounded-xl border border-[#D6BCA2] flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden"><div class="absolute left-0 top-0 w-1.5 h-full bg-caramel"></div><div class="w-full pl-2"><h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4><p class="text-sm text-gray-500 font-medium mt-1">Video Asignado</p></div><button onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 bg-caramel hover-bg-caramel text-white px-8 py-4 rounded-xl shadow-md font-bold text-lg">▶ Iniciar</button></div>`;
+                    if(act.grados.includes(grado) || act.grados.includes('Todos')) {
+                        const notaGuardadaObj = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
+                        const seguroTitulo = window.escapeHTML(act.titulo);
+                        const seguroId = window.escapeHTML(act.id);
+
+                        if (notaGuardadaObj) {
+                            rCount++;
+                            let val = "0.0";
+                            try { let parseado = JSON.parse(notaGuardadaObj); val = window.escapeHTML(parseado.nota || notaGuardadaObj); } catch(e) { val = window.escapeHTML(notaGuardadaObj); }
+                            listaR.innerHTML += `<div class="p-6 bg-white rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4><p class="text-sm text-botanical font-bold mt-1">Completada</p></div><div class="bg-[#F9F7F2] px-5 py-3 rounded-lg border border-[#EAE4D8] text-[#2B1B12] font-black text-xl shadow-inner">${val}</div></div>`;
+                        } else if (act.estado === 'Activa') { 
+                            pCount++;
+                            listaP.innerHTML += `<div class="p-6 bg-white rounded-xl border border-[#D6BCA2] flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden"><div class="absolute left-0 top-0 w-1.5 h-full bg-caramel"></div><div class="w-full pl-2"><h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4><p class="text-sm text-gray-500 font-medium mt-1">Video Asignado</p></div><button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 bg-caramel hover-bg-caramel text-white px-8 py-4 rounded-xl shadow-md font-bold text-lg">▶ Iniciar</button></div>`;
+                        }
                     }
-                }
-            });
-            if(pCount===0) listaP.innerHTML = `<div class="p-10 text-center bg-white rounded-xl border border-dashed border-gray-300"><span class="text-4xl">🎉</span><p class="text-gray-600 font-bold mt-4 text-xl">¡Sin pendientes!</p></div>`;
-            if(rCount===0) listaR.innerHTML = `<p class="text-gray-500 text-lg font-medium p-8 text-center border border-dashed border-gray-300 rounded-xl bg-white">Aún no hay calificaciones registradas.</p>`;
-        }
+                });
+                if(pCount===0) listaP.innerHTML = `<div class="p-10 text-center bg-white rounded-xl border border-dashed border-gray-300"><span class="text-4xl">🎉</span><p class="text-gray-600 font-bold mt-4 text-xl">¡Sin pendientes!</p></div>`;
+                if(rCount===0) listaR.innerHTML = `<p class="text-gray-500 text-lg font-medium p-8 text-center border border-dashed border-gray-300 rounded-xl bg-white">Aún no hay calificaciones registradas.</p>`;
+            } catch (e) {
+                console.error("Error al construir panel de estudiante:", e);
+                document.getElementById('lista-pendientes').innerHTML = `<p class="text-red-500 text-center p-5 font-bold">Ocurrió un error al cargar. Contacta al docente.</p>`;
+            }
+        };
 
         window.iniciarActividadPorId = function(idActividad) {
-            const act = baseActividades.find(a => a.id === idActividad);
+            const act = window.baseActividades.find(a => a.id === idActividad);
             if(!act) return;
             actividadActual = JSON.parse(JSON.stringify(act));
             document.getElementById('vista-bienvenida-estudiante').classList.add('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.remove('flex');
@@ -1023,9 +1265,12 @@
                 const estG = JSON.parse(localStorage.getItem(`estado_${actividadActual.id}_${estudianteIdActual}`));
                 let tIn = 0;
                 if (estG && confirm("Tienes una sesión guardada. ¿Reanudar?")) {
-                    actividadActual.preguntas = estG.preguntas; intentoActual = estG.intento; tIn = estG.ultimoTiempo;
+                    actividadActual.preguntas = estG.preguntas || []; 
+                    intentoActual = estG.intento || { correctas: 0, resueltas: 0 }; 
+                    tIn = estG.ultimoTiempo || 0;
                     maxTiempoVisto = estG.maxTiempoVisto || tIn;
-                    document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
+                    const totalP = actividadActual.preguntas.length || 1;
+                    document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / totalP) * 100)}%`;
                 } else { maxTiempoVisto = 0; }
 
                 try {
@@ -1038,7 +1283,7 @@
                         player = new YT.Player('youtube-player', { 
                             videoId: vId, host: 'https://www.youtube-nocookie.com',
                             playerVars: { 'autoplay': 1, 'controls': 0, 'start': Math.floor(tIn), 'rel': 0, 'modestbranding': 1, 'origin': originSeguro }, 
-                            events: { 'onStateChange': (e) => { if (e.data == YT.PlayerState.PLAYING) { intervaloVideo = setInterval(verificarTiempo, 1000); } else { clearInterval(intervaloVideo); } } } 
+                            events: { 'onStateChange': (e) => { if (e.data == YT.PlayerState.PLAYING) { intervaloVideo = setInterval(window.verificarTiempo, 1000); } else { clearInterval(intervaloVideo); } } } 
                         });
                     }
                 } catch(e){}
@@ -1046,7 +1291,7 @@
             prepararReproductor();
         };
 
-        function verificarTiempo() {
+        window.verificarTiempo = function() {
             if (!player || typeof player.getCurrentTime !== 'function') return;
             const tAct = player.getCurrentTime();
 
@@ -1057,6 +1302,8 @@
 
             localStorage.setItem(`estado_${actividadActual.id}_${estudianteIdActual}`, JSON.stringify({ ultimoTiempo: tAct, maxTiempoVisto: maxTiempoVisto, preguntas: actividadActual.preguntas, intento: intentoActual }));
             
+            if(!actividadActual.preguntas || !Array.isArray(actividadActual.preguntas)) return;
+
             actividadActual.preguntas.forEach((pregunta, index) => {
                 if (!pregunta.respondida && tAct >= pregunta.tiempo && tAct < (pregunta.tiempo + 2)) {
                     player.pauseVideo(); clearInterval(intervaloVideo);
@@ -1070,6 +1317,7 @@
                     
                     pregunta.opciones.forEach((opcion, i) => {
                         const btn = document.createElement('button');
+                        btn.type = "button";
                         btn.className = "w-full bg-white text-[#2B1B12] hover:bg-caramel hover:text-white font-bold py-6 px-8 rounded-2xl transition-colors text-left text-2xl border-2 border-[#D6BCA2] shadow-sm";
                         btn.innerText = opcion; 
                         btn.onclick = () => {
@@ -1086,12 +1334,12 @@
                                     <h4 class="text-3xl font-black mb-4">${esCorrecta ? '¡Respuesta Correcta! ✅' : 'Respuesta Incorrecta ❌'}</h4>
                                     <p class="text-xl font-medium leading-relaxed">${msjFeedback}</p>
                                 </div>
-                                <button id="btn-continuar-video" class="w-full bg-caramel hover-bg-caramel text-white font-bold py-5 px-8 rounded-2xl transition-colors text-2xl shadow-lg border-2 border-[#6B3E21]">Continuar Clase ▶</button>
+                                <button type="button" id="btn-continuar-video" class="w-full bg-caramel hover-bg-caramel text-white font-bold py-5 px-8 rounded-2xl transition-colors text-2xl shadow-lg border-2 border-[#6B3E21]">Continuar Clase ▶</button>
                             `;
                             
                             document.getElementById('btn-continuar-video').onclick = () => {
                                 document.getElementById('question-overlay').classList.add('hidden');
-                                if (intentoActual.resueltas === actividadActual.preguntas.length) mostrarPantallaFinalizacion();
+                                if (intentoActual.resueltas === actividadActual.preguntas.length) window.mostrarPantallaFinalizacion();
                                 else player.playVideo();
                             };
                         };
@@ -1100,9 +1348,9 @@
                     document.getElementById('question-overlay').classList.remove('hidden');
                 }
             });
-        }
+        };
 
-        function mostrarPantallaFinalizacion() {
+        window.mostrarPantallaFinalizacion = function() {
             const estReflexion = document.getElementById('estudiante-reflexion');
             if(estReflexion) estReflexion.value = '';
             const labSection = document.getElementById('estudiante-lab-section');
@@ -1125,7 +1373,7 @@
             
             const finalOv = document.getElementById('final-overlay');
             if(finalOv) finalOv.classList.remove('hidden');
-        }
+        };
 
         window.guardarEvidenciasYFinalizar = function() {
             const refEl = document.getElementById('estudiante-reflexion');
@@ -1144,12 +1392,13 @@
 
             const finalOv = document.getElementById('final-overlay');
             if(finalOv) finalOv.classList.add('hidden');
-            finalizarActividad();
-        }
+            window.finalizarActividad();
+        };
 
-        async function finalizarActividad() {
+        window.finalizarActividad = async function() {
             localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
-            const notaFinal = (((intentoActual.correctas / actividadActual.preguntas.length) * 4) + 1).toFixed(1);
+            const totalP = actividadActual.preguntas ? actividadActual.preguntas.length : 1;
+            const notaFinal = (((intentoActual.correctas / (totalP === 0 ? 1 : totalP)) * 4) + 1).toFixed(1);
             
             const entrega = {
                 idEntrega: "ENT_" + Date.now().toString(36).toUpperCase(),
@@ -1165,234 +1414,13 @@
 
             fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) })
                 .catch(() => console.log("Nota guardada en caché."));
+        };
+
+        function extraerIdYouTubeFront(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : "M7lc1UVf-VE"; 
         }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            
-            document.getElementById('nav-dashboard').addEventListener('click', () => { window.renderDashboardDocente(filtroGradoActual); });
-            document.getElementById('nav-actividad').addEventListener('click', () => { 
-                idActividadEditando = null;
-                const formAct = document.getElementById('form-crear-actividad');
-                if(formAct) formAct.reset();
-                const contPreg = document.getElementById('contenedor-preguntas');
-                if(contPreg) contPreg.innerHTML = '';
-                
-                const titForm = document.getElementById('titulo-formulario-actividad');
-                if(titForm) titForm.innerText = "Crear Nueva Actividad Interactiva";
-                const btnSub = document.getElementById('btn-submit-actividad');
-                if(btnSub) btnSub.innerText = "Guardar Actividad y Publicar";
-                
-                const toggleLab = document.getElementById('toggle-laboratorio');
-                if(toggleLab) toggleLab.checked = false;
-                const labConf = document.getElementById('lab-fields-config');
-                if(labConf) labConf.classList.add('hidden');
-                const contLab = document.getElementById('contenedor-campos-lab');
-                if(contLab) contLab.innerHTML = '';
-
-                window.crearBloquePregunta(); 
-                window.mostrarVistaDocente('vista-actividad'); 
-            });
-            document.getElementById('nav-estudiantes').addEventListener('click', () => { window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes'); });
-
-            const formDoc = document.getElementById('form-docente');
-            if(formDoc) {
-                formDoc.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const btnSubmit = e.target.querySelector('button[type="submit"]');
-                    const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Ingresar";
-                    if(btnSubmit) { btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true; }
-
-                    const password = document.getElementById('pass-docente').value;
-
-                    try {
-                        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarDocente', password: password }) });
-                        const result = await response.json();
-                        if(result.success) {
-                            document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
-                            document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
-                            window.sincronizarConNube(); 
-                        } else { 
-                            if(password === "AdminCafeLab") {
-                                window.mostrarToast("Sesión iniciada (Modo Offline)", "warning");
-                                document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
-                                document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
-                                window.sincronizarConNube(); 
-                            } else {
-                                window.mostrarToast(result.error || "Contraseña incorrecta", "error"); 
-                            }
-                        }
-                    } catch(error) {
-                        if(password === "AdminCafeLab") {
-                            window.mostrarToast("Sesión iniciada (Modo Offline)", "warning");
-                            document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
-                            document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
-                            window.sincronizarConNube(); 
-                        } else {
-                            window.mostrarToast("Error de conexión. Intenta de nuevo.", "error");
-                        }
-                    } finally {
-                        if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
-                    }
-                });
-            }
-
-            document.getElementById('btn-show-estudiante').addEventListener('click', () => {
-                document.getElementById('form-estudiante').classList.remove('hidden'); document.getElementById('form-docente').classList.add('hidden');
-            });
-            document.getElementById('btn-show-docente').addEventListener('click', () => {
-                document.getElementById('form-docente').classList.remove('hidden'); document.getElementById('form-estudiante').classList.add('hidden');
-            });
-
-            const formCrearAct = document.getElementById('form-crear-actividad');
-            if(formCrearAct) {
-                formCrearAct.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const btnSubmit = e.target.querySelector('button[type="submit"]');
-                    const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Guardar";
-                    if(btnSubmit) { btnSubmit.innerText = "Guardando..."; btnSubmit.disabled = true; }
-
-                    try {
-                        const inputGrado = document.getElementById('grado-destino').value;
-                        const inputTitulo = document.getElementById('titulo-clase').value;
-                        const inputUrl = document.getElementById('url-video').value;
-                        const inputObjetivo = document.getElementById('objetivo-actividad').value;
-                        const inputDescripcion = document.getElementById('descripcion-actividad').value;
-                        
-                        const toggleLab = document.getElementById('toggle-laboratorio');
-                        const reqLaboratorio = toggleLab ? toggleLab.checked : false;
-                        
-                        let labCampos = [];
-                        if(reqLaboratorio) {
-                            const inputsLab = document.querySelectorAll('.campo-lab-input');
-                            inputsLab.forEach(inp => { if(inp.value && inp.value.trim() !== '') labCampos.push(inp.value.trim()); });
-                        }
-
-                        let arregloPreguntas = [];
-                        const rows = document.getElementById('contenedor-preguntas').children;
-                        for (let r of rows) {
-                            const timeEl = r.querySelector('.q-time');
-                            const textEl = r.querySelector('.q-text');
-                            const fdbkEl = r.querySelector('.q-feedback');
-                            const opt1El = r.querySelector('.q-opt1');
-                            const opt2El = r.querySelector('.q-opt2');
-                            const opt3El = r.querySelector('.q-opt3');
-                            const opt4El = r.querySelector('.q-opt4');
-                            const correctEl = r.querySelector('.q-correct');
-
-                            if(!timeEl || !textEl || !opt1El || !opt2El || !correctEl) continue;
-
-                            const time = timeEl.value;
-                            const text = textEl.value;
-                            const fdbk = fdbkEl ? fdbkEl.value : '';
-                            const rawOpts = [ opt1El.value, opt2El.value, opt3El ? opt3El.value : '', opt4El ? opt4El.value : '' ];
-                            const correctVal = correctEl.value;
-
-                            let finalOptions = []; let finalCorrect = 1; let actualIndex = 1;
-                            for(let i = 0; i < 4; i++){
-                                if(rawOpts[i] && rawOpts[i].trim() !== ''){
-                                    finalOptions.push(rawOpts[i].trim());
-                                    if(parseInt(correctVal) === (i + 1)){ finalCorrect = actualIndex; }
-                                    actualIndex++;
-                                }
-                            }
-                            if(finalOptions.length > 0) {
-                                arregloPreguntas.push({ tiempo: parseInt(time) || 0, texto: text, opciones: finalOptions, correcta: finalCorrect, feedback: fdbk, respondida: false });
-                            }
-                        }
-
-                        let payloadEnviar = null;
-
-                        if (idActividadEditando) {
-                            const idx = baseActividades.findIndex(a => a.id === idActividadEditando);
-                            if(idx !== -1) {
-                                baseActividades[idx].grados = [inputGrado];
-                                baseActividades[idx].titulo = inputTitulo;
-                                baseActividades[idx].video = { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) };
-                                baseActividades[idx].pedagogia = { objetivo: inputObjetivo, descripcion: inputDescripcion };
-                                baseActividades[idx].requiereLaboratorio = reqLaboratorio;
-                                baseActividades[idx].laboratorioCampos = labCampos;
-                                baseActividades[idx].preguntas = arregloPreguntas;
-                                payloadEnviar = baseActividades[idx];
-                            }
-                        } else {
-                            const nuevoId = "ACT_" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
-                            const d = new Date();
-                            const nuevaActividad = {
-                                id: nuevoId, version: 1, titulo: inputTitulo, grados: [inputGrado], estado: "Activa",
-                                fechaCreacion: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
-                                video: { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) },
-                                pedagogia: { objetivo: inputObjetivo, descripcion: inputDescripcion },
-                                evaluacion: { intentosPermitidos: 1, notaMinima: 3.0 },
-                                requiereLaboratorio: reqLaboratorio, laboratorioCampos: labCampos,
-                                preguntas: arregloPreguntas
-                            };
-                            baseActividades.push(nuevaActividad);
-                            payloadEnviar = nuevaActividad;
-                        }
-                        
-                        localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-                        window.mostrarToast("Actividad guardada con éxito", "success");
-                        document.getElementById('nav-dashboard').click(); 
-
-                        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload: payloadEnviar }) })
-                            .catch(() => console.log("Guardado localmente."));
-
-                    } catch(err) {
-                        console.error("Error al guardar:", err);
-                        window.mostrarToast("Error al procesar el formulario.", "error");
-                    } finally {
-                        if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
-                    }
-                });
-            }
-
-            const formEstLogin = document.getElementById('form-estudiante');
-            if(formEstLogin) {
-                formEstLogin.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const btnSubmit = e.target.querySelector('button[type="submit"]');
-                    const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Ingresar";
-                    if(btnSubmit) { btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true; }
-
-                    const grado = document.getElementById('grado').value;
-                    const codigo = document.getElementById('codigo-estudiante').value.trim();
-                    const password = document.getElementById('pass-estudiante').value.trim();
-                    const codigoLower = codigo.toLowerCase();
-
-                    if (codigoLower === 'ejemplo' || codigoLower === 'ensayo') {
-                        window.mostrarToast("Sesión de Prueba Iniciada", "success");
-                        window.iniciarSesionEstudianteLocal(grado, codigo.toUpperCase(), 'Estudiante de Prueba');
-                        if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarEstudiante', grado, codigo, password }) });
-                        const result = await response.json();
-                        if(result.success) { 
-                            window.mostrarToast("Sesión iniciada", "success"); 
-                            window.iniciarSesionEstudianteLocal(grado, codigo, result.nombre); 
-                        } else { 
-                            const localEst = baseEstudiantes.find(es => es.grado === grado && String(es.codigo).toLowerCase() === codigoLower);
-                            if(localEst && String(localEst.pass) === password) {
-                                window.mostrarToast("Sesión iniciada (Modo Offline)", "success");
-                                window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
-                            } else {
-                                window.mostrarToast(result.error || "Credenciales incorrectas", "error"); 
-                            }
-                        }
-                    } catch (error) { 
-                        const localEst = baseEstudiantes.find(es => es.grado === grado && String(es.codigo).toLowerCase() === codigoLower);
-                        if(localEst && String(localEst.pass) === password) {
-                            window.mostrarToast("Sesión iniciada (Modo Offline)", "success");
-                            window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
-                        } else {
-                            window.mostrarToast("Error de red y credenciales no válidas", "error"); 
-                        }
-                    } finally { if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; } }
-                });
-            }
-        });
     </script>
 </body>
 </html>
