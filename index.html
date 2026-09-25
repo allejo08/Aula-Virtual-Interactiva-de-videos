@@ -595,7 +595,7 @@
                     <div class="w-9 h-9 rounded-xl bg-caramel/10 flex items-center justify-center text-caramel">
                         <i data-lucide="clipboard-check" class="w-5 h-5"></i>
                     </div>
-                    <h3 class="text-2xl font-extrabold text-[#1F130B] tracking-tight">Detalle de Evaluación</h3>
+                    <h3 class="text-2xl font-extrabold text-[#1F130B] tracking-tight">Detalle de la Entrega y Evaluación</h3>
                 </div>
                 <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-gray-400 hover:text-red-500 font-bold p-1 rounded-lg transition-colors">
                     <i data-lucide="x" class="w-6 h-6"></i>
@@ -607,9 +607,9 @@
             <div id="view-detalle-preguntas-container" class="mb-6 hidden">
                 <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                     <i data-lucide="list-checks" class="w-4 h-4 text-caramel"></i>
-                    <span>Preguntas Respondidas y Retroalimentación</span>
+                    <span>Preguntas Respondidas y Retroalimentación Detallada</span>
                 </h4>
-                <div id="view-detalle-preguntas-list" class="space-y-3.5"></div>
+                <div id="view-detalle-preguntas-list" class="space-y-4"></div>
             </div>
 
             <div id="view-detalle-lab-container" class="mb-6 hidden">
@@ -868,20 +868,40 @@
                     data.respuestas.forEach((r, idx) => {
                         const esOk = r.esCorrecta;
                         const statusBadge = esOk 
-                            ? `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-botanical/15 text-botanical border border-botanical/30 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i><span>Correcta</span></span>`
-                            : `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-red-100 text-red-700 border border-red-200 flex items-center gap-1"><i data-lucide="x" class="w-3 h-3"></i><span>Incorrecta</span></span>`;
+                            ? `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-botanical/15 text-botanical border border-botanical/30 flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i><span>Correcta</span></span>`
+                            : `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-red-100 text-red-700 border border-red-200 flex items-center gap-1"><i data-lucide="x" class="w-3.5 h-3.5"></i><span>Incorrecta</span></span>`;
                         
+                        let bloqueRespuestasHtml = '';
+                        if (esOk) {
+                            bloqueRespuestasHtml = `
+                                <div class="p-3 rounded-xl bg-botanical/10 border border-botanical/30 text-botanical font-bold text-xs flex items-center gap-2">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0 text-botanical"></i>
+                                    <span><strong>Respuesta del estudiante:</strong> ${window.escapeHTML(r.opcionSeleccionada)} (Acierto)</span>
+                                </div>
+                            `;
+                        } else {
+                            bloqueRespuestasHtml = `
+                                <div class="space-y-2">
+                                    <div class="p-3 rounded-xl bg-red-100/70 border border-red-200 text-red-700 font-semibold text-xs flex items-center gap-2">
+                                        <i data-lucide="x-circle" class="w-4 h-4 shrink-0 text-red-600"></i>
+                                        <span><strong>Respuesta errónea del estudiante:</strong> <span class="line-through">${window.escapeHTML(r.opcionSeleccionada)}</span></span>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-emerald-800 font-bold text-xs flex items-center gap-2 shadow-sm">
+                                        <i data-lucide="check" class="w-4 h-4 shrink-0 text-emerald-600"></i>
+                                        <span><strong>Opción correcta esperada:</strong> ${window.escapeHTML(r.opcionCorrecta)}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
                         pregList.innerHTML += `
-                            <div class="p-4 rounded-2xl border ${esOk ? 'border-botanical/20 bg-botanical/5' : 'border-red-200 bg-red-50/50'}">
-                                <div class="flex justify-between items-start gap-2 mb-2">
-                                    <h5 class="font-bold text-xs text-[#1F130B]">${idx + 1}. ${window.escapeHTML(r.textoPregunta)}</h5>
+                            <div class="p-4 rounded-2xl border ${esOk ? 'border-botanical/25 bg-[#FAF7F2]' : 'border-red-200 bg-red-50/30'} space-y-2.5">
+                                <div class="flex justify-between items-start gap-2">
+                                    <h5 class="font-extrabold text-xs text-[#1F130B] leading-snug">${idx + 1}. ${window.escapeHTML(r.textoPregunta)}</h5>
                                     ${statusBadge}
                                 </div>
-                                <div class="text-xs space-y-1.5 mt-2">
-                                    <p class="text-gray-700"><strong>Tu respuesta:</strong> <span class="${esOk ? 'text-botanical font-bold' : 'text-red-600 font-bold'}">${window.escapeHTML(r.opcionSeleccionada)}</span></p>
-                                    ${!esOk ? `<p class="text-gray-700"><strong>Opción correcta:</strong> <span class="text-botanical font-bold">${window.escapeHTML(r.opcionCorrecta)}</span></p>` : ''}
-                                    ${r.feedback ? `<p class="text-gray-600 bg-white p-2.5 rounded-xl mt-2 border border-gray-200 flex items-start gap-2"><i data-lucide="lightbulb" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i><span><strong>Retroalimentación:</strong> ${window.escapeHTML(r.feedback)}</span></p>` : ''}
-                                </div>
+                                ${bloqueRespuestasHtml}
+                                ${r.feedback ? `<p class="text-xs text-gray-600 bg-white p-2.5 rounded-xl border border-gray-200 flex items-start gap-2"><i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5"></i><span><strong>Retroalimentación:</strong> ${window.escapeHTML(r.feedback)}</span></p>` : ''}
                             </div>
                         `;
                     });
@@ -1152,7 +1172,7 @@
 
                     tbody.innerHTML += `
                         <tr class="border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors">
-                            <td class="px-8 py-4 font-extrabold text-[#1F130B]">${window.escapeHTML(n.grado)}</td>
+                            <td class="px-8 py-4 font-black text-[#1F130B]">${window.escapeHTML(n.grado)}</td>
                             <td class="px-8 py-4 font-bold text-gray-800">${window.escapeHTML(n.nombre)}</td>
                             <td class="px-8 py-4 text-gray-600 text-sm">${nombreAct}</td>
                             <td class="px-8 py-4 text-center">${labBtn}</td>
@@ -1793,7 +1813,7 @@
                             const msjFeedback = pregunta.feedback ? window.escapeHTML(pregunta.feedback) : (esCorrecta ? '¡Muy bien! Continúa con la clase.' : 'Presta atención al siguiente fragmento del video.');
                             
                             qBox.innerHTML = `
-                                <div class="p-6 rounded-2xl border ${boxColor} mb-6 shadow-sm">
+                                <div class="p-8 rounded-2xl border ${boxColor} mb-8 shadow-sm">
                                     <h4 class="text-2xl font-extrabold mb-2 flex items-center justify-center gap-2">
                                         <i data-lucide="${esCorrecta ? 'check-circle' : 'x-circle'}" class="w-6 h-6"></i>
                                         <span>${esCorrecta ? '¡Respuesta Correcta!' : 'Respuesta Incorrecta'}</span>
