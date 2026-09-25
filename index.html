@@ -90,7 +90,7 @@
                 </button>
                 <button type="button" onclick="document.getElementById('form-docente').classList.remove('hidden'); document.getElementById('form-estudiante').classList.add('hidden'); this.className='flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-900 font-bold rounded-xl shadow-sm transition-all w-full'; this.previousElementSibling.className='flex items-center justify-center gap-2 px-6 py-3 text-slate-500 font-bold rounded-xl transition-all w-full hover:text-indigo-700';" class="flex items-center justify-center gap-2 px-6 py-3 text-slate-500 font-bold rounded-xl transition-all w-full hover:text-slate-900">
                     <i data-lucide="shield-check" class="w-4 h-4"></i>
-                    <span>Docente</span>
+                    <span>Administrador</span>
                 </button>
             </div>
 
@@ -135,7 +135,7 @@
                 </button>
             </form>
 
-            <!-- Form Docente -->
+            <!-- Form Administrador -->
             <form id="form-docente" onsubmit="window.loginDocente(event)" class="hidden space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Contraseña Administrador / Docente</label>
@@ -168,7 +168,7 @@
                     </div>
                 </div>
                 <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                    Docente
+                    Admin
                 </span>
             </div>
             
@@ -294,7 +294,7 @@
                         <table class="w-full text-sm text-left">
                             <thead class="text-xs text-slate-400 uppercase font-black border-b border-slate-100 bg-slate-50/70">
                                 <tr>
-                                    <th class="px-6 py-4">Grado</th>
+                                    <th class="px-6 py-4">Grados / Destinos</th>
                                     <th class="px-6 py-4">Título</th>
                                     <th class="px-6 py-4 text-center">Laboratorio</th>
                                     <th class="px-6 py-4 text-center">Estado</th>
@@ -336,7 +336,8 @@
 
                 <div id="filtros-reporte-global" class="hidden mb-6 flex flex-col md:flex-row gap-4">
                     <select id="filtro-rep-grado" onchange="window.actualizarFiltrosReporte()" class="p-3.5 w-full md:w-1/4 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-bold text-slate-700 shadow-sm text-sm cursor-pointer">
-                        <option value="Todos">Todos los Grados</option>
+                        <option value="Todos">Todos los Destinos</option>
+                        <option value="Docente">Docente</option>
                         <option value="6-1">Sexto 1</option><option value="6-2">Sexto 2</option>
                         <option value="7">Séptimo</option><option value="8-1">Octavo 1</option>
                         <option value="8-2">Octavo 2</option><option value="9">Noveno</option>
@@ -439,7 +440,7 @@
                 </div>
             </div>
 
-            <!-- VISTA: AÑADIR / EDITAR ACTIVIDAD -->
+            <!-- VISTA: AÑADIR / EDITAR ACTIVIDAD (CON SELECCIÓN MÚLTIPLE DE GRADOS Y DOCENTE) -->
             <div id="vista-actividad" class="view-docente hidden max-w-5xl mx-auto">
                 <div class="mb-8">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-gradient text-xs font-bold mb-2">
@@ -447,25 +448,28 @@
                         Creador de Contenido
                     </div>
                     <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight" id="titulo-formulario-actividad">Crear Nueva Actividad Interactiva</h2>
-                    <p class="text-sm text-slate-500 font-medium mt-1">Configura el video con validaciones intermedias y registros de laboratorio</p>
+                    <p class="text-sm text-slate-500 font-medium mt-1">Configura el video con validaciones intermedias, registros de laboratorio y grados destino</p>
                 </div>
                 
                 <form id="form-crear-actividad" onsubmit="window.guardarActividad(event)" class="glass-card p-10 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Grado Destino</label>
-                            <select id="grado-destino" class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-semibold" required>
-                                <option value="6-1">Sexto 1</option><option value="6-2">Sexto 2</option>
-                                <option value="7">Séptimo</option><option value="8-1">Octavo 1</option>
-                                <option value="8-2">Octavo 2</option><option value="9">Noveno</option>
-                                <option value="10">Décimo</option><option value="11">Once</option>
-                                <option value="Todos">Todos los grupos</option>
-                            </select>
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                                Grados Destino y Categorías (Marca uno o varios)
+                            </label>
+                            <button type="button" onclick="window.toggleTodosGradosDestino()" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold transition-colors">
+                                Marcar / Desmarcar Todos
+                            </button>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Enlace de YouTube</label>
-                            <input type="url" id="url-video" placeholder="https://www.youtube.com/watch?v=..." class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 outline-none text-sm font-semibold focus:ring-2 focus:ring-indigo-500" required>
+                        <div id="contenedor-grados-destino" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200">
+                            <!-- Inyección dinámica de checkboxes -->
                         </div>
+                        <p class="text-[11px] text-slate-400 font-medium mt-1.5 ml-1">Los estudiantes de los grados seleccionados y los usuarios en la categoría Docente verán esta actividad.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Enlace de YouTube</label>
+                        <input type="url" id="url-video" placeholder="https://www.youtube.com/watch?v=..." class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 outline-none text-sm font-semibold focus:ring-2 focus:ring-indigo-500" required>
                     </div>
 
                     <div>
@@ -545,7 +549,7 @@
                             Hola, <span id="nombre-estudiante-display" class="text-gradient">Estudiante</span>
                         </h2>
                         <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mt-1">
-                            <span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold">Grado: <strong id="grado-estudiante-display"></strong></span>
+                            <span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold">Grado / Rol: <strong id="grado-estudiante-display"></strong></span>
                             <span class="bg-slate-100 px-2.5 py-0.5 rounded-full">Cód: <strong id="codigo-estudiante-display" class="text-slate-800"></strong></span>
                         </div>
                     </div>
@@ -645,7 +649,7 @@
                     <h3 class="text-xl font-black text-slate-900 tracking-tight">Detalle de la Entrega y Evaluación</h3>
                 </div>
                 <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-slate-400 hover:text-rose-600 font-bold p-1 rounded-lg transition-colors">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+                    <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
             </div>
             
@@ -686,6 +690,7 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwU-4PYRnAFAo7TrNau5QKyXOOntvlzbvIF2IcotVslMjiZI7qloelbuPqwU83NyBnQ/exec';
         const LISTA_GRADOS = ["6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
+        const OPCIONES_DESTINO = ["Docente", "6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
         
         let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0, respuestas: [] };
         let estudianteIdActual = "", nombreEstudianteActual = "", gradoEstudianteActual = "";
@@ -840,6 +845,34 @@
             }
         };
 
+        // Render de checkboxes para selección múltiple de destinos
+        window.renderSelectoresGradosDestino = function(seleccionados = []) {
+            const cont = document.getElementById('contenedor-grados-destino');
+            if (!cont) return;
+            cont.innerHTML = '';
+            
+            const todosMarcados = seleccionados.includes('Todos');
+            
+            OPCIONES_DESTINO.forEach(opt => {
+                const isChecked = todosMarcados || seleccionados.includes(opt);
+                const isDocente = opt === 'Docente';
+                const labelColor = isDocente ? 'text-purple-700 bg-purple-50/70 border-purple-200' : 'text-slate-800 bg-white border-slate-200';
+                
+                cont.innerHTML += `
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl border ${labelColor} cursor-pointer hover:border-indigo-400 transition-all select-none">
+                        <input type="checkbox" value="${opt}" class="checkbox-grado-destino rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4" ${isChecked ? 'checked' : ''}>
+                        <span class="text-xs font-bold">${isDocente ? '⭐ Docente' : opt}</span>
+                    </label>
+                `;
+            });
+        };
+
+        window.toggleTodosGradosDestino = function() {
+            const boxes = document.querySelectorAll('.checkbox-grado-destino');
+            const algunDesmarcado = Array.from(boxes).some(b => !b.checked);
+            boxes.forEach(b => b.checked = algunDesmarcado);
+        };
+
         window.prepararNuevaActividad = function() {
             idActividadEditando = null;
             const formAct = document.getElementById('form-crear-actividad');
@@ -854,6 +887,7 @@
             document.getElementById('lab-fields-config').classList.add('hidden');
             document.getElementById('contenedor-campos-lab').innerHTML = '';
 
+            window.renderSelectoresGradosDestino([]);
             window.crearBloquePregunta(); 
             window.mostrarVistaDocente('vista-actividad'); 
         };
@@ -865,7 +899,7 @@
             document.getElementById('titulo-formulario-actividad').innerText = "Editar Actividad Interactiva";
             document.getElementById('btn-submit-actividad').innerText = "Actualizar Actividad";
 
-            document.getElementById('grado-destino').value = act.grados[0];
+            window.renderSelectoresGradosDestino(act.grados || []);
             document.getElementById('url-video').value = `https://youtube.com/watch?v=${act.video.id}`;
             document.getElementById('titulo-clase').value = act.titulo;
             document.getElementById('objetivo-actividad').value = act.pedagogia.objetivo || "";
@@ -939,7 +973,7 @@
                             bloqueRespuestasHtml = `
                                 <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs flex items-center gap-2">
                                     <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0 text-emerald-600"></i>
-                                    <span><strong>Respuesta del estudiante:</strong> ${window.escapeHTML(r.opcionSeleccionada)} (Acierto)</span>
+                                    <span><strong>Respuesta:</strong> ${window.escapeHTML(r.opcionSeleccionada)} (Acierto)</span>
                                 </div>
                             `;
                         } else {
@@ -1199,7 +1233,6 @@
             document.getElementById('filtros-reporte-global').classList.add('hidden');
             document.getElementById('contenedor-grafico-reporte').style.display = 'none';
 
-            // Configurar botón de reinicio para grupo
             const btnReiniciarG = document.getElementById('btn-reiniciar-grupo');
             const txtReiniciarG = document.getElementById('btn-reiniciar-grupo-texto');
             if (btnReiniciarG && txtReiniciarG) {
@@ -1419,7 +1452,7 @@
                         <td class="px-6 py-3.5 text-center text-slate-500 font-mono text-xs">
                             <span id="${idPas}-txt" class="hidden">${window.escapeHTML(est.pass)}</span>
                             <span id="${idPas}-dots">••••••••</span>
-                            <button type="button" onclick="document.getElementById('${idPas}-txt').classList.toggle('hidden'); document.getElementById('${idPas}-dots').classList.toggle('hidden');" class="ml-2 text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-lg text-slate-700 font-bold transition-all">
+                            <button type="button" onclick="document.getElementById('${idPas}-txt').classList.toggle('hidden'); document.getElementById('${idPas}-dots').classList.toggle('hidden');" class="ml-2 text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg text-slate-700 font-bold transition-all">
                                 👁
                             </button>
                         </td>
@@ -1454,180 +1487,6 @@
             }
         };
 
-        window.renderDashboardDocente = function(filtroGrado = null) {
-            window.filtroGradoActual = filtroGrado; 
-            window.mostrarVistaDocente('vista-dashboard');
-            
-            const kpiTot = document.getElementById('kpi-total-actividades');
-            if(kpiTot) kpiTot.innerText = window.baseActividades.length;
-            
-            const listaGrupos = document.getElementById('lista-grupos-docente');
-            if(listaGrupos) {
-                listaGrupos.innerHTML = '';
-                const gradosLabels = []; const promediosData = []; const participacionData = [];
-
-                LISTA_GRADOS.forEach(grado => {
-                    const actAsignadas = window.baseActividades.filter(a => {
-                        if(!a || !a.grados || !Array.isArray(a.grados)) return false;
-                        return a.grados.includes(grado) || a.grados.includes('Todos');
-                    }).length;
-                    
-                    const isActive = window.filtroGradoActual === grado 
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30' 
-                        : 'text-slate-300 hover:bg-white/5 hover:text-white';
-                    const seguroGrado = window.escapeHTML(grado);
-                    listaGrupos.innerHTML += `
-                        <li onclick="window.renderDashboardDocente('${seguroGrado}')" class="px-3.5 py-2.5 cursor-pointer flex justify-between items-center rounded-xl transition-all group ${isActive}">
-                            <span class="text-xs font-bold flex items-center gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full ${window.filtroGradoActual === grado ? 'bg-white' : 'bg-indigo-400'}"></span>
-                                Grado ${seguroGrado}
-                            </span>
-                            <span class="bg-black/40 text-slate-200 text-[10px] font-black px-2 py-0.5 rounded-md">${actAsignadas}</span>
-                        </li>
-                    `;
-                    
-                    let totalNotas = 0, count = 0;
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key.startsWith(`nota_${grado}-`)) { 
-                            let valObj = localStorage.getItem(key);
-                            try { let parseado = JSON.parse(valObj); totalNotas += parseFloat(parseado.nota || valObj); } catch(e) { totalNotas += parseFloat(valObj); }
-                            count++; 
-                        }
-                    }
-                    const promStr = count > 0 ? (totalNotas/count).toFixed(1) : '0';
-                    const porc = actAsignadas > 0 ? (count > 0 ? Math.min(Math.round((count/(actAsignadas*5))*100), 100) : 0) : 0; 
-                    
-                    gradosLabels.push(`Grado ${grado}`);
-                    promediosData.push(parseFloat(promStr));
-                    participacionData.push(porc);
-                });
-
-                if(window.myChart1) window.myChart1.destroy();
-                const ctx1 = document.getElementById('chartPromedios');
-                if(ctx1) { 
-                    window.myChart1 = new Chart(ctx1.getContext('2d'), { 
-                        type: 'bar', 
-                        data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#6366F1', borderRadius: 8 }] }, 
-                        options: { scales: { y: { beginAtZero: true, max: 5 } } } 
-                    }); 
-                }
-
-                if(window.myChart2) window.myChart2.destroy();
-                const ctx2 = document.getElementById('chartParticipacion');
-                if(ctx2) { 
-                    window.myChart2 = new Chart(ctx2.getContext('2d'), { 
-                        type: 'line', 
-                        data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#C026D3', backgroundColor: 'rgba(192, 38, 211, 0.1)', fill: true, tension: 0.35 }] }, 
-                        options: { scales: { y: { beginAtZero: true, max: 100 } } } 
-                    }); 
-                }
-            }
-
-            let acts = window.filtroGradoActual ? window.baseActividades.filter(a => {
-                if(!a || !a.grados || !Array.isArray(a.grados)) return false;
-                return a.grados.includes(window.filtroGradoActual) || a.grados.includes('Todos');
-            }) : window.baseActividades;
-            
-            const titTab = document.getElementById('titulo-tabla-actividades');
-            if(titTab) {
-                titTab.innerHTML = `
-                    <i data-lucide="clapperboard" class="w-6 h-6 text-indigo-600"></i>
-                    <span>${window.filtroGradoActual ? 'Actividades - Grado ' + window.escapeHTML(window.filtroGradoActual) : 'Gestión de Actividades Creadas'}</span>
-                `;
-            }
-
-            const tabla = document.getElementById('tabla-actividades-creadas');
-            if(tabla) {
-                tabla.innerHTML = '';
-                [...acts].reverse().forEach(act => {
-                    if(!act || !Array.isArray(act.grados)) return; 
-                    const badge = act.estado === 'Activa' 
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                        : 'bg-slate-100 text-slate-600 border border-slate-200';
-                    const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
-                    const seguroId = window.escapeHTML(act.id);
-                    const labelLab = act.requiereLaboratorio 
-                        ? '<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center gap-1 mx-auto w-fit"><i data-lucide="flask-conical" class="w-3 h-3"></i><span>Sí</span></span>' 
-                        : '<span class="text-xs text-slate-400 font-semibold">No</span>';
-
-                    tabla.innerHTML += `
-                        <tr class="hover:bg-slate-50/70 transition-colors">
-                            <td class="px-6 py-4 font-black text-slate-900">${window.escapeHTML(act.grados.join(', '))}</td>
-                            <td class="px-6 py-4 font-bold text-slate-800 text-sm">${window.escapeHTML(act.titulo)}</td>
-                            <td class="px-6 py-4 text-center">${labelLab}</td>
-                            <td class="px-6 py-4 text-center"><span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase ${badge}">${window.escapeHTML(act.estado)}</span></td>
-                            <td class="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
-                                <button type="button" onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-slate-600 border border-slate-200 bg-white px-3 py-1.5 rounded-xl hover:bg-slate-50 shadow-sm transition-all">${btnEstado}</button>
-                                <button type="button" onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 transition-all px-3 py-1.5 rounded-xl shadow-sm">Editar</button>
-                                <button type="button" onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-rose-600 border border-rose-200 bg-rose-50 hover:bg-rose-100 transition-all px-2.5 py-1.5 rounded-xl shadow-sm">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
-                                </button>
-                                <button type="button" onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-purple-700 border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-all px-3 py-1.5 rounded-xl shadow-sm">Reporte</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-            window.renderLucide();
-        };
-
-        window.crearBloquePregunta = function(t='', p='', oArr=[], c='1', f='') {
-            const contPreguntas = document.getElementById('contenedor-preguntas');
-            if(!contPreguntas) return;
-            const div = document.createElement('div');
-            div.className = "p-6 border border-slate-200 rounded-2xl bg-white relative mt-4 shadow-sm";
-            
-            const opt1 = window.escapeHTML(oArr[0] || ''); const opt2 = window.escapeHTML(oArr[1] || '');
-            const opt3 = window.escapeHTML(oArr[2] || ''); const opt4 = window.escapeHTML(oArr[3] || '');
-            const selC = c.toString();
-
-            div.innerHTML = `
-                <button type="button" class="absolute top-4 right-4 text-rose-600 font-bold hover:bg-rose-50 p-2 rounded-xl text-xs transition-colors flex items-center gap-1 border border-transparent hover:border-rose-200" onclick="this.parentElement.remove()">
-                    <i data-lucide="trash" class="w-4 h-4"></i>
-                    <span>Quitar</span>
-                </button>
-                
-                <div class="grid grid-cols-4 gap-4 mb-4 mt-2">
-                    <div class="col-span-1">
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Segundo exacto</label>
-                        <input type="number" value="${window.escapeHTML(t)}" class="q-time w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-semibold text-sm" placeholder="Ej: 45" required>
-                    </div>
-                    <div class="col-span-3">
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Pregunta formulada</label>
-                        <input type="text" value="${window.escapeHTML(p)}" class="q-text w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-semibold text-sm" placeholder="¿Qué parámetro define...?" required>
-                    </div>
-                    <div class="col-span-4 mt-1 mb-2">
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                            <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-500"></i>
-                            <span>Retroalimentación pedagógica al responder</span>
-                        </label>
-                        <input type="text" placeholder="Ej: Recuerda que la temperatura óptima de extracción oscila cerca de los 90°C..." value="${window.escapeHTML(f)}" class="q-feedback w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-xs font-medium">
-                    </div>
-                </div>
-                
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Opciones de Respuesta</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                    <div><input type="text" placeholder="Opción 1 (Requerida)" value="${opt1}" class="q-opt1 w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-xs font-medium" required></div>
-                    <div><input type="text" placeholder="Opción 2 (Requerida)" value="${opt2}" class="q-opt2 w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-xs font-medium" required></div>
-                    <div><input type="text" placeholder="Opción 3 (Opcional)" value="${opt3}" class="q-opt3 w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-xs font-medium"></div>
-                    <div><input type="text" placeholder="Opción 4 (Opcional)" value="${opt4}" class="q-opt4 w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-xs font-medium"></div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <label class="text-xs font-bold text-slate-600 uppercase tracking-wider">Opción Correcta:</label>
-                    <select class="q-correct p-2.5 border border-slate-200 rounded-xl sm:w-1/3 outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-bold text-xs cursor-pointer">
-                        <option value="1" ${selC === '1' ? 'selected' : ''}>Opción 1</option>
-                        <option value="2" ${selC === '2' ? 'selected' : ''}>Opción 2</option>
-                        <option value="3" ${selC === '3' ? 'selected' : ''}>Opción 3</option>
-                        <option value="4" ${selC === '4' ? 'selected' : ''}>Opción 4</option>
-                    </select>
-                </div>
-            `;
-            contPreguntas.appendChild(div);
-            window.renderLucide();
-        };
-
         window.guardarActividad = async function(e) {
             e.preventDefault();
             const btnSubmit = document.getElementById('btn-submit-actividad');
@@ -1635,7 +1494,21 @@
             if(btnSubmit) { btnSubmit.innerText = "Guardando..."; btnSubmit.disabled = true; }
 
             try {
-                const inputGrado = document.getElementById('grado-destino').value;
+                // Captura múltiple de grados seleccionados
+                const checkedBoxes = document.querySelectorAll('.checkbox-grado-destino:checked');
+                let gradosSeleccionados = Array.from(checkedBoxes).map(cb => cb.value);
+                
+                if (gradosSeleccionados.length === 0) {
+                    window.mostrarToast("Selecciona al menos un grado o la categoría Docente.", "warning");
+                    if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
+                    return;
+                }
+
+                // Si seleccionó todas las opciones disponibles, se cataloga como 'Todos' manteniendo las etiquetas
+                if (gradosSeleccionados.length === OPCIONES_DESTINO.length) {
+                    gradosSeleccionados = ['Todos', ...OPCIONES_DESTINO];
+                }
+
                 const inputTitulo = document.getElementById('titulo-clase').value;
                 const inputUrl = document.getElementById('url-video').value;
                 const inputObjetivo = document.getElementById('objetivo-actividad').value;
@@ -1688,7 +1561,7 @@
                 if (idActividadEditando) {
                     const idx = window.baseActividades.findIndex(a => a.id === idActividadEditando);
                     if(idx !== -1) {
-                        window.baseActividades[idx].grados = [inputGrado];
+                        window.baseActividades[idx].grados = gradosSeleccionados;
                         window.baseActividades[idx].titulo = inputTitulo || "Sin Título";
                         window.baseActividades[idx].video = { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) };
                         window.baseActividades[idx].pedagogia = { objetivo: inputObjetivo, descripcion: inputDescripcion };
@@ -1701,12 +1574,17 @@
                     const nuevoId = "ACT_" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
                     const d = new Date();
                     const nuevaActividad = {
-                        id: nuevoId, version: 1, titulo: inputTitulo || "Sin Título", grados: [inputGrado || "Todos"], estado: "Activa",
+                        id: nuevoId, 
+                        version: 1, 
+                        titulo: inputTitulo || "Sin Título", 
+                        grados: gradosSeleccionados, 
+                        estado: "Activa",
                         fechaCreacion: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
                         video: { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) },
                         pedagogia: { objetivo: inputObjetivo, descripcion: inputDescripcion },
                         evaluacion: { intentosPermitidos: 1, notaMinima: 3.0 },
-                        requiereLaboratorio: reqLaboratorio, laboratorioCampos: labCampos,
+                        requiereLaboratorio: reqLaboratorio, 
+                        laboratorioCampos: labCampos,
                         preguntas: arregloPreguntas
                     };
                     window.baseActividades.push(nuevaActividad);
@@ -1871,7 +1749,10 @@
                 window.baseActividades.forEach(act => {
                     if(!act || !act.grados || !Array.isArray(act.grados)) return;
 
-                    if(act.grados.includes(grado) || act.grados.includes('Todos')) {
+                    // El usuario ve la actividad si su grado está marcado, si está marcado 'Todos', o si tiene rol Docente y está asignada a Docente
+                    const esVisible = act.grados.includes(grado) || act.grados.includes('Todos');
+
+                    if(esVisible) {
                         const notaGuardadaObj = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
                         const seguroTitulo = window.escapeHTML(act.titulo);
                         const seguroId = window.escapeHTML(act.id);
@@ -2053,7 +1934,7 @@
                             const msjFeedback = pregunta.feedback ? window.escapeHTML(pregunta.feedback) : (esCorrecta ? '¡Excelente! Continúa con la clase.' : 'Presta atención al siguiente fragmento del video.');
                             
                             qBox.innerHTML = `
-                                <div class="p-6 rounded-2xl border ${boxColor} mb-6 shadow-sm">
+                                <div class="p-8 rounded-2xl border ${boxColor} mb-6 shadow-sm">
                                     <h4 class="text-xl font-black mb-2 flex items-center justify-center gap-2">
                                         <i data-lucide="${esCorrecta ? 'check-circle-2' : 'x-circle'}" class="w-6 h-6"></i>
                                         <span>${esCorrecta ? '¡Respuesta Correcta!' : 'Respuesta Incorrecta'}</span>
@@ -2163,6 +2044,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             window.renderLucide();
+            window.renderSelectoresGradosDestino([]);
         });
     </script>
 </body>
