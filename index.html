@@ -11,119 +11,148 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; background-color: #F8F5EE; color: #231709; }
-        .sidebar-bg { background: linear-gradient(180deg, #1F130B 0%, #170E08 100%); }
-        .glass-card { background: #FFFFFF; border-radius: 20px; box-shadow: 0px 8px 30px rgba(35, 23, 9, 0.04); border: 1px solid #ECE4D5; }
-        .bg-caramel { background-color: #8C522B; }
-        .hover-bg-caramel:hover { background-color: #724020; }
-        .text-caramel { color: #8C522B; }
-        .border-caramel { border-color: #8C522B; }
-        .bg-botanical { background-color: #2F6F4E; }
-        .hover-bg-botanical:hover { background-color: #24583E; }
-        .text-botanical { color: #2F6F4E; }
-        .border-botanical { border-color: #2F6F4E; }
-        .bg-espresso { background-color: #1F130B; }
-        
-        .toggle-checkbox:checked { right: 0; border-color: #2F6F4E; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #2F6F4E; }
-        #loading-overlay { backdrop-filter: blur(8px); }
-        
-        .smooth-shadow {
-            box-shadow: 0 4px 20px -2px rgba(140, 82, 43, 0.12);
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: radial-gradient(130% 120% at 0% 0%, #F5F3FF 0%, #EEF2FF 40%, #FAF5FF 80%, #FDF4FF 100%);
+            color: #0F172A; 
+            min-height: 100vh;
         }
+        .sidebar-bg { 
+            background: linear-gradient(180deg, #0F172A 0%, #1E1B4B 100%); 
+        }
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.92); 
+            backdrop-filter: blur(16px);
+            border-radius: 24px; 
+            box-shadow: 0 10px 40px -10px rgba(79, 70, 229, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.02); 
+            border: 1px solid rgba(224, 231, 255, 0.8); 
+        }
+        .histudy-gradient-btn {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #C026D3 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .histudy-gradient-btn:hover {
+            box-shadow: 0 12px 28px -6px rgba(124, 58, 237, 0.45);
+            transform: translateY(-2px);
+        }
+        .histudy-gradient-teal {
+            background: linear-gradient(135deg, #0D9488 0%, #059669 100%);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #C026D3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .badge-gradient {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.12) 0%, rgba(192, 38, 211, 0.12) 100%);
+            color: #6D28D9;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+        }
+        .toggle-checkbox:checked { right: 0; border-color: #6366F1; }
+        .toggle-checkbox:checked + .toggle-label { background: linear-gradient(135deg, #4F46E5, #7C3AED); }
+        #loading-overlay { backdrop-filter: blur(12px); }
     </style>
 </head>
-<body class="flex flex-col min-h-screen antialiased">
+<body class="flex flex-col min-h-screen antialiased selection:bg-purple-100 selection:text-purple-900">
 
     <!-- OVERLAY DE CARGA -->
-    <div id="loading-overlay" class="hidden fixed inset-0 bg-[#F8F5EE]/85 z-[100] flex flex-col items-center justify-center">
-        <div class="relative flex items-center justify-center mb-5">
-            <div class="animate-spin rounded-full h-20 w-20 border-4 border-[#E7DAC7] border-t-caramel"></div>
-            <div class="absolute text-caramel">
-                <i data-lucide="coffee" class="w-8 h-8"></i>
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-950/40 z-[100] flex flex-col items-center justify-center">
+        <div class="glass-card p-10 flex flex-col items-center shadow-2xl border-white/40">
+            <div class="relative flex items-center justify-center mb-5">
+                <div class="animate-spin rounded-full h-16 w-16 border-4 border-indigo-100 border-t-indigo-600"></div>
+                <div class="absolute text-indigo-600">
+                    <i data-lucide="sparkles" class="w-6 h-6"></i>
+                </div>
             </div>
+            <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Sincronizando con CaféLab</h2>
+            <p class="text-slate-500 font-medium text-xs mt-1">Conectando con la base de datos cloud...</p>
         </div>
-        <h2 class="text-2xl font-extrabold text-[#1F130B] tracking-tight">Sincronizando con CaféLab</h2>
-        <p class="text-gray-500 font-medium text-sm mt-1">Conectando datos en tiempo real...</p>
     </div>
 
     <!-- LOGIN PANEL -->
-    <div id="login-panel" class="flex-grow flex items-center justify-center p-6">
-        <div class="glass-card p-10 sm:p-12 w-full max-w-lg relative smooth-shadow">
+    <div id="login-panel" class="flex-grow flex items-center justify-center p-6 relative overflow-hidden">
+        <!-- Elementos de luz ambiental estilo HiStudy -->
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-indigo-300/30 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="glass-card p-10 sm:p-12 w-full max-w-lg relative z-10 border-white/60">
             <div class="text-center mb-8">
-                <div class="w-16 h-16 mx-auto mb-4 bg-[#8C522B]/10 rounded-2xl flex items-center justify-center text-caramel border border-[#8C522B]/20">
-                    <i data-lucide="flask-conical" class="w-9 h-9"></i>
+                <div class="inline-flex p-3 bg-gradient-to-tr from-indigo-500 to-fuchsia-500 rounded-2xl text-white shadow-lg shadow-indigo-500/25 mb-4">
+                    <i data-lucide="book-open" class="w-8 h-8"></i>
                 </div>
-                <h1 class="text-4xl font-extrabold text-[#1F130B] tracking-tight">CaféLab</h1>
-                <p class="text-sm font-semibold text-gray-400 mt-1 uppercase tracking-widest">Aula Virtual de Aprendizaje</p>
+                <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">Café<span class="text-gradient">Lab</span></h1>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full badge-gradient text-[11px] font-extrabold tracking-wider uppercase mt-2">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                    Plataforma Educativa All-in-One
+                </div>
             </div>
             
-            <div class="flex justify-center p-1.5 bg-[#F2ECE1] rounded-2xl mb-8 border border-[#E5DAC8]">
-                <button type="button" onclick="document.getElementById('form-estudiante').classList.remove('hidden'); document.getElementById('form-docente').classList.add('hidden'); this.className='flex items-center justify-center gap-2 px-6 py-3 bg-white text-caramel font-bold rounded-xl shadow-sm transition-all w-full'; this.nextElementSibling.className='flex items-center justify-center gap-2 px-6 py-3 text-gray-500 font-bold rounded-xl transition-all w-full hover:text-gray-900';" class="flex items-center justify-center gap-2 px-6 py-3 bg-white text-caramel font-bold rounded-xl shadow-sm transition-all w-full">
-                    <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+            <div class="flex justify-center p-1.5 bg-slate-100/90 rounded-2xl mb-8 border border-slate-200/80">
+                <button type="button" onclick="document.getElementById('form-estudiante').classList.remove('hidden'); document.getElementById('form-docente').classList.add('hidden'); this.className='flex items-center justify-center gap-2 px-6 py-3 bg-white text-indigo-700 font-bold rounded-xl shadow-sm transition-all w-full'; this.nextElementSibling.className='flex items-center justify-center gap-2 px-6 py-3 text-slate-500 font-bold rounded-xl transition-all w-full hover:text-slate-900';" class="flex items-center justify-center gap-2 px-6 py-3 bg-white text-indigo-700 font-bold rounded-xl shadow-sm transition-all w-full">
+                    <i data-lucide="graduation-cap" class="w-4 h-4"></i>
                     <span>Estudiante</span>
                 </button>
-                <button type="button" onclick="document.getElementById('form-docente').classList.remove('hidden'); document.getElementById('form-estudiante').classList.add('hidden'); this.className='flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-900 font-bold rounded-xl shadow-sm transition-all w-full'; this.previousElementSibling.className='flex items-center justify-center gap-2 px-6 py-3 text-gray-500 font-bold rounded-xl transition-all w-full hover:text-caramel';" class="flex items-center justify-center gap-2 px-6 py-3 text-gray-500 font-bold rounded-xl transition-all w-full hover:text-gray-900">
-                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                <button type="button" onclick="document.getElementById('form-docente').classList.remove('hidden'); document.getElementById('form-estudiante').classList.add('hidden'); this.className='flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-900 font-bold rounded-xl shadow-sm transition-all w-full'; this.previousElementSibling.className='flex items-center justify-center gap-2 px-6 py-3 text-slate-500 font-bold rounded-xl transition-all w-full hover:text-indigo-700';" class="flex items-center justify-center gap-2 px-6 py-3 text-slate-500 font-bold rounded-xl transition-all w-full hover:text-slate-900">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
                     <span>Docente</span>
                 </button>
             </div>
 
             <!-- Form Estudiante -->
-            <form id="form-estudiante" onsubmit="window.loginEstudiante(event)" class="space-y-5">
+            <form id="form-estudiante" onsubmit="window.loginEstudiante(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Grado escolar</label>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Grado escolar</label>
                     <div class="relative">
-                        <select id="grado" class="w-full p-4 pl-11 border border-gray-200 rounded-xl bg-[#FCFAF6] focus:ring-2 focus:ring-[#8C522B] focus:bg-white outline-none text-base font-semibold appearance-none cursor-pointer" required>
+                        <select id="grado" class="w-full p-4 pl-11 border border-slate-200 rounded-2xl bg-white/70 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm font-semibold cursor-pointer" required>
                             <option value="">Selecciona tu grado</option>
                             <option value="6-1">Sexto 1 (6-1)</option><option value="6-2">Sexto 2 (6-2)</option>
                             <option value="7">Séptimo (7°)</option><option value="8-1">Octavo 1 (8-1)</option>
                             <option value="8-2">Octavo 2 (8-2)</option><option value="9">Noveno (9°)</option>
                             <option value="10">Décimo (10°)</option><option value="11">Once (11°)</option>
                         </select>
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                            <i data-lucide="layers" class="w-5 h-5"></i>
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none">
+                            <i data-lucide="layers" class="w-4 h-4"></i>
                         </div>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Código de Estudiante</label>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Código de Estudiante</label>
                     <div class="relative">
-                        <input type="text" id="codigo-estudiante" placeholder="Ej: 12254" class="w-full p-4 pl-11 border border-gray-200 rounded-xl bg-[#FCFAF6] focus:ring-2 focus:ring-[#8C522B] focus:bg-white outline-none text-base font-semibold" required>
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                            <i data-lucide="user" class="w-5 h-5"></i>
+                        <input type="text" id="codigo-estudiante" placeholder="Ej: 12254 (o 'ensayo')" class="w-full p-4 pl-11 border border-slate-200 rounded-2xl bg-white/70 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm font-semibold" required>
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none">
+                            <i data-lucide="user" class="w-4 h-4"></i>
                         </div>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Contraseña</label>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Contraseña</label>
                     <div class="relative">
-                        <input type="password" id="pass-estudiante" placeholder="Ej: 12254Z" class="w-full p-4 pl-11 border border-gray-200 rounded-xl bg-[#FCFAF6] focus:ring-2 focus:ring-[#8C522B] focus:bg-white outline-none text-base font-semibold">
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                            <i data-lucide="key-round" class="w-5 h-5"></i>
+                        <input type="password" id="pass-estudiante" placeholder="Ej: 12254Z" class="w-full p-4 pl-11 border border-slate-200 rounded-2xl bg-white/70 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm font-semibold">
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none">
+                            <i data-lucide="key-round" class="w-4 h-4"></i>
                         </div>
                     </div>
                 </div>
-                <button type="submit" id="btn-submit-estudiante" class="w-full bg-botanical hover-bg-botanical text-white py-4 rounded-xl font-bold shadow-lg transition-all text-lg flex items-center justify-center gap-2 mt-4 hover:shadow-xl hover:-translate-y-0.5">
+                <button type="submit" id="btn-submit-estudiante" class="w-full histudy-gradient-btn text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-500/20 text-base flex items-center justify-center gap-2 mt-2">
                     <span>Ingresar a mis clases</span>
-                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
             </form>
 
             <!-- Form Docente -->
-            <form id="form-docente" onsubmit="window.loginDocente(event)" class="hidden space-y-5">
+            <form id="form-docente" onsubmit="window.loginDocente(event)" class="hidden space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Contraseña de Administrador</label>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Contraseña Administrador</label>
                     <div class="relative">
-                        <input type="password" id="pass-docente" placeholder="Ingresa contraseña de acceso" class="w-full p-4 pl-11 border border-gray-200 rounded-xl bg-[#FCFAF6] focus:ring-2 focus:ring-[#8C522B] focus:bg-white outline-none text-base font-semibold" required>
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                            <i data-lucide="lock" class="w-5 h-5"></i>
+                        <input type="password" id="pass-docente" placeholder="Contraseña de acceso" class="w-full p-4 pl-11 border border-slate-200 rounded-2xl bg-white/70 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm font-semibold" required>
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
                         </div>
                     </div>
                 </div>
-                <button type="submit" id="btn-submit-docente" class="w-full bg-caramel hover-bg-caramel text-white py-4 rounded-xl font-bold shadow-lg transition-all text-lg flex items-center justify-center gap-2 mt-4 hover:shadow-xl hover:-translate-y-0.5">
+                <button type="submit" id="btn-submit-docente" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-lg shadow-slate-900/20 text-base transition-all flex items-center justify-center gap-2 mt-2 hover:-translate-y-0.5">
                     <span>Ingresar al Dashboard</span>
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
                 </button>
             </form>
         </div>
@@ -131,54 +160,53 @@
 
     <!-- PANEL DOCENTE -->
     <div id="panel-docente" class="hidden flex-grow flex h-screen overflow-hidden">
-        <aside class="w-72 sidebar-bg text-gray-300 flex flex-col h-full shrink-0 shadow-2xl z-10">
+        <aside class="w-72 sidebar-bg text-slate-300 flex flex-col h-full shrink-0 shadow-2xl z-10 border-r border-indigo-950">
             <div class="p-6 flex items-center justify-between border-b border-white/10">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-caramel/20 rounded-xl flex items-center justify-center text-caramel border border-caramel/30">
-                        <i data-lucide="flask-conical" class="w-5 h-5"></i>
+                    <div class="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-fuchsia-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-500/30">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h3 class="font-extrabold text-xl text-white tracking-tight leading-none">CaféLab</h3>
-                        <span class="text-[11px] text-gray-400 font-semibold tracking-wider uppercase">Panel Central</span>
+                        <h3 class="font-black text-lg text-white tracking-tight leading-none">Café<span class="text-indigo-400">Lab</span></h3>
+                        <span class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Admin Suite</span>
                     </div>
                 </div>
-                <span class="bg-botanical/30 text-[#6ee7b7] border border-botanical/50 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                     Docente
                 </span>
             </div>
             
-            <div class="p-5 flex-grow overflow-y-auto space-y-2">
-                <button id="nav-dashboard" onclick="window.renderDashboardDocente(window.filtroGradoActual)" class="nav-btn w-full text-left bg-caramel text-white px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-all text-sm shadow-md">
+            <div class="p-4 flex-grow overflow-y-auto space-y-1.5">
+                <button id="nav-dashboard" onclick="window.renderDashboardDocente(window.filtroGradoActual)" class="nav-btn w-full text-left bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-all text-sm shadow-md shadow-indigo-600/30">
                     <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
                     <span>Dashboard</span>
                 </button>
-                <button id="nav-actividad" onclick="window.prepararNuevaActividad()" class="nav-btn w-full text-left hover:bg-white/10 px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-all text-sm text-gray-400 hover:text-white">
+                <button id="nav-actividad" onclick="window.prepararNuevaActividad()" class="nav-btn w-full text-left hover:bg-white/5 px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all text-sm text-slate-300 hover:text-white">
                     <i data-lucide="video" class="w-4 h-4"></i>
                     <span>Añadir Actividad</span>
                 </button>
-                <button id="nav-estudiantes" onclick="window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes');" class="nav-btn w-full text-left hover:bg-white/10 px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-all text-sm text-gray-400 hover:text-white">
+                <button id="nav-estudiantes" onclick="window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes');" class="nav-btn w-full text-left hover:bg-white/5 px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all text-sm text-slate-300 hover:text-white">
                     <i data-lucide="users" class="w-4 h-4"></i>
                     <span>Gestión Estudiantes</span>
                 </button>
 
                 <div class="pt-6 pb-2">
-                    <h4 class="font-extrabold text-[10px] text-gray-500 uppercase tracking-widest px-3 flex items-center gap-1.5">
-                        <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+                    <h4 class="font-extrabold text-[10px] text-slate-400 uppercase tracking-widest px-3 flex items-center gap-1.5">
+                        <i data-lucide="filter" class="w-3 h-3 text-indigo-400"></i>
                         <span>Filtro por Grupos</span>
                     </h4>
                 </div>
-                <ul id="lista-grupos-docente" class="space-y-1.5 text-sm font-medium"></ul>
+                <ul id="lista-grupos-docente" class="space-y-1 text-sm font-medium"></ul>
                 
                 <div class="pt-4">
-                    <button type="button" onclick="window.sincronizarConNube()" class="w-full text-left bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-all text-sm shadow-sm">
-                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    <button type="button" onclick="window.sincronizarConNube()" class="w-full text-left bg-gradient-to-r from-teal-500/15 to-emerald-500/15 border border-teal-500/30 text-teal-300 hover:bg-teal-500/25 px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-all text-sm shadow-sm">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 text-teal-400"></i>
                         <span>Sincronizar Nube</span>
                     </button>
                 </div>
             </div>
-            <div class="p-5 border-t border-white/10">
-                <button type="button" onclick="window.cerrarSesion()" class="w-full bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-300 px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-sm">
+            <div class="p-4 border-t border-white/10">
+                <button type="button" onclick="window.cerrarSesion()" class="w-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 text-sm">
                     <i data-lucide="log-out" class="w-4 h-4"></i>
                     <span>Cerrar Sesión</span>
                 </button>
@@ -190,81 +218,85 @@
             <div id="vista-dashboard" class="view-docente block max-w-[1400px] mx-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
-                        <h2 class="text-3xl sm:text-4xl font-extrabold text-[#1F130B] tracking-tight">Dashboard Analítico</h2>
-                        <p class="text-sm text-gray-500 font-medium mt-1">Supervisión en tiempo real del progreso académico y laboratorio</p>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-gradient text-xs font-bold mb-2">
+                            <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                            Métricas Académicas
+                        </div>
+                        <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Dashboard Analítico</h2>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Supervisión en tiempo real del progreso interactivo y experimentos</p>
                     </div>
-                    <button type="button" onclick="window.generarReporteGlobal()" class="bg-[#1F130B] hover:bg-black text-white px-5 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 text-sm hover:-translate-y-0.5">
+                    <button type="button" onclick="window.generarReporteGlobal()" class="histudy-gradient-btn text-white px-5 py-3 rounded-2xl font-bold shadow-md shadow-indigo-500/20 flex items-center gap-2 text-sm">
                         <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
                         <span>Ver Reporte Global HTML</span>
                     </button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="glass-card p-6 flex flex-col justify-center relative overflow-hidden">
-                        <div class="absolute left-0 top-0 w-2 h-full bg-caramel"></div>
+                    <div class="glass-card p-6 flex flex-col justify-center relative overflow-hidden group hover:border-indigo-300 transition-all">
+                        <div class="absolute left-0 top-0 w-2 h-full bg-gradient-to-b from-indigo-500 to-indigo-600"></div>
                         <div class="flex items-center justify-between ml-2">
-                            <span class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Total de Actividades</span>
-                            <div class="w-9 h-9 rounded-xl bg-caramel/10 flex items-center justify-center text-caramel">
+                            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Total de Actividades</span>
+                            <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                                 <i data-lucide="play-circle" class="w-5 h-5"></i>
                             </div>
                         </div>
-                        <p class="text-4xl font-extrabold text-[#1F130B] ml-2 mt-2" id="kpi-total-actividades">0</p>
+                        <p class="text-4xl font-black text-slate-900 ml-2 mt-2" id="kpi-total-actividades">0</p>
                     </div>
-                    <div class="glass-card p-6 flex flex-col justify-center relative overflow-hidden">
-                        <div class="absolute left-0 top-0 w-2 h-full bg-amber-600"></div>
+                    <div class="glass-card p-6 flex flex-col justify-center relative overflow-hidden group hover:border-fuchsia-300 transition-all">
+                        <div class="absolute left-0 top-0 w-2 h-full bg-gradient-to-b from-fuchsia-500 to-pink-600"></div>
                         <div class="flex items-center justify-between ml-2">
-                            <span class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Grupos Activos</span>
-                            <div class="w-9 h-9 rounded-xl bg-amber-600/10 flex items-center justify-center text-amber-700">
+                            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Grupos Activos</span>
+                            <div class="w-10 h-10 rounded-2xl bg-fuchsia-50 text-fuchsia-600 flex items-center justify-center">
                                 <i data-lucide="users" class="w-5 h-5"></i>
                             </div>
                         </div>
-                        <p class="text-4xl font-extrabold text-amber-800 ml-2 mt-2" id="kpi-grupos">8</p>
+                        <p class="text-4xl font-black text-slate-900 ml-2 mt-2" id="kpi-grupos">8</p>
                     </div>
-                    <div class="glass-card p-6 flex flex-col justify-center relative overflow-hidden">
-                        <div class="absolute left-0 top-0 w-2 h-full bg-botanical"></div>
+                    <div class="glass-card p-6 flex flex-col justify-center relative overflow-hidden group hover:border-teal-300 transition-all">
+                        <div class="absolute left-0 top-0 w-2 h-full bg-gradient-to-b from-teal-500 to-emerald-600"></div>
                         <div class="flex items-center justify-between ml-2">
-                            <span class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Cumplimiento Global</span>
-                            <div class="w-9 h-9 rounded-xl bg-botanical/10 flex items-center justify-center text-botanical">
+                            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Cumplimiento Global</span>
+                            <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center">
                                 <i data-lucide="check-circle-2" class="w-5 h-5"></i>
                             </div>
                         </div>
-                        <p class="text-4xl font-extrabold text-botanical ml-2 mt-2" id="kpi-cumplimiento">0%</p>
+                        <p class="text-4xl font-black text-teal-600 ml-2 mt-2" id="kpi-cumplimiento">0%</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
                     <div class="glass-card p-7">
-                        <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
-                            <h3 class="text-base font-extrabold text-[#1F130B] flex items-center gap-2">
-                                <i data-lucide="award" class="w-4 h-4 text-caramel"></i>
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="award" class="w-4 h-4 text-indigo-600"></i>
                                 <span>Promedio Académico por Grado</span>
                             </h3>
-                            <span class="text-xs text-gray-400 font-semibold">Escala 1.0 - 5.0</span>
+                            <span class="text-xs text-slate-400 font-semibold">Escala 1.0 - 5.0</span>
                         </div>
                         <canvas id="chartPromedios" height="120"></canvas>
                     </div>
                     <div class="glass-card p-7">
-                        <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
-                            <h3 class="text-base font-extrabold text-[#1F130B] flex items-center gap-2">
-                                <i data-lucide="trending-up" class="w-4 h-4 text-botanical"></i>
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="trending-up" class="w-4 h-4 text-fuchsia-600"></i>
                                 <span>Nivel de Participación (%)</span>
                             </h3>
-                            <span class="text-xs text-gray-400 font-semibold">Entregas efectivas</span>
+                            <span class="text-xs text-slate-400 font-semibold">Tasa de respuesta</span>
                         </div>
                         <canvas id="chartParticipacion" height="120"></canvas>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between mb-5">
-                    <h3 class="text-2xl font-extrabold text-[#1F130B] tracking-tight flex items-center gap-2.5" id="titulo-tabla-actividades">
-                        <i data-lucide="clapperboard" class="w-6 h-6 text-caramel"></i>
+                    <h3 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5" id="titulo-tabla-actividades">
+                        <i data-lucide="clapperboard" class="w-6 h-6 text-indigo-600"></i>
                         <span>Gestión de Actividades Creadas</span>
                     </h3>
                 </div>
                 <div class="glass-card overflow-hidden mb-10">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-base text-left">
-                            <thead class="text-xs text-gray-400 uppercase font-extrabold border-b border-gray-100 bg-[#FAF7F2]">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-400 uppercase font-black border-b border-slate-100 bg-slate-50/70">
                                 <tr>
                                     <th class="px-6 py-4">Grado</th>
                                     <th class="px-6 py-4">Título</th>
@@ -273,7 +305,7 @@
                                     <th class="px-6 py-4 text-right">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-actividades-creadas"></tbody>
+                            <tbody id="tabla-actividades-creadas" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
@@ -283,15 +315,19 @@
             <div id="vista-reportes" class="view-docente hidden max-w-[1400px] mx-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
-                        <h2 class="text-3xl sm:text-4xl font-extrabold text-[#1F130B] tracking-tight" id="titulo-vista-reporte">Reporte de Calificaciones</h2>
-                        <p class="text-sm text-gray-500 font-medium mt-1">Inspección de evidencias, reflexiones y resultados por estudiante</p>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-gradient text-xs font-bold mb-2">
+                            <i data-lucide="clipboard-list" class="w-3.5 h-3.5"></i>
+                            Historial Evaluativo
+                        </div>
+                        <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight" id="titulo-vista-reporte">Reporte de Calificaciones</h2>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Inspección de evidencias, respuestas y reflexiones</p>
                     </div>
                     <div class="flex gap-3">
-                        <button type="button" onclick="window.limpiarNotasLocales()" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl font-bold transition-all text-xs flex items-center gap-2 shadow-sm" title="Limpia la caché si borraste la base de datos de Google">
+                        <button type="button" onclick="window.limpiarNotasLocales()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-4 py-2.5 rounded-xl font-bold transition-all text-xs flex items-center gap-2 shadow-sm" title="Limpia la caché si borraste la base de datos de Google">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                             <span>Limpiar Caché</span>
                         </button>
-                        <button type="button" onclick="document.getElementById('nav-dashboard').click()" class="bg-white hover:bg-gray-100 text-gray-800 border border-gray-200 px-4 py-2.5 rounded-xl font-bold transition-all text-xs flex items-center gap-2 shadow-sm">
+                        <button type="button" onclick="document.getElementById('nav-dashboard').click()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl font-bold transition-all text-xs flex items-center gap-2 shadow-sm">
                             <i data-lucide="arrow-left" class="w-4 h-4"></i>
                             <span>Volver al Dashboard</span>
                         </button>
@@ -299,14 +335,14 @@
                 </div>
 
                 <div id="filtros-reporte-global" class="hidden mb-6 flex flex-col md:flex-row gap-4">
-                    <select id="filtro-rep-grado" onchange="window.actualizarFiltrosReporte()" class="p-3.5 w-full md:w-1/4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel bg-white font-bold text-gray-700 shadow-sm text-sm cursor-pointer">
+                    <select id="filtro-rep-grado" onchange="window.actualizarFiltrosReporte()" class="p-3.5 w-full md:w-1/4 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-bold text-slate-700 shadow-sm text-sm cursor-pointer">
                         <option value="Todos">Todos los Grados</option>
                         <option value="6-1">Sexto 1</option><option value="6-2">Sexto 2</option>
                         <option value="7">Séptimo</option><option value="8-1">Octavo 1</option>
                         <option value="8-2">Octavo 2</option><option value="9">Noveno</option>
                         <option value="10">Décimo</option><option value="11">Once</option>
                     </select>
-                    <select id="filtro-rep-actividad" onchange="window.actualizarFiltrosReporte()" class="p-3.5 w-full md:w-2/4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel bg-white font-bold text-gray-700 shadow-sm text-sm cursor-pointer">
+                    <select id="filtro-rep-actividad" onchange="window.actualizarFiltrosReporte()" class="p-3.5 w-full md:w-2/4 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-bold text-slate-700 shadow-sm text-sm cursor-pointer">
                         <option value="Todas">Todas las Actividades</option>
                     </select>
                 </div>
@@ -319,8 +355,8 @@
 
                 <div class="glass-card overflow-hidden mb-10">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-base text-left">
-                            <thead class="text-xs text-gray-400 uppercase font-extrabold border-b border-gray-100 bg-[#FAF7F2]">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-400 uppercase font-black border-b border-slate-100 bg-slate-50/70">
                                 <tr>
                                     <th class="px-8 py-4">Grado</th>
                                     <th class="px-8 py-4">Estudiante</th>
@@ -329,7 +365,7 @@
                                     <th class="px-8 py-4 text-center">Nota Final</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-datos-reporte"></tbody>
+                            <tbody id="tabla-datos-reporte" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
@@ -338,19 +374,23 @@
             <!-- VISTA: GESTIÓN DE ESTUDIANTES -->
             <div id="vista-estudiantes" class="view-docente hidden max-w-[1400px] mx-auto">
                 <div class="mb-8">
-                    <h2 class="text-3xl sm:text-4xl font-extrabold text-[#1F130B] tracking-tight">Gestión de Estudiantes</h2>
-                    <p class="text-sm text-gray-500 font-medium mt-1">Directorio de matrículas y contraseñas de acceso</p>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-gradient text-xs font-bold mb-2">
+                        <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+                        Directorio Escolar
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Gestión de Estudiantes</h2>
+                    <p class="text-sm text-slate-500 font-medium mt-1">Control de accesos y credenciales sincronizadas con Google Sheets</p>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="col-span-1 glass-card p-8 h-fit">
-                        <div class="flex items-center gap-2 mb-6 border-b border-gray-100 pb-3">
-                            <i data-lucide="user-plus" class="w-5 h-5 text-botanical"></i>
-                            <h3 class="text-lg font-extrabold text-[#1F130B]">Añadir Estudiante</h3>
+                        <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-3">
+                            <i data-lucide="user-plus" class="w-5 h-5 text-indigo-600"></i>
+                            <h3 class="text-base font-extrabold text-slate-900">Añadir Estudiante</h3>
                         </div>
                         <form id="form-add-estudiante" onsubmit="window.agregarEstudiante(event)" class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Grado</label>
-                                <select id="new-est-grado" class="w-full p-3 border border-gray-200 rounded-xl bg-[#FCFAF6] outline-none focus:ring-2 focus:ring-caramel text-sm font-semibold" required>
+                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Grado</label>
+                                <select id="new-est-grado" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50/60 outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold" required>
                                     <option value="6-1">Sexto 1</option><option value="6-2">Sexto 2</option>
                                     <option value="7">Séptimo</option><option value="8-1">Octavo 1</option>
                                     <option value="8-2">Octavo 2</option><option value="9">Noveno</option>
@@ -358,30 +398,30 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Código</label>
-                                <input type="text" id="new-est-codigo" placeholder="Ej: 15420" class="w-full p-3 border border-gray-200 rounded-xl bg-[#FCFAF6] outline-none focus:ring-2 focus:ring-caramel text-sm font-semibold" required>
+                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Código</label>
+                                <input type="text" id="new-est-codigo" placeholder="Ej: 15420" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50/60 outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">Apellidos y Nombres</label>
-                                <input type="text" id="new-est-nombre" placeholder="Ej: Perez Juan" class="w-full p-3 border border-gray-200 rounded-xl bg-[#FCFAF6] outline-none focus:ring-2 focus:ring-caramel text-sm font-semibold" required>
+                                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Apellidos y Nombres</label>
+                                <input type="text" id="new-est-nombre" placeholder="Ej: Perez Juan" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50/60 outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-semibold" required>
                             </div>
-                            <button type="submit" class="w-full bg-botanical hover-bg-botanical text-white py-3.5 rounded-xl font-bold shadow-md transition-all mt-4 text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5">
+                            <button type="submit" class="w-full histudy-gradient-btn text-white py-3.5 rounded-xl font-bold shadow-md transition-all mt-4 text-sm flex items-center justify-center gap-2">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
                                 <span>Agregar Estudiante</span>
                             </button>
                         </form>
                     </div>
                     <div class="col-span-2 glass-card p-8">
-                        <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
                             <div class="flex items-center gap-2">
-                                <i data-lucide="contact-2" class="w-5 h-5 text-caramel"></i>
-                                <h3 class="text-lg font-extrabold text-[#1F130B]">Directorio de Estudiantes</h3>
+                                <i data-lucide="contact-2" class="w-5 h-5 text-indigo-600"></i>
+                                <h3 class="text-base font-extrabold text-slate-900">Directorio de Estudiantes</h3>
                             </div>
-                            <span class="text-xs text-gray-400 font-semibold">Sincronizado con la nube</span>
+                            <span class="text-xs text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">Cloud Sync</span>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left">
-                                <thead class="text-xs text-gray-400 uppercase font-extrabold border-b border-gray-100 bg-[#FAF7F2]">
+                                <thead class="text-xs text-slate-400 uppercase font-black border-b border-slate-100 bg-slate-50/70">
                                     <tr>
                                         <th class="px-6 py-3.5">Grado</th>
                                         <th class="px-6 py-3.5">Código</th>
@@ -389,7 +429,7 @@
                                         <th class="px-6 py-3.5 text-center">Contraseña</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tabla-estudiantes-locales"></tbody>
+                                <tbody id="tabla-estudiantes-locales" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
                     </div>
@@ -399,15 +439,19 @@
             <!-- VISTA: AÑADIR / EDITAR ACTIVIDAD -->
             <div id="vista-actividad" class="view-docente hidden max-w-5xl mx-auto">
                 <div class="mb-8">
-                    <h2 class="text-3xl sm:text-4xl font-extrabold text-[#1F130B] tracking-tight" id="titulo-formulario-actividad">Crear Nueva Actividad Interactiva</h2>
-                    <p class="text-sm text-gray-500 font-medium mt-1">Configura el video con validaciones intermedias y registros de laboratorio</p>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full badge-gradient text-xs font-bold mb-2">
+                        <i data-lucide="video" class="w-3.5 h-3.5"></i>
+                        Creador de Contenido
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight" id="titulo-formulario-actividad">Crear Nueva Actividad Interactiva</h2>
+                    <p class="text-sm text-slate-500 font-medium mt-1">Configura el video con validaciones intermedias y registros de laboratorio</p>
                 </div>
                 
                 <form id="form-crear-actividad" onsubmit="window.guardarActividad(event)" class="glass-card p-10 space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Grado Destino</label>
-                            <select id="grado-destino" class="w-full p-3.5 border border-gray-200 rounded-xl bg-[#FCFAF6] focus:ring-2 focus:ring-caramel outline-none text-sm font-semibold" required>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Grado Destino</label>
+                            <select id="grado-destino" class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-semibold" required>
                                 <option value="6-1">Sexto 1</option><option value="6-2">Sexto 2</option>
                                 <option value="7">Séptimo</option><option value="8-1">Octavo 1</option>
                                 <option value="8-2">Octavo 2</option><option value="9">Noveno</option>
@@ -416,68 +460,68 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Enlace de YouTube</label>
-                            <input type="url" id="url-video" placeholder="https://www.youtube.com/watch?v=..." class="w-full p-3.5 border border-gray-200 rounded-xl bg-[#FCFAF6] outline-none text-sm font-semibold focus:ring-2 focus:ring-caramel" required>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Enlace de YouTube</label>
+                            <input type="url" id="url-video" placeholder="https://www.youtube.com/watch?v=..." class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 outline-none text-sm font-semibold focus:ring-2 focus:ring-indigo-500" required>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Título de la Clase</label>
-                        <input type="text" id="titulo-clase" placeholder="Ej: Fundamentos de la Molienda y Extracción" class="w-full p-3.5 border border-gray-200 rounded-xl bg-[#FCFAF6] outline-none text-sm font-semibold focus:ring-2 focus:ring-caramel" required>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Título de la Clase</label>
+                        <input type="text" id="titulo-clase" placeholder="Ej: Fundamentos de la Molienda y Extracción" class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 outline-none text-sm font-semibold focus:ring-2 focus:ring-indigo-500" required>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Objetivo Pedagógico</label>
-                        <input type="text" id="objetivo-actividad" placeholder="Competencia científica o técnica a desarrollar..." class="w-full p-3.5 border border-gray-200 rounded-xl bg-[#FCFAF6] outline-none text-sm font-semibold focus:ring-2 focus:ring-caramel" required>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Objetivo Pedagógico</label>
+                        <input type="text" id="objetivo-actividad" placeholder="Competencia científica o técnica a desarrollar..." class="w-full p-3.5 border border-slate-200 rounded-2xl bg-slate-50/60 outline-none text-sm font-semibold focus:ring-2 focus:ring-indigo-500" required>
                     </div>
                     
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Descripción e Instrucciones</label>
-                        <textarea id="descripcion-actividad" rows="3" placeholder="Instrucciones claras para los estudiantes..." class="w-full p-3.5 border border-gray-200 rounded-xl bg-[#FCFAF6] outline-none text-sm font-semibold focus:ring-2 focus:ring-caramel" required></textarea>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Descripción e Instrucciones</label>
+                        <textarea id="descripcion-actividad" rows="3" placeholder="Instrucciones claras para los estudiantes..." class="w-full p-4 border border-slate-200 rounded-2xl bg-slate-50/60 outline-none text-sm font-semibold focus:ring-2 focus:ring-indigo-500" required></textarea>
                     </div>
                     
-                    <div class="bg-[#FAF7F2] border border-[#E7DAC7] p-6 rounded-2xl flex flex-col gap-4">
+                    <div class="bg-indigo-50/50 border border-indigo-100 p-6 rounded-2xl flex flex-col gap-4">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-botanical/15 flex items-center justify-center text-botanical">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center shadow-sm">
                                     <i data-lucide="test-tube-2" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <h4 class="text-base font-extrabold text-[#1F130B]">Requerir Registro de Laboratorio</h4>
-                                    <p class="text-xs text-gray-500 font-medium">Solicita variables físicas medidas en la práctica (ej. pH, Brix, Temp)</p>
+                                    <h4 class="text-sm font-extrabold text-slate-900">Requerir Registro de Laboratorio</h4>
+                                    <p class="text-xs text-slate-500 font-medium">Solicita variables físicas medidas en la práctica (ej. pH, Brix, Temp)</p>
                                 </div>
                             </div>
                             <div class="relative inline-block w-12 mr-2 align-middle select-none">
                                 <input type="checkbox" id="toggle-laboratorio" onchange="document.getElementById('lab-fields-config').classList.toggle('hidden', !this.checked)" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out"/>
-                                <label for="toggle-laboratorio" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-200 ease-in-out"></label>
+                                <label for="toggle-laboratorio" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors duration-200 ease-in-out"></label>
                             </div>
                         </div>
-                        <div id="lab-fields-config" class="hidden border-t border-[#E7DAC7] pt-4 mt-2">
-                            <p class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3">Variables a medir por los estudiantes:</p>
+                        <div id="lab-fields-config" class="hidden border-t border-indigo-100 pt-4 mt-2">
+                            <p class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">Variables a medir por los estudiantes:</p>
                             <div id="contenedor-campos-lab" class="space-y-3 mb-4"></div>
-                            <button type="button" onclick="window.agregarCampoLabConfig()" class="text-xs text-botanical font-bold hover:underline flex items-center gap-1.5">
+                            <button type="button" onclick="window.agregarCampoLabConfig()" class="text-xs text-indigo-600 font-bold hover:underline flex items-center gap-1.5">
                                 <i data-lucide="plus-circle" class="w-4 h-4"></i>
                                 <span>Añadir variable métrica</span>
                             </button>
                         </div>
                     </div>
 
-                    <div class="border-t border-gray-100 pt-8 mt-6">
+                    <div class="border-t border-slate-100 pt-8 mt-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-extrabold text-[#1F130B] flex items-center gap-2">
-                                <i data-lucide="help-circle" class="w-5 h-5 text-caramel"></i>
+                            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="help-circle" class="w-5 h-5 text-indigo-600"></i>
                                 <span>Preguntas Interactivas del Video</span>
                             </h3>
                         </div>
-                        <div id="contenedor-preguntas" class="space-y-5 mb-6"></div>
-                        <button type="button" onclick="window.crearBloquePregunta()" class="w-full bg-[#FAF7F2] text-caramel border-2 border-dashed border-[#8C522B]/40 px-5 py-4 rounded-xl text-sm font-bold hover:bg-[#F2ECE1] transition-all flex items-center justify-center gap-2">
+                        <div id="contenedor-preguntas" class="space-y-4 mb-6"></div>
+                        <button type="button" onclick="window.crearBloquePregunta()" class="w-full bg-indigo-50/50 text-indigo-700 border-2 border-dashed border-indigo-200 px-5 py-4 rounded-2xl text-sm font-bold hover:bg-indigo-100/50 transition-all flex items-center justify-center gap-2">
                             <i data-lucide="plus" class="w-4 h-4"></i>
                             <span>Añadir otra pregunta al video</span>
                         </button>
                     </div>
 
-                    <button type="submit" id="btn-submit-actividad" class="w-full bg-caramel hover-bg-caramel text-white py-4 rounded-xl font-bold shadow-lg mt-6 text-lg transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5">
-                        <i data-lucide="save" class="w-5 h-5"></i>
+                    <button type="submit" id="btn-submit-actividad" class="w-full histudy-gradient-btn text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-500/25 mt-6 text-base flex items-center justify-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
                         <span>Guardar Actividad y Publicar</span>
                     </button>
                 </form>
@@ -490,36 +534,36 @@
         <div id="vista-bienvenida-estudiante" class="max-w-6xl w-full flex flex-col gap-6 mt-4">
             <div class="glass-card p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-2xl bg-caramel/10 border border-caramel/20 flex items-center justify-center text-caramel">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
                         <i data-lucide="sparkles" class="w-7 h-7"></i>
                     </div>
                     <div>
-                        <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1F130B] tracking-tight">
-                            Hola, <span id="nombre-estudiante-display" class="text-caramel">Estudiante</span>
+                        <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                            Hola, <span id="nombre-estudiante-display" class="text-gradient">Estudiante</span>
                         </h2>
-                        <div class="flex items-center gap-3 text-xs font-semibold text-gray-500 mt-1">
-                            <span class="bg-[#F2ECE1] px-2.5 py-1 rounded-md text-gray-700">Grado: <strong id="grado-estudiante-display" class="text-gray-900"></strong></span>
-                            <span class="bg-[#F2ECE1] px-2.5 py-1 rounded-md text-gray-700">Código: <strong id="codigo-estudiante-display" class="text-gray-900"></strong></span>
+                        <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mt-1">
+                            <span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold">Grado: <strong id="grado-estudiante-display"></strong></span>
+                            <span class="bg-slate-100 px-2.5 py-0.5 rounded-full">Cód: <strong id="codigo-estudiante-display" class="text-slate-800"></strong></span>
                         </div>
                     </div>
                 </div>
-                <button type="button" onclick="window.cerrarSesion()" class="text-red-700 hover:text-red-900 font-bold transition-all flex items-center gap-2 border border-red-200 bg-red-50/60 px-5 py-2.5 rounded-xl text-xs shadow-sm hover:bg-red-100">
+                <button type="button" onclick="window.cerrarSesion()" class="text-rose-600 hover:text-rose-700 font-bold transition-all flex items-center gap-2 border border-rose-200 bg-rose-50 px-4 py-2.5 rounded-xl text-xs shadow-sm hover:bg-rose-100">
                     <i data-lucide="log-out" class="w-4 h-4"></i>
                     <span>Cerrar Sesión</span>
                 </button>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-                <div class="glass-card p-7 border-t-4 border-t-caramel">
-                    <h3 class="text-lg font-extrabold text-[#1F130B] mb-5 flex items-center gap-2.5 border-b border-gray-100 pb-3">
-                        <i data-lucide="hourglass" class="w-5 h-5 text-caramel"></i>
+                <div class="glass-card p-7 border-t-4 border-t-indigo-600">
+                    <h3 class="text-base font-extrabold text-slate-900 mb-5 flex items-center gap-2.5 border-b border-slate-100 pb-3">
+                        <i data-lucide="hourglass" class="w-5 h-5 text-indigo-600"></i>
                         <span>Actividades Pendientes</span>
                     </h3>
                     <div id="lista-pendientes" class="flex flex-col gap-4"></div>
                 </div>
-                <div class="glass-card p-7 border-t-4 border-t-botanical">
-                    <h3 class="text-lg font-extrabold text-[#1F130B] mb-5 flex items-center gap-2.5 border-b border-gray-100 pb-3">
-                        <i data-lucide="check-check" class="w-5 h-5 text-botanical"></i>
+                <div class="glass-card p-7 border-t-4 border-t-teal-600">
+                    <h3 class="text-base font-extrabold text-slate-900 mb-5 flex items-center gap-2.5 border-b border-slate-100 pb-3">
+                        <i data-lucide="check-check" class="w-5 h-5 text-teal-600"></i>
                         <span>Mis Calificaciones</span>
                     </h3>
                     <div id="lista-realizadas" class="flex flex-col gap-4"></div>
@@ -529,25 +573,25 @@
 
         <div id="vista-reproductor" class="hidden w-full max-w-6xl glass-card p-6 sm:p-8 flex-col h-[85vh] mt-4">
             <div class="flex justify-between items-center mb-5 px-1">
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1F130B] tracking-tight flex items-center gap-2.5" id="titulo-reproductor">
-                    <i data-lucide="play" class="w-6 h-6 text-caramel"></i>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5" id="titulo-reproductor">
+                    <i data-lucide="play" class="w-5 h-5 text-indigo-600"></i>
                     <span>Actividad Interactiva</span>
                 </h2>
-                <div class="text-xs font-extrabold bg-[#F2ECE1] text-caramel border border-[#E0D3C1] px-4 py-1.5 rounded-full flex items-center gap-1.5">
+                <div class="text-xs font-black badge-gradient px-4 py-1.5 rounded-full flex items-center gap-1.5">
                     <i data-lucide="activity" class="w-3.5 h-3.5"></i>
                     <span>Progreso: <span id="progreso-text">0%</span></span>
                 </div>
             </div>
             
-            <div class="relative w-full flex-grow bg-black rounded-2xl overflow-hidden shadow-inner flex items-center justify-center" style="min-height: 450px;">
+            <div class="relative w-full flex-grow bg-slate-950 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center border border-slate-800" style="min-height: 450px;">
                 <div id="youtube-player" class="w-full h-full absolute inset-0"></div>
                 
-                <div id="question-overlay" class="hidden absolute inset-0 bg-[#1F130B]/95 flex flex-col items-center justify-center p-8 z-50 text-white">
-                    <div class="bg-white border border-[#ECE4D5] p-10 sm:p-12 rounded-3xl max-w-3xl w-full text-center shadow-2xl text-gray-900" id="question-box"></div>
+                <div id="question-overlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-8 z-50 text-white">
+                    <div class="glass-card p-8 sm:p-10 rounded-3xl max-w-2xl w-full text-center shadow-2xl text-slate-900 border-white/80" id="question-box"></div>
                 </div>
             </div>
             <div class="mt-6 flex justify-center">
-                <button type="button" onclick="window.volverDashboardEstudiante()" class="text-gray-700 hover:text-caramel text-sm font-bold transition-all border border-gray-200 px-6 py-3 rounded-xl bg-white hover:bg-[#FAF7F2] shadow-sm flex items-center gap-2">
+                <button type="button" onclick="window.volverDashboardEstudiante()" class="text-slate-700 hover:text-indigo-600 text-xs font-bold transition-all border border-slate-200 px-6 py-3 rounded-2xl bg-white hover:bg-slate-50 shadow-sm flex items-center gap-2">
                     <i data-lucide="pause-circle" class="w-4 h-4"></i>
                     <span>Pausar y regresar al Dashboard</span>
                 </button>
@@ -556,31 +600,31 @@
     </div>
 
     <!-- MODAL DE FINALIZACIÓN Y LABORATORIO (ESTUDIANTE) -->
-    <div id="final-overlay" class="hidden fixed inset-0 bg-[#1F130B]/90 flex flex-col items-center justify-center p-6 z-50 overflow-y-auto">
-        <div class="bg-white border border-[#ECE4D5] p-8 sm:p-10 rounded-3xl max-w-2xl w-full text-center shadow-2xl text-[#1F130B] my-auto">
-            <div class="w-16 h-16 rounded-2xl bg-botanical/10 text-botanical flex items-center justify-center mx-auto mb-4 border border-botanical/20">
-                <i data-lucide="award" class="w-8 h-8"></i>
+    <div id="final-overlay" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center p-6 z-50 overflow-y-auto">
+        <div class="glass-card p-8 sm:p-10 rounded-3xl max-w-2xl w-full text-center shadow-2xl text-slate-900 my-auto border-white/80">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-500 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-teal-500/25">
+                <i data-lucide="award" class="w-7 h-7"></i>
             </div>
-            <h3 class="text-2xl sm:text-3xl font-extrabold mb-1 tracking-tight text-[#1F130B]">¡Video Completado!</h3>
-            <p class="text-gray-500 mb-6 text-sm">Completa la siguiente información para registrar tu entrega oficial</p>
+            <h3 class="text-2xl font-black mb-1 tracking-tight text-slate-900">¡Video Completado!</h3>
+            <p class="text-slate-500 mb-6 text-xs font-semibold">Completa la siguiente información para registrar tu entrega oficial</p>
             
-            <div id="estudiante-lab-section" class="hidden text-left mb-6 bg-[#FAF7F2] p-5 rounded-2xl border border-[#E7DAC7]">
-                <h4 class="font-bold text-sm mb-3 text-[#1F130B] border-b border-[#E7DAC7] pb-2 flex items-center gap-2">
-                    <i data-lucide="flask-conical" class="w-4 h-4 text-botanical"></i>
+            <div id="estudiante-lab-section" class="hidden text-left mb-6 bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100">
+                <h4 class="font-extrabold text-xs uppercase tracking-wider text-indigo-950 mb-3 border-b border-indigo-100 pb-2 flex items-center gap-2">
+                    <i data-lucide="flask-conical" class="w-4 h-4 text-indigo-600"></i>
                     <span>Variables del Experimento</span>
                 </h4>
                 <div id="estudiante-lab-inputs" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
             </div>
 
             <div class="text-left mb-6">
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <i data-lucide="lightbulb" class="w-4 h-4 text-amber-600"></i>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <i data-lucide="lightbulb" class="w-4 h-4 text-amber-500"></i>
                     <span>¿Qué aprendizajes te deja esta actividad?</span>
                 </label>
-                <textarea id="estudiante-reflexion" rows="4" placeholder="Escribe aquí tu análisis, conclusiones y observaciones..." class="w-full p-4 border border-gray-200 rounded-xl bg-[#FCFAF6] focus:ring-2 focus:ring-caramel outline-none text-sm font-medium" required></textarea>
+                <textarea id="estudiante-reflexion" rows="4" placeholder="Escribe aquí tu análisis, conclusiones y observaciones..." class="w-full p-4 border border-slate-200 rounded-2xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-medium" required></textarea>
             </div>
 
-            <button type="button" onclick="window.guardarEvidenciasYFinalizar()" class="w-full bg-botanical hover-bg-botanical text-white py-4 rounded-xl font-bold shadow-lg text-base transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5">
+            <button type="button" onclick="window.guardarEvidenciasYFinalizar()" class="w-full histudy-gradient-btn text-white py-4 rounded-2xl font-bold shadow-lg text-sm flex items-center justify-center gap-2">
                 <i data-lucide="send" class="w-4 h-4"></i>
                 <span>Guardar Evidencias y Finalizar</span>
             </button>
@@ -588,47 +632,47 @@
     </div>
 
     <!-- MODAL VISOR DE DETALLES Y EVIDENCIAS -->
-    <div id="view-detalle-overlay" class="hidden fixed inset-0 bg-[#1F130B]/90 flex flex-col items-center justify-center p-6 z-50">
-        <div class="bg-white border border-[#ECE4D5] p-8 sm:p-10 rounded-3xl max-w-3xl w-full shadow-2xl text-[#1F130B] max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+    <div id="view-detalle-overlay" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center p-6 z-50">
+        <div class="glass-card p-8 sm:p-10 rounded-3xl max-w-3xl w-full shadow-2xl text-slate-900 max-h-[90vh] overflow-y-auto border-white/80">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-caramel/10 flex items-center justify-center text-caramel">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                         <i data-lucide="clipboard-check" class="w-5 h-5"></i>
                     </div>
-                    <h3 class="text-2xl font-extrabold text-[#1F130B] tracking-tight">Detalle de la Entrega y Evaluación</h3>
+                    <h3 class="text-xl font-black text-slate-900 tracking-tight">Detalle de la Entrega y Evaluación</h3>
                 </div>
-                <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-gray-400 hover:text-red-500 font-bold p-1 rounded-lg transition-colors">
-                    <i data-lucide="x" class="w-6 h-6"></i>
+                <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-slate-400 hover:text-rose-600 font-bold p-1 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             
             <div id="view-detalle-resumen" class="grid grid-cols-2 gap-4 mb-6"></div>
 
             <div id="view-detalle-preguntas-container" class="mb-6 hidden">
-                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <i data-lucide="list-checks" class="w-4 h-4 text-caramel"></i>
-                    <span>Preguntas Respondidas y Retroalimentación Detallada</span>
+                <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <i data-lucide="list-checks" class="w-4 h-4 text-indigo-600"></i>
+                    <span>Preguntas Respondidas y Retroalimentación</span>
                 </h4>
                 <div id="view-detalle-preguntas-list" class="space-y-4"></div>
             </div>
 
             <div id="view-detalle-lab-container" class="mb-6 hidden">
-                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <i data-lucide="flask-conical" class="w-4 h-4 text-botanical"></i>
+                <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <i data-lucide="flask-conical" class="w-4 h-4 text-teal-600"></i>
                     <span>Datos de Laboratorio Registrados</span>
                 </h4>
                 <div id="view-detalle-lab-grid" class="grid grid-cols-2 gap-3.5"></div>
             </div>
 
-            <div class="bg-[#FAF7F2] p-5 rounded-2xl border border-[#E7DAC7] mb-6">
-                <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                    <i data-lucide="message-square" class="w-4 h-4 text-amber-700"></i>
+            <div class="bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100 mb-6">
+                <span class="block text-xs font-extrabold text-indigo-950 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <i data-lucide="message-square" class="w-4 h-4 text-indigo-600"></i>
                     <span>Aprendizajes y Conclusiones</span>
                 </span>
-                <p class="text-[#1F130B] font-medium text-sm whitespace-pre-wrap leading-relaxed" id="view-detalle-reflexion">--</p>
+                <p class="text-slate-700 font-medium text-xs whitespace-pre-wrap leading-relaxed" id="view-detalle-reflexion">--</p>
             </div>
 
-            <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="w-full bg-[#F2ECE1] hover:bg-[#E5DAC8] text-gray-800 py-3.5 rounded-xl font-bold transition-all text-sm">
+            <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 py-3.5 rounded-2xl font-bold transition-all text-xs">
                 Cerrar Detalle
             </button>
         </div>
@@ -665,7 +709,7 @@
             const container = document.getElementById('toast-container');
             if(!container) return;
             const toast = document.createElement('div');
-            const color = tipo === 'success' ? 'bg-[#2F6F4E] text-white' : (tipo === 'error' ? 'bg-red-700 text-white' : 'bg-amber-600 text-white');
+            const color = tipo === 'success' ? 'bg-emerald-600 text-white' : (tipo === 'error' ? 'bg-rose-600 text-white' : 'bg-amber-600 text-white');
             const iconName = tipo === 'success' ? 'check-circle' : (tipo === 'error' ? 'alert-triangle' : 'info');
             toast.className = `${color} px-4 py-3 rounded-2xl shadow-xl transform transition-all duration-300 opacity-0 translate-y-4 font-bold text-xs flex items-center gap-2.5 z-50 border border-white/20`;
             toast.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 shrink-0"></i><span>${window.escapeHTML(mensaje)}</span>`;
@@ -747,13 +791,12 @@
             document.querySelectorAll('.view-docente').forEach(v => v.classList.add('hidden'));
             document.getElementById(idVista).classList.remove('hidden');
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('bg-caramel', 'text-white', 'shadow-md'); 
-                btn.classList.add('bg-transparent', 'text-gray-400');
+                btn.className = "nav-btn w-full text-left hover:bg-white/5 px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all text-sm text-slate-300 hover:text-white";
             });
             let btnId = idVista === 'vista-dashboard' ? 'nav-dashboard' : (idVista === 'vista-estudiantes' ? 'nav-estudiantes' : 'nav-actividad');
             if(idVista !== 'vista-reportes') {
                 const b = document.getElementById(btnId);
-                if(b) { b.classList.add('bg-caramel', 'text-white', 'shadow-md'); b.classList.remove('text-gray-400', 'bg-transparent'); }
+                if(b) { b.className = "nav-btn w-full text-left bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-all text-sm shadow-md shadow-indigo-600/30"; }
             }
             window.renderLucide();
         };
@@ -838,24 +881,24 @@
             const resumenEl = document.getElementById('view-detalle-resumen');
             if (resumenEl) {
                 const notaNum = parseFloat(data.nota || 0);
-                const notaColor = notaNum >= 3.0 ? 'text-botanical' : 'text-red-600';
+                const notaColor = notaNum >= 3.0 ? 'text-emerald-600' : 'text-rose-600';
                 resumenEl.innerHTML = `
-                    <div class="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E7DAC7]">
-                        <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                            <i data-lucide="award" class="w-3.5 h-3.5 text-caramel"></i>
+                    <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
+                        <span class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <i data-lucide="award" class="w-3.5 h-3.5 text-indigo-600"></i>
                             <span>Calificación Final</span>
                         </span>
                         <div class="flex items-baseline gap-1 mt-1">
-                            <span class="text-3xl font-extrabold ${notaColor}">${window.escapeHTML(data.nota != null ? data.nota : '--')}</span>
-                            <span class="text-xs text-gray-400 font-bold">/ 5.0</span>
+                            <span class="text-3xl font-black ${notaColor}">${window.escapeHTML(data.nota != null ? data.nota : '--')}</span>
+                            <span class="text-xs text-slate-400 font-bold">/ 5.0</span>
                         </div>
                     </div>
-                    <div class="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E7DAC7]">
-                        <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-botanical"></i>
+                    <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
+                        <span class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-purple-600"></i>
                             <span>Fecha de Entrega</span>
                         </span>
-                        <span class="text-xs font-extrabold text-gray-800 mt-1 block">${window.escapeHTML(data.fecha || 'No registrada')}</span>
+                        <span class="text-xs font-extrabold text-slate-800 mt-2 block">${window.escapeHTML(data.fecha || 'No registrada')}</span>
                     </div>
                 `;
             }
@@ -868,40 +911,40 @@
                     data.respuestas.forEach((r, idx) => {
                         const esOk = r.esCorrecta;
                         const statusBadge = esOk 
-                            ? `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-botanical/15 text-botanical border border-botanical/30 flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i><span>Correcta</span></span>`
-                            : `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-red-100 text-red-700 border border-red-200 flex items-center gap-1"><i data-lucide="x" class="w-3.5 h-3.5"></i><span>Incorrecta</span></span>`;
+                            ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i><span>Correcta</span></span>`
+                            : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1"><i data-lucide="x" class="w-3 h-3"></i><span>Incorrecta</span></span>`;
                         
                         let bloqueRespuestasHtml = '';
                         if (esOk) {
                             bloqueRespuestasHtml = `
-                                <div class="p-3 rounded-xl bg-botanical/10 border border-botanical/30 text-botanical font-bold text-xs flex items-center gap-2">
-                                    <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0 text-botanical"></i>
+                                <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs flex items-center gap-2">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0 text-emerald-600"></i>
                                     <span><strong>Respuesta del estudiante:</strong> ${window.escapeHTML(r.opcionSeleccionada)} (Acierto)</span>
                                 </div>
                             `;
                         } else {
                             bloqueRespuestasHtml = `
                                 <div class="space-y-2">
-                                    <div class="p-3 rounded-xl bg-red-100/70 border border-red-200 text-red-700 font-semibold text-xs flex items-center gap-2">
-                                        <i data-lucide="x-circle" class="w-4 h-4 shrink-0 text-red-600"></i>
-                                        <span><strong>Respuesta errónea del estudiante:</strong> <span class="line-through">${window.escapeHTML(r.opcionSeleccionada)}</span></span>
+                                    <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-semibold text-xs flex items-center gap-2">
+                                        <i data-lucide="x-circle" class="w-4 h-4 shrink-0 text-rose-500"></i>
+                                        <span><strong>Respuesta del estudiante:</strong> <span class="line-through">${window.escapeHTML(r.opcionSeleccionada)}</span></span>
                                     </div>
-                                    <div class="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-emerald-800 font-bold text-xs flex items-center gap-2 shadow-sm">
+                                    <div class="p-3 rounded-xl bg-emerald-50 border-2 border-emerald-400 text-emerald-800 font-bold text-xs flex items-center gap-2 shadow-sm">
                                         <i data-lucide="check" class="w-4 h-4 shrink-0 text-emerald-600"></i>
-                                        <span><strong>Opción correcta esperada:</strong> ${window.escapeHTML(r.opcionCorrecta)}</span>
+                                        <span><strong>Opción correcta que debía seleccionar:</strong> ${window.escapeHTML(r.opcionCorrecta)}</span>
                                     </div>
                                 </div>
                             `;
                         }
 
                         pregList.innerHTML += `
-                            <div class="p-4 rounded-2xl border ${esOk ? 'border-botanical/25 bg-[#FAF7F2]' : 'border-red-200 bg-red-50/30'} space-y-2.5">
+                            <div class="p-4 rounded-2xl border ${esOk ? 'border-emerald-200 bg-white' : 'border-rose-200 bg-rose-50/20'} space-y-2.5">
                                 <div class="flex justify-between items-start gap-2">
-                                    <h5 class="font-extrabold text-xs text-[#1F130B] leading-snug">${idx + 1}. ${window.escapeHTML(r.textoPregunta)}</h5>
+                                    <h5 class="font-extrabold text-xs text-slate-900 leading-snug">${idx + 1}. ${window.escapeHTML(r.textoPregunta)}</h5>
                                     ${statusBadge}
                                 </div>
                                 ${bloqueRespuestasHtml}
-                                ${r.feedback ? `<p class="text-xs text-gray-600 bg-white p-2.5 rounded-xl border border-gray-200 flex items-start gap-2"><i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5"></i><span><strong>Retroalimentación:</strong> ${window.escapeHTML(r.feedback)}</span></p>` : ''}
+                                ${r.feedback ? `<p class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex items-start gap-2"><i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5"></i><span><strong>Retroalimentación:</strong> ${window.escapeHTML(r.feedback)}</span></p>` : ''}
                             </div>
                         `;
                     });
@@ -918,9 +961,9 @@
                 if (data.laboratorio && typeof data.laboratorio === 'object' && Object.keys(data.laboratorio).length > 0) {
                     for (const [campo, valor] of Object.entries(data.laboratorio)) {
                         labGrid.innerHTML += `
-                            <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200">
-                                <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">${window.escapeHTML(campo)}</span>
-                                <span class="text-base font-extrabold text-[#1F130B] mt-0.5 block">${window.escapeHTML(valor) || '--'}</span>
+                            <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">${window.escapeHTML(campo)}</span>
+                                <span class="text-base font-black text-slate-900 mt-0.5 block">${window.escapeHTML(valor) || '--'}</span>
                             </div>
                         `;
                     }
@@ -943,8 +986,8 @@
             const div = document.createElement('div');
             div.className = "flex gap-2 items-center";
             div.innerHTML = `
-                <input type="text" value="${window.escapeHTML(val)}" placeholder="Nombre de variable (Ej: pH)" class="campo-lab-input w-full p-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel text-xs font-semibold">
-                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 font-bold hover:bg-red-50 p-2 rounded-xl transition-colors">
+                <input type="text" value="${window.escapeHTML(val)}" placeholder="Nombre de variable (Ej: pH)" class="campo-lab-input w-full p-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-semibold bg-white">
+                <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 font-bold hover:bg-rose-50 p-2 rounded-xl transition-colors">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
             `;
@@ -1015,7 +1058,7 @@
             let totalNotas = 0, aprobados = 0;
 
             if(filtrados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400 font-bold text-sm">No hay entregas registradas para estos filtros.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400 font-bold text-sm">No hay entregas registradas para estos filtros.</td></tr>`;
                 document.getElementById('kpis-reporte').innerHTML = '';
                 if(window.chartRepGlobal) window.chartRepGlobal.destroy();
                 document.getElementById('contenedor-grafico-reporte').style.display = 'none';
@@ -1025,7 +1068,7 @@
             filtrados.forEach(d => {
                 totalNotas += d.nota;
                 if(d.nota >= 3.0) aprobados++;
-                const color = d.nota >= 3.0 ? 'text-botanical' : 'text-red-600';
+                const color = d.nota >= 3.0 ? 'text-emerald-600' : 'text-rose-600';
                 
                 const entregaObj = {
                     nota: d.nota.toFixed(1),
@@ -1035,18 +1078,18 @@
                     respuestas: d.respuestas
                 };
                 const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
-                const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-[#F2ECE1] hover:bg-[#E5DAC8] text-caramel font-bold px-3 py-1.5 rounded-xl border border-[#DFD1BD] whitespace-nowrap flex items-center gap-1.5 mx-auto transition-all">
+                const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-xl border border-indigo-200 whitespace-nowrap flex items-center gap-1.5 mx-auto transition-all">
                     <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                     <span>Ver Evidencias</span>
                 </button>`;
 
                 tbody.innerHTML += `
-                    <tr class="border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors">
-                        <td class="px-8 py-4 font-extrabold text-[#1F130B]">${window.escapeHTML(d.grado)}</td>
-                        <td class="px-8 py-4 font-bold text-gray-800">${window.escapeHTML(d.nombreEst)}</td>
-                        <td class="px-8 py-4 text-gray-600 text-sm">${window.escapeHTML(d.nombreAct)}</td>
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="px-8 py-4 font-black text-slate-900">${window.escapeHTML(d.grado)}</td>
+                        <td class="px-8 py-4 font-bold text-slate-800">${window.escapeHTML(d.nombreEst)}</td>
+                        <td class="px-8 py-4 text-slate-600 text-sm">${window.escapeHTML(d.nombreAct)}</td>
                         <td class="px-8 py-4 text-center">${labBtn}</td>
-                        <td class="px-8 py-4 text-center font-extrabold ${color} text-lg">${d.nota.toFixed(1)}</td>
+                        <td class="px-8 py-4 text-center font-black ${color} text-base">${d.nota.toFixed(1)}</td>
                     </tr>
                 `;
             });
@@ -1055,30 +1098,30 @@
             const porcAprob = Math.round((aprobados / filtrados.length) * 100);
             
             document.getElementById('kpis-reporte').innerHTML = `
-                <div class="glass-card p-5 border-l-4 border-l-blue-600 flex items-center justify-between">
+                <div class="glass-card p-5 border-l-4 border-l-indigo-600 flex items-center justify-between">
                     <div>
-                        <h4 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Total Entregas</h4>
-                        <p class="text-3xl font-extrabold text-[#1F130B] mt-1">${filtrados.length}</p>
+                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Total Entregas</h4>
+                        <p class="text-3xl font-black text-slate-900 mt-1">${filtrados.length}</p>
                     </div>
-                    <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                         <i data-lucide="inbox" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="glass-card p-5 border-l-4 border-l-caramel flex items-center justify-between">
+                <div class="glass-card p-5 border-l-4 border-l-purple-600 flex items-center justify-between">
                     <div>
-                        <h4 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Promedio Filtrado</h4>
-                        <p class="text-3xl font-extrabold text-caramel mt-1">${prom}</p>
+                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Promedio Filtrado</h4>
+                        <p class="text-3xl font-black text-purple-700 mt-1">${prom}</p>
                     </div>
-                    <div class="w-9 h-9 rounded-xl bg-caramel/10 text-caramel flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
                         <i data-lucide="calculator" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="glass-card p-5 border-l-4 border-l-botanical flex items-center justify-between">
+                <div class="glass-card p-5 border-l-4 border-l-teal-600 flex items-center justify-between">
                     <div>
-                        <h4 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Aprobación Filtrada</h4>
-                        <p class="text-3xl font-extrabold text-botanical mt-1">${porcAprob}%</p>
+                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Aprobación Filtrada</h4>
+                        <p class="text-3xl font-black text-teal-600 mt-1">${porcAprob}%</p>
                     </div>
-                    <div class="w-9 h-9 rounded-xl bg-botanical/10 text-botanical flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center">
                         <i data-lucide="check-circle" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -1102,7 +1145,11 @@
                 datos.forEach(d => { if(!actsMap[d.nombreAct]) actsMap[d.nombreAct] = {sum:0, count:0}; actsMap[d.nombreAct].sum += d.nota; actsMap[d.nombreAct].count++; });
                 labels = Object.keys(actsMap); data = labels.map(a => (actsMap[a].sum / actsMap[a].count).toFixed(1));
             }
-            window.chartRepGlobal = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Promedio de Calificaciones', data: data, backgroundColor: '#8C522B', borderRadius: 8 }] }, options: { scales: { y: { beginAtZero: true, max: 5 } }, maintainAspectRatio: false } });
+            window.chartRepGlobal = new Chart(ctx, { 
+                type: 'bar', 
+                data: { labels: labels, datasets: [{ label: 'Promedio de Calificaciones', data: data, backgroundColor: '#6366F1', borderRadius: 8 }] }, 
+                options: { scales: { y: { beginAtZero: true, max: 5 } }, maintainAspectRatio: false } 
+            });
         };
 
         window.generarReporteActividad = function(idActividad) {
@@ -1152,11 +1199,11 @@
             }
 
             if(notas.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400 font-bold text-sm">No hay entregas registradas para esta actividad${window.filtroGradoActual ? ' en el grado ' + window.escapeHTML(window.filtroGradoActual) : ''}.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400 font-bold text-sm">No hay entregas registradas para esta actividad${window.filtroGradoActual ? ' en el grado ' + window.escapeHTML(window.filtroGradoActual) : ''}.</td></tr>`;
                 document.getElementById('kpis-reporte').innerHTML = '';
             } else {
                 notas.forEach(n => {
-                    const color = n.val >= 3.0 ? 'text-botanical' : 'text-red-600';
+                    const color = n.val >= 3.0 ? 'text-emerald-600' : 'text-rose-600';
                     const entregaObj = {
                         nota: n.valStr,
                         fecha: n.fecha,
@@ -1165,18 +1212,18 @@
                         respuestas: n.respuestas
                     };
                     const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
-                    const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-[#F2ECE1] hover:bg-[#E5DAC8] text-caramel font-bold px-3 py-1.5 rounded-xl border border-[#DFD1BD] whitespace-nowrap flex items-center gap-1.5 mx-auto transition-all">
+                    const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-xl border border-indigo-200 whitespace-nowrap flex items-center gap-1.5 mx-auto transition-all">
                         <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                         <span>Ver Evidencias</span>
                     </button>`;
 
                     tbody.innerHTML += `
-                        <tr class="border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors">
-                            <td class="px-8 py-4 font-black text-[#1F130B]">${window.escapeHTML(n.grado)}</td>
-                            <td class="px-8 py-4 font-bold text-gray-800">${window.escapeHTML(n.nombre)}</td>
-                            <td class="px-8 py-4 text-gray-600 text-sm">${nombreAct}</td>
+                        <tr class="hover:bg-slate-50/70 transition-colors">
+                            <td class="px-8 py-4 font-black text-slate-900">${window.escapeHTML(n.grado)}</td>
+                            <td class="px-8 py-4 font-bold text-slate-800">${window.escapeHTML(n.nombre)}</td>
+                            <td class="px-8 py-4 text-slate-600 text-sm">${nombreAct}</td>
                             <td class="px-8 py-4 text-center">${labBtn}</td>
-                            <td class="px-8 py-4 text-center font-extrabold ${color} text-lg">${n.valStr}</td>
+                            <td class="px-8 py-4 text-center font-black ${color} text-base">${n.valStr}</td>
                         </tr>
                     `;
                 });
@@ -1184,30 +1231,30 @@
                 const prom = (totalNotas / notas.length).toFixed(1);
                 const porcAprob = Math.round((aprobados / notas.length) * 100);
                 document.getElementById('kpis-reporte').innerHTML = `
-                    <div class="glass-card p-5 border-l-4 border-l-blue-600 flex items-center justify-between">
+                    <div class="glass-card p-5 border-l-4 border-l-indigo-600 flex items-center justify-between">
                         <div>
-                            <h4 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Entregas</h4>
-                            <p class="text-3xl font-extrabold text-[#1F130B] mt-1">${notas.length}</p>
+                            <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Entregas</h4>
+                            <p class="text-3xl font-black text-slate-900 mt-1">${notas.length}</p>
                         </div>
-                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                             <i data-lucide="file-check" class="w-5 h-5"></i>
                         </div>
                     </div>
-                    <div class="glass-card p-5 border-l-4 border-l-caramel flex items-center justify-between">
+                    <div class="glass-card p-5 border-l-4 border-l-purple-600 flex items-center justify-between">
                         <div>
-                            <h4 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Promedio</h4>
-                            <p class="text-3xl font-extrabold text-caramel mt-1">${prom}</p>
+                            <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Promedio</h4>
+                            <p class="text-3xl font-black text-purple-700 mt-1">${prom}</p>
                         </div>
-                        <div class="w-9 h-9 rounded-xl bg-caramel/10 text-caramel flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
                             <i data-lucide="calculator" class="w-5 h-5"></i>
                         </div>
                     </div>
-                    <div class="glass-card p-5 border-l-4 border-l-botanical flex items-center justify-between">
+                    <div class="glass-card p-5 border-l-4 border-l-teal-600 flex items-center justify-between">
                         <div>
-                            <h4 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">Aprobación</h4>
-                            <p class="text-3xl font-extrabold text-botanical mt-1">${porcAprob}%</p>
+                            <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Aprobación</h4>
+                            <p class="text-3xl font-black text-teal-600 mt-1">${porcAprob}%</p>
                         </div>
-                        <div class="w-9 h-9 rounded-xl bg-botanical/10 text-botanical flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center">
                             <i data-lucide="check-circle" class="w-5 h-5"></i>
                         </div>
                     </div>
@@ -1224,14 +1271,14 @@
             window.baseEstudiantes.forEach((est, index) => {
                 const idPas = `pass-${index}`;
                 tbody.innerHTML += `
-                    <tr class="border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors">
-                        <td class="px-6 py-3.5 font-extrabold text-[#1F130B]">${window.escapeHTML(est.grado)}</td>
-                        <td class="px-6 py-3.5 font-bold text-caramel">${window.escapeHTML(est.codigo)}</td>
-                        <td class="px-6 py-3.5 text-gray-800 font-semibold">${window.escapeHTML(est.nombre)}</td>
-                        <td class="px-6 py-3.5 text-center text-gray-500 font-mono text-xs">
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="px-6 py-3.5 font-black text-slate-900">${window.escapeHTML(est.grado)}</td>
+                        <td class="px-6 py-3.5 font-bold text-indigo-600">${window.escapeHTML(est.codigo)}</td>
+                        <td class="px-6 py-3.5 text-slate-800 font-semibold">${window.escapeHTML(est.nombre)}</td>
+                        <td class="px-6 py-3.5 text-center text-slate-500 font-mono text-xs">
                             <span id="${idPas}-txt" class="hidden">${window.escapeHTML(est.pass)}</span>
                             <span id="${idPas}-dots">••••••••</span>
-                            <button type="button" onclick="document.getElementById('${idPas}-txt').classList.toggle('hidden'); document.getElementById('${idPas}-dots').classList.toggle('hidden');" class="ml-2 text-xs bg-[#F2ECE1] hover:bg-[#E5DAC8] px-2.5 py-1 rounded-lg text-gray-700 font-bold transition-all">
+                            <button type="button" onclick="document.getElementById('${idPas}-txt').classList.toggle('hidden'); document.getElementById('${idPas}-dots').classList.toggle('hidden');" class="ml-2 text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg text-slate-700 font-bold transition-all">
                                 👁
                             </button>
                         </td>
@@ -1258,15 +1305,17 @@
                         return a.grados.includes(grado) || a.grados.includes('Todos');
                     }).length;
                     
-                    const isActive = window.filtroGradoActual === grado ? 'bg-caramel text-white shadow-sm' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200';
+                    const isActive = window.filtroGradoActual === grado 
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30' 
+                        : 'text-slate-300 hover:bg-white/5 hover:text-white';
                     const seguroGrado = window.escapeHTML(grado);
                     listaGrupos.innerHTML += `
                         <li onclick="window.renderDashboardDocente('${seguroGrado}')" class="px-3.5 py-2.5 cursor-pointer flex justify-between items-center rounded-xl transition-all group ${isActive}">
                             <span class="text-xs font-bold flex items-center gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full ${window.filtroGradoActual === grado ? 'bg-white' : 'bg-caramel'}"></span>
+                                <span class="w-1.5 h-1.5 rounded-full ${window.filtroGradoActual === grado ? 'bg-white' : 'bg-indigo-400'}"></span>
                                 Grado ${seguroGrado}
                             </span>
-                            <span class="bg-black/30 text-gray-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-inner">${actAsignadas}</span>
+                            <span class="bg-black/40 text-slate-200 text-[10px] font-black px-2 py-0.5 rounded-md">${actAsignadas}</span>
                         </li>
                     `;
                     
@@ -1292,7 +1341,7 @@
                 if(ctx1) { 
                     window.myChart1 = new Chart(ctx1.getContext('2d'), { 
                         type: 'bar', 
-                        data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#8C522B', borderRadius: 6 }] }, 
+                        data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#6366F1', borderRadius: 8 }] }, 
                         options: { scales: { y: { beginAtZero: true, max: 5 } } } 
                     }); 
                 }
@@ -1302,7 +1351,7 @@
                 if(ctx2) { 
                     window.myChart2 = new Chart(ctx2.getContext('2d'), { 
                         type: 'line', 
-                        data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#2F6F4E', backgroundColor: 'rgba(47, 111, 78, 0.1)', fill: true, tension: 0.3 }] }, 
+                        data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#C026D3', backgroundColor: 'rgba(192, 38, 211, 0.1)', fill: true, tension: 0.35 }] }, 
                         options: { scales: { y: { beginAtZero: true, max: 100 } } } 
                     }); 
                 }
@@ -1316,7 +1365,7 @@
             const titTab = document.getElementById('titulo-tabla-actividades');
             if(titTab) {
                 titTab.innerHTML = `
-                    <i data-lucide="clapperboard" class="w-6 h-6 text-caramel"></i>
+                    <i data-lucide="clapperboard" class="w-6 h-6 text-indigo-600"></i>
                     <span>${window.filtroGradoActual ? 'Actividades - Grado ' + window.escapeHTML(window.filtroGradoActual) : 'Gestión de Actividades Creadas'}</span>
                 `;
             }
@@ -1327,27 +1376,27 @@
                 [...acts].reverse().forEach(act => {
                     if(!act || !Array.isArray(act.grados)) return; 
                     const badge = act.estado === 'Activa' 
-                        ? 'bg-botanical/15 text-botanical border border-botanical/30' 
-                        : 'bg-gray-100 text-gray-600 border border-gray-200';
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                        : 'bg-slate-100 text-slate-600 border border-slate-200';
                     const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
                     const seguroId = window.escapeHTML(act.id);
                     const labelLab = act.requiereLaboratorio 
-                        ? '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center justify-center gap-1 mx-auto w-fit"><i data-lucide="flask-conical" class="w-3 h-3"></i><span>Sí</span></span>' 
-                        : '<span class="text-xs text-gray-400 font-semibold">No</span>';
+                        ? '<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center gap-1 mx-auto w-fit"><i data-lucide="flask-conical" class="w-3 h-3"></i><span>Sí</span></span>' 
+                        : '<span class="text-xs text-slate-400 font-semibold">No</span>';
 
                     tabla.innerHTML += `
-                        <tr class="border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors">
-                            <td class="px-6 py-4 font-extrabold text-[#1F130B]">${window.escapeHTML(act.grados.join(', '))}</td>
-                            <td class="px-6 py-4 font-bold text-gray-800 text-sm">${window.escapeHTML(act.titulo)}</td>
+                        <tr class="hover:bg-slate-50/70 transition-colors">
+                            <td class="px-6 py-4 font-black text-slate-900">${window.escapeHTML(act.grados.join(', '))}</td>
+                            <td class="px-6 py-4 font-bold text-slate-800 text-sm">${window.escapeHTML(act.titulo)}</td>
                             <td class="px-6 py-4 text-center">${labelLab}</td>
                             <td class="px-6 py-4 text-center"><span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase ${badge}">${window.escapeHTML(act.estado)}</span></td>
                             <td class="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
-                                <button type="button" onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-gray-600 border border-gray-200 bg-white px-3 py-1.5 rounded-xl hover:bg-gray-50 shadow-sm transition-all">${btnEstado}</button>
-                                <button type="button" onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-caramel border border-[#E0D3C1] bg-[#FAF7F2] hover:bg-[#F2ECE1] transition-all px-3 py-1.5 rounded-xl shadow-sm">Editar</button>
-                                <button type="button" onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-all px-2.5 py-1.5 rounded-xl shadow-sm">
+                                <button type="button" onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-slate-600 border border-slate-200 bg-white px-3 py-1.5 rounded-xl hover:bg-slate-50 shadow-sm transition-all">${btnEstado}</button>
+                                <button type="button" onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 transition-all px-3 py-1.5 rounded-xl shadow-sm">Editar</button>
+                                <button type="button" onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-rose-600 border border-rose-200 bg-rose-50 hover:bg-rose-100 transition-all px-2.5 py-1.5 rounded-xl shadow-sm">
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
                                 </button>
-                                <button type="button" onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-amber-800 border border-amber-300 bg-amber-50 hover:bg-amber-100 transition-all px-3 py-1.5 rounded-xl shadow-sm">Reporte</button>
+                                <button type="button" onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-purple-700 border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-all px-3 py-1.5 rounded-xl shadow-sm">Reporte</button>
                             </td>
                         </tr>
                     `;
@@ -1360,47 +1409,47 @@
             const contPreguntas = document.getElementById('contenedor-preguntas');
             if(!contPreguntas) return;
             const div = document.createElement('div');
-            div.className = "p-6 border border-gray-200 rounded-2xl bg-[#FCFAF6] relative mt-4 shadow-sm";
+            div.className = "p-6 border border-slate-200 rounded-2xl bg-white relative mt-4 shadow-sm";
             
             const opt1 = window.escapeHTML(oArr[0] || ''); const opt2 = window.escapeHTML(oArr[1] || '');
             const opt3 = window.escapeHTML(oArr[2] || ''); const opt4 = window.escapeHTML(oArr[3] || '');
             const selC = c.toString();
 
             div.innerHTML = `
-                <button type="button" class="absolute top-4 right-4 text-red-600 font-bold hover:bg-red-50 p-2 rounded-xl text-xs transition-colors flex items-center gap-1 border border-transparent hover:border-red-200" onclick="this.parentElement.remove()">
+                <button type="button" class="absolute top-4 right-4 text-rose-600 font-bold hover:bg-rose-50 p-2 rounded-xl text-xs transition-colors flex items-center gap-1 border border-transparent hover:border-rose-200" onclick="this.parentElement.remove()">
                     <i data-lucide="trash" class="w-4 h-4"></i>
                     <span>Quitar</span>
                 </button>
                 
                 <div class="grid grid-cols-4 gap-4 mb-4 mt-2">
                     <div class="col-span-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Segundo exacto</label>
-                        <input type="number" value="${window.escapeHTML(t)}" class="q-time w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel bg-white font-semibold text-sm" placeholder="Ej: 45" required>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Segundo exacto</label>
+                        <input type="number" value="${window.escapeHTML(t)}" class="q-time w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-semibold text-sm" placeholder="Ej: 45" required>
                     </div>
                     <div class="col-span-3">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Pregunta formulada</label>
-                        <input type="text" value="${window.escapeHTML(p)}" class="q-text w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel bg-white font-semibold text-sm" placeholder="¿Qué parámetro define...?" required>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Pregunta formulada</label>
+                        <input type="text" value="${window.escapeHTML(p)}" class="q-text w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-semibold text-sm" placeholder="¿Qué parámetro define...?" required>
                     </div>
                     <div class="col-span-4 mt-1 mb-2">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                            <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-600"></i>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-500"></i>
                             <span>Retroalimentación pedagógica al responder</span>
                         </label>
-                        <input type="text" placeholder="Ej: Recuerda que la temperatura óptima de extracción oscila cerca de los 90°C..." value="${window.escapeHTML(f)}" class="q-feedback w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel bg-white text-xs font-medium">
+                        <input type="text" placeholder="Ej: Recuerda que la temperatura óptima de extracción oscila cerca de los 90°C..." value="${window.escapeHTML(f)}" class="q-feedback w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-xs font-medium">
                     </div>
                 </div>
                 
-                <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Opciones de Respuesta</label>
+                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Opciones de Respuesta</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                    <div><input type="text" placeholder="Opción 1 (Requerida)" value="${opt1}" class="q-opt1 w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel bg-white text-xs font-medium" required></div>
-                    <div><input type="text" placeholder="Opción 2 (Requerida)" value="${opt2}" class="q-opt2 w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel bg-white text-xs font-medium" required></div>
-                    <div><input type="text" placeholder="Opción 3 (Opcional)" value="${opt3}" class="q-opt3 w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel bg-white text-xs font-medium"></div>
-                    <div><input type="text" placeholder="Opción 4 (Opcional)" value="${opt4}" class="q-opt4 w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel bg-white text-xs font-medium"></div>
+                    <div><input type="text" placeholder="Opción 1 (Requerida)" value="${opt1}" class="q-opt1 w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-xs font-medium" required></div>
+                    <div><input type="text" placeholder="Opción 2 (Requerida)" value="${opt2}" class="q-opt2 w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-xs font-medium" required></div>
+                    <div><input type="text" placeholder="Opción 3 (Opcional)" value="${opt3}" class="q-opt3 w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-xs font-medium"></div>
+                    <div><input type="text" placeholder="Opción 4 (Opcional)" value="${opt4}" class="q-opt4 w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-xs font-medium"></div>
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider">Opción Correcta:</label>
-                    <select class="q-correct p-2.5 border border-gray-200 rounded-xl sm:w-1/3 outline-none focus:ring-2 focus:ring-caramel bg-white font-bold text-xs cursor-pointer">
+                    <label class="text-xs font-bold text-slate-600 uppercase tracking-wider">Opción Correcta:</label>
+                    <select class="q-correct p-2.5 border border-slate-200 rounded-xl sm:w-1/3 outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-bold text-xs cursor-pointer">
                         <option value="1" ${selC === '1' ? 'selected' : ''}>Opción 1</option>
                         <option value="2" ${selC === '2' ? 'selected' : ''}>Opción 2</option>
                         <option value="3" ${selC === '3' ? 'selected' : ''}>Opción 3</option>
@@ -1666,21 +1715,21 @@
                             const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
 
                             listaR.innerHTML += `
-                                <div class="p-5 bg-[#FAF7F2] rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-[#E7DAC7] shadow-sm">
+                                <div class="p-5 bg-white rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-slate-200 shadow-sm hover:border-indigo-200 transition-all">
                                     <div>
-                                        <h4 class="font-extrabold text-[#1F130B] text-base">${seguroTitulo}</h4>
-                                        <div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-botanical font-bold">
+                                        <h4 class="font-bold text-slate-900 text-sm sm:text-base">${seguroTitulo}</h4>
+                                        <div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-teal-700 font-bold">
                                             <span class="flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Completada</span>
-                                            <span class="text-gray-300">•</span>
-                                            <span class="text-gray-500 font-semibold flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${fechaRespondida}</span>
+                                            <span class="text-slate-300">•</span>
+                                            <span class="text-slate-500 font-medium flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${fechaRespondida}</span>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                                        <button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-white hover:bg-[#F2ECE1] text-caramel font-bold px-4 py-2 rounded-xl border border-[#DFD1BD] shadow-sm transition-all whitespace-nowrap flex items-center gap-1.5">
+                                        <button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3.5 py-2 rounded-xl border border-indigo-200 shadow-sm transition-all whitespace-nowrap flex items-center gap-1.5">
                                             <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                                             <span>Ver Detalle</span>
                                         </button>
-                                        <div class="bg-white px-3.5 py-1.5 rounded-xl border border-[#DFD1BD] text-[#1F130B] font-extrabold text-lg shadow-inner">
+                                        <div class="bg-indigo-50/60 px-3.5 py-1.5 rounded-xl border border-indigo-100 text-indigo-900 font-black text-lg shadow-inner">
                                             ${val}
                                         </div>
                                     </div>
@@ -1689,17 +1738,17 @@
                         } else if (act.estado === 'Activa') { 
                             pCount++;
                             listaP.innerHTML += `
-                                <div class="p-5 bg-white rounded-2xl border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm relative overflow-hidden">
-                                    <div class="absolute left-0 top-0 w-1.5 h-full bg-caramel"></div>
+                                <div class="p-5 bg-white rounded-2xl border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm relative overflow-hidden group hover:border-indigo-300 transition-all">
+                                    <div class="absolute left-0 top-0 w-1.5 h-full bg-gradient-to-b from-indigo-500 to-fuchsia-500"></div>
                                     <div class="w-full pl-2">
-                                        <h4 class="font-extrabold text-[#1F130B] text-base">${seguroTitulo}</h4>
-                                        <div class="flex flex-wrap items-center gap-2 mt-1 text-xs text-gray-500 font-medium">
-                                            <span class="flex items-center gap-1 text-amber-700 font-semibold"><i data-lucide="play" class="w-3 h-3"></i> Video Activo</span>
-                                            <span class="text-gray-300">•</span>
+                                        <h4 class="font-bold text-slate-900 text-sm sm:text-base">${seguroTitulo}</h4>
+                                        <div class="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500 font-medium">
+                                            <span class="flex items-center gap-1 text-indigo-600 font-bold"><i data-lucide="play" class="w-3 h-3"></i> Asignada</span>
+                                            <span class="text-slate-300">•</span>
                                             <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${fechaCreacionAct}</span>
                                         </div>
                                     </div>
-                                    <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 bg-caramel hover-bg-caramel text-white px-6 py-2.5 rounded-xl shadow-md font-bold text-sm whitespace-nowrap flex items-center justify-center gap-1.5 hover:-translate-y-0.5 transition-all">
+                                    <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 histudy-gradient-btn text-white px-5 py-2.5 rounded-xl shadow-md font-bold text-xs whitespace-nowrap flex items-center justify-center gap-1.5">
                                         <span>Iniciar</span>
                                         <i data-lucide="arrow-right" class="w-4 h-4"></i>
                                     </button>
@@ -1708,12 +1757,12 @@
                         }
                     }
                 });
-                if(pCount===0) listaP.innerHTML = `<div class="p-8 text-center bg-[#FAF7F2] rounded-2xl border border-dashed border-[#DFD1BD] text-gray-500 font-bold text-sm flex items-center justify-center gap-2"><i data-lucide="party-popper" class="w-5 h-5 text-caramel"></i> ¡Sin actividades pendientes!</div>`;
-                if(rCount===0) listaR.innerHTML = `<div class="p-8 text-center bg-[#FAF7F2] rounded-2xl border border-dashed border-[#DFD1BD] text-gray-500 font-bold text-sm">Aún no hay calificaciones registradas.</div>`;
+                if(pCount===0) listaP.innerHTML = `<div class="p-8 text-center bg-slate-50/60 rounded-2xl border border-dashed border-slate-200 text-slate-400 font-bold text-xs flex items-center justify-center gap-2"><i data-lucide="sparkles" class="w-4 h-4 text-indigo-500"></i> ¡Sin actividades pendientes!</div>`;
+                if(rCount===0) listaR.innerHTML = `<div class="p-8 text-center bg-slate-50/60 rounded-2xl border border-dashed border-slate-200 text-slate-400 font-bold text-xs">Aún no hay calificaciones registradas.</div>`;
                 window.renderLucide();
             } catch (e) {
                 console.error("Error al construir panel de estudiante:", e);
-                document.getElementById('lista-pendientes').innerHTML = `<p class="text-red-500 text-center p-5 font-bold">Ocurrió un error al cargar. Contacta al docente.</p>`;
+                document.getElementById('lista-pendientes').innerHTML = `<p class="text-rose-500 text-center p-5 font-bold">Ocurrió un error al cargar. Contacta al docente.</p>`;
             }
         };
 
@@ -1777,19 +1826,19 @@
                     player.pauseVideo(); clearInterval(intervaloVideo);
                     const qBox = document.getElementById('question-box');
                     qBox.innerHTML = `
-                        <span class="text-caramel font-bold tracking-widest uppercase text-xs mb-3 block flex items-center justify-center gap-1.5">
-                            <i data-lucide="help-circle" class="w-4 h-4"></i>
-                            <span>Pregunta de Validación</span>
-                        </span>
-                        <h3 class="text-2xl sm:text-3xl mb-8 font-extrabold text-[#1F130B] leading-snug">${window.escapeHTML(pregunta.texto)}</h3>
-                        <div id="q-options" class="grid grid-cols-1 gap-3.5 mb-2"></div>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full badge-gradient text-xs font-bold mb-3">
+                            <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+                            Validación de Aprendizaje
+                        </div>
+                        <h3 class="text-xl sm:text-2xl mb-6 font-extrabold text-slate-900 leading-snug">${window.escapeHTML(pregunta.texto)}</h3>
+                        <div id="q-options" class="grid grid-cols-1 gap-3 mb-2"></div>
                     `;
                     const contO = document.getElementById('q-options');
                     
                     pregunta.opciones.forEach((opcion, i) => {
                         const btn = document.createElement('button');
                         btn.type = "button";
-                        btn.className = "w-full bg-[#FAF7F2] text-[#1F130B] hover:bg-caramel hover:text-white font-bold py-4 px-6 rounded-2xl transition-all text-left text-lg border border-[#E7DAC7] shadow-sm";
+                        btn.className = "w-full bg-slate-50 text-slate-800 hover:bg-gradient-to-r hover:from-indigo-600 hover:to-purple-600 hover:text-white font-bold py-3.5 px-5 rounded-2xl transition-all text-left text-sm border border-slate-200 shadow-sm";
                         btn.innerText = opcion; 
                         btn.onclick = () => {
                             const esCorrecta = ((i + 1) === parseInt(pregunta.correcta));
@@ -1809,18 +1858,18 @@
 
                             document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
                             
-                            const boxColor = esCorrecta ? 'bg-botanical/10 border-botanical text-botanical' : 'bg-red-50 border-red-300 text-red-700';
-                            const msjFeedback = pregunta.feedback ? window.escapeHTML(pregunta.feedback) : (esCorrecta ? '¡Muy bien! Continúa con la clase.' : 'Presta atención al siguiente fragmento del video.');
+                            const boxColor = esCorrecta ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-rose-50 border-rose-300 text-rose-800';
+                            const msjFeedback = pregunta.feedback ? window.escapeHTML(pregunta.feedback) : (esCorrecta ? '¡Excelente! Continúa con la clase.' : 'Presta atención al siguiente fragmento del video.');
                             
                             qBox.innerHTML = `
-                                <div class="p-8 rounded-2xl border ${boxColor} mb-8 shadow-sm">
-                                    <h4 class="text-2xl font-extrabold mb-2 flex items-center justify-center gap-2">
-                                        <i data-lucide="${esCorrecta ? 'check-circle' : 'x-circle'}" class="w-6 h-6"></i>
+                                <div class="p-6 rounded-2xl border ${boxColor} mb-6 shadow-sm">
+                                    <h4 class="text-xl font-black mb-2 flex items-center justify-center gap-2">
+                                        <i data-lucide="${esCorrecta ? 'check-circle-2' : 'x-circle'}" class="w-6 h-6"></i>
                                         <span>${esCorrecta ? '¡Respuesta Correcta!' : 'Respuesta Incorrecta'}</span>
                                     </h4>
-                                    <p class="text-sm font-semibold leading-relaxed mt-1">${msjFeedback}</p>
+                                    <p class="text-xs font-semibold leading-relaxed mt-1">${msjFeedback}</p>
                                 </div>
-                                <button type="button" id="btn-continuar-video" class="w-full bg-caramel hover-bg-caramel text-white font-bold py-4 px-6 rounded-2xl transition-all text-base shadow-lg flex items-center justify-center gap-2 hover:-translate-y-0.5">
+                                <button type="button" id="btn-continuar-video" class="w-full histudy-gradient-btn text-white font-bold py-3.5 px-6 rounded-2xl transition-all text-sm shadow-lg flex items-center justify-center gap-2">
                                     <span>Continuar Clase</span>
                                     <i data-lucide="play" class="w-4 h-4"></i>
                                 </button>
@@ -1854,8 +1903,8 @@
                     if(labInputs) {
                         labInputs.innerHTML += `
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">${window.escapeHTML(campo)}</label>
-                                <input type="text" data-campo="${window.escapeHTML(campo)}" class="dyn-lab-input w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-caramel bg-white text-xs font-semibold">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">${window.escapeHTML(campo)}</label>
+                                <input type="text" data-campo="${window.escapeHTML(campo)}" class="dyn-lab-input w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-xs font-semibold">
                             </div>
                         `;
                     }
