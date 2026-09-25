@@ -833,236 +833,7 @@
             }
         };
 
-        // DECLARACIÓN PRIORITARIA DE FUNCIONES DOCENTE
-        window.mostrarVistaDocente = function(idVista) {
-            document.querySelectorAll('.view-docente').forEach(v => v.classList.add('hidden'));
-            const vistaEl = document.getElementById(idVista);
-            if (vistaEl) vistaEl.classList.remove('hidden');
-            
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.className = "nav-btn w-full text-left hover:bg-white/5 px-4 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all text-sm text-slate-300 hover:text-white";
-            });
-            
-            let btnId = null;
-            if (idVista === 'vista-dashboard') btnId = 'nav-dashboard';
-            else if (idVista === 'vista-hub-actividades' || idVista === 'vista-actividad') btnId = 'nav-actividad';
-            else if (idVista === 'vista-estudiantes') btnId = 'nav-estudiantes';
-
-            if(btnId) {
-                const b = document.getElementById(btnId);
-                if(b) { b.className = "nav-btn w-full text-left bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-all text-sm shadow-md shadow-indigo-600/30"; }
-            }
-            window.renderLucide();
-        };
-
-        window.renderDashboardDocente = function(filtroGrado = null) {
-            window.filtroGradoActual = filtroGrado; 
-            window.mostrarVistaDocente('vista-dashboard');
-            
-            const kpiTot = document.getElementById('kpi-total-actividades');
-            if(kpiTot) kpiTot.innerText = window.baseActividades.length;
-            
-            const listaGrupos = document.getElementById('lista-grupos-docente');
-            if(listaGrupos) {
-                listaGrupos.innerHTML = '';
-                const gradosLabels = []; const promediosData = []; const participacionData = [];
-
-                LISTA_GRADOS.forEach(grado => {
-                    const actAsignadas = window.baseActividades.filter(a => {
-                        if(!a || !a.grados || !Array.isArray(a.grados)) return false;
-                        return a.grados.includes(grado) || a.grados.includes('Todos');
-                    }).length;
-                    
-                    const isActive = window.filtroGradoActual === grado 
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30' 
-                        : 'text-slate-300 hover:bg-white/5 hover:text-white';
-                    const seguroGrado = window.escapeHTML(grado);
-                    listaGrupos.innerHTML += `
-                        <li onclick="window.renderDashboardDocente('${seguroGrado}')" class="px-3.5 py-2.5 cursor-pointer flex justify-between items-center rounded-xl transition-all group ${isActive}">
-                            <span class="text-xs font-bold flex items-center gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full ${window.filtroGradoActual === grado ? 'bg-white' : 'bg-indigo-400'}"></span>
-                                Grado ${seguroGrado}
-                            </span>
-                            <span class="bg-black/40 text-slate-200 text-[10px] font-black px-2 py-0.5 rounded-md">${actAsignadas}</span>
-                        </li>
-                    `;
-                    
-                    let totalNotas = 0, count = 0;
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key.startsWith(`nota_${grado}-`)) { 
-                            let valObj = localStorage.getItem(key);
-                            try { let parseado = JSON.parse(valObj); totalNotas += parseFloat(parseado.nota || valObj); } catch(e) { totalNotas += parseFloat(valObj); }
-                            count++; 
-                        }
-                    }
-                    const promStr = count > 0 ? (totalNotas/count).toFixed(1) : '0';
-                    const porc = actAsignadas > 0 ? (count > 0 ? Math.min(Math.round((count/(actAsignadas*5))*100), 100) : 0) : 0; 
-                    
-                    gradosLabels.push(`Grado ${grado}`);
-                    promediosData.push(parseFloat(promStr));
-                    participacionData.push(porc);
-                });
-
-                if(window.myChart1) window.myChart1.destroy();
-                const ctx1 = document.getElementById('chartPromedios');
-                if(ctx1) { 
-                    window.myChart1 = new Chart(ctx1.getContext('2d'), { 
-                        type: 'bar', 
-                        data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#6366F1', borderRadius: 8 }] }, 
-                        options: { scales: { y: { beginAtZero: true, max: 5 } } } 
-                    }); 
-                }
-
-                if(window.myChart2) window.myChart2.destroy();
-                const ctx2 = document.getElementById('chartParticipacion');
-                if(ctx2) { 
-                    window.myChart2 = new Chart(ctx2.getContext('2d'), { 
-                        type: 'line', 
-                        data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#C026D3', backgroundColor: 'rgba(192, 38, 211, 0.1)', fill: true, tension: 0.35 }] }, 
-                        options: { scales: { y: { beginAtZero: true, max: 100 } } } 
-                    }); 
-                }
-            }
-
-            let acts = window.filtroGradoActual ? window.baseActividades.filter(a => {
-                if(!a || !a.grados || !Array.isArray(a.grados)) return false;
-                return a.grados.includes(window.filtroGradoActual) || a.grados.includes('Todos');
-            }) : window.baseActividades;
-            
-            const titTab = document.getElementById('titulo-tabla-actividades');
-            if(titTab) {
-                titTab.innerHTML = `
-                    <i data-lucide="clapperboard" class="w-6 h-6 text-indigo-600"></i>
-                    <span>${window.filtroGradoActual ? 'Actividades - Grado ' + window.escapeHTML(window.filtroGradoActual) : 'Gestión de Actividades Creadas'}</span>
-                `;
-            }
-
-            const tabla = document.getElementById('tabla-actividades-creadas');
-            if(tabla) {
-                tabla.innerHTML = '';
-                [...acts].reverse().forEach(act => {
-                    if(!act || !Array.isArray(act.grados)) return; 
-                    const badge = act.estado === 'Activa' 
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                        : 'bg-slate-100 text-slate-600 border border-slate-200';
-                    const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
-                    const seguroId = window.escapeHTML(act.id);
-                    const labelLab = act.requiereLaboratorio 
-                        ? '<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center gap-1 mx-auto w-fit"><i data-lucide="flask-conical" class="w-3 h-3"></i><span>Sí</span></span>' 
-                        : '<span class="text-xs text-slate-400 font-semibold">No</span>';
-
-                    tabla.innerHTML += `
-                        <tr class="hover:bg-slate-50/70 transition-colors">
-                            <td class="px-6 py-4 font-black text-slate-900">${window.escapeHTML(act.grados.join(', '))}</td>
-                            <td class="px-6 py-4 font-bold text-slate-800 text-sm">${window.escapeHTML(act.titulo)}</td>
-                            <td class="px-6 py-4 text-center">${labelLab}</td>
-                            <td class="px-6 py-4 text-center"><span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase ${badge}">${window.escapeHTML(act.estado)}</span></td>
-                            <td class="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
-                                <button type="button" onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-slate-600 border border-slate-200 bg-white px-3 py-1.5 rounded-xl hover:bg-slate-50 shadow-sm transition-all">${btnEstado}</button>
-                                <button type="button" onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-indigo-700 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 transition-all px-3 py-1.5 rounded-xl shadow-sm">Editar</button>
-                                <button type="button" onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-rose-600 border border-rose-200 bg-rose-50 hover:bg-rose-100 transition-all px-2.5 py-1.5 rounded-xl shadow-sm">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
-                                </button>
-                                <button type="button" onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-purple-700 border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-all px-3 py-1.5 rounded-xl shadow-sm">Reporte</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-            window.renderLucide();
-        };
-
-        window.sincronizarConNube = async function() {
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obtenerDatos' }) });
-                const result = await response.json();
-                
-                if(result.success && result.data) {
-                    window.baseActividades = result.data.actividades || [];
-                    window.baseEstudiantes = result.data.estudiantes || [];
-                    localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
-                    localStorage.setItem('cafelab_estudiantes', JSON.stringify(window.baseEstudiantes));
-
-                    const keysToRemove = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        if (localStorage.key(i).startsWith('nota_')) keysToRemove.push(localStorage.key(i));
-                    }
-                    keysToRemove.forEach(k => localStorage.removeItem(k));
-
-                    if(result.data.entregas) {
-                        result.data.entregas.forEach(ent => {
-                            if(ent.estudianteId && ent.actividadId) {
-                                localStorage.setItem(`nota_${ent.estudianteId}_${ent.actividadId}`, JSON.stringify(ent));
-                            }
-                        });
-                    }
-                    window.mostrarToast("Sincronización completa con la nube", "success");
-                } else {
-                    window.mostrarToast(result.error || "No se pudo obtener datos.", "error");
-                }
-            } catch (error) {
-                window.mostrarToast("Modo Offline activado.", "warning");
-            } finally {
-                window.renderDashboardDocente(window.filtroGradoActual);
-                window.renderEstudiantesLocales();
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        };
-
-        window.cerrarSesion = function() {
-            sessionStorage.clear();
-            document.getElementById('form-estudiante').reset(); document.getElementById('form-docente').reset();
-            document.getElementById('panel-estudiante').classList.add('hidden'); document.getElementById('panel-estudiante').classList.remove('flex');
-            document.getElementById('panel-docente').classList.add('hidden'); document.getElementById('panel-docente').classList.remove('flex');
-            document.getElementById('login-panel').classList.remove('hidden'); document.getElementById('login-panel').classList.add('flex');
-            document.getElementById('form-estudiante').classList.add('hidden'); document.getElementById('form-docente').classList.add('hidden');
-            try { if (player && typeof player.stopVideo === 'function') player.stopVideo(); } catch(e){}
-            window.renderLucide();
-        };
-
-        window.volverDashboardEstudiante = function() {
-            try { if (player && typeof player.pauseVideo === 'function') player.pauseVideo(); } catch(e) {}
-            document.getElementById('vista-reproductor').classList.add('hidden'); document.getElementById('vista-reproductor').classList.remove('flex');
-            document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.add('flex');
-            if(window.construirDashboardEstudiante) window.construirDashboardEstudiante(gradoEstudianteActual);
-        };
-
-        window.eliminarActividad = async function(idActividad) {
-            if(confirm("¿Estás seguro de eliminar esta actividad permanentemente?")) {
-                window.baseActividades = window.baseActividades.filter(a => a.id !== idActividad);
-                localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
-                window.renderDashboardDocente(window.filtroGradoActual); 
-                window.mostrarToast("Eliminando de la nube...", "info");
-
-                try {
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'eliminarActividad', id: idActividad })
-                    });
-                    const res = await response.json();
-                    if(res.success) {
-                        window.mostrarToast("Actividad eliminada con éxito", "success");
-                    } else {
-                        window.mostrarToast("Eliminada localmente.", "warning");
-                    }
-                } catch(e) {
-                    window.mostrarToast("Eliminada localmente.", "warning");
-                }
-            }
-        };
-
-        window.toggleEstadoActividad = function(idActividad) {
-            const index = window.baseActividades.findIndex(a => a.id === idActividad);
-            if (index > -1) {
-                window.baseActividades[index].estado = window.baseActividades[index].estado === 'Activa' ? 'Desactivada' : 'Activa';
-                localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
-                window.renderDashboardDocente(window.filtroGradoActual); 
-                window.mostrarToast("Actividad actualizada", "success");
-            }
-        };
-
+        // RENDER CHECKBOXES DE DESTINOS
         window.renderSelectoresGradosDestino = function(seleccionados = []) {
             const cont = document.getElementById('contenedor-grados-destino');
             if (!cont) return;
@@ -1090,6 +861,7 @@
             boxes.forEach(b => b.checked = algunDesmarcado);
         };
 
+        // PREPARAR FORMULARIO DE VIDEOS INTERACTIVOS (NUEVA ACTIVIDAD)
         window.prepararNuevaActividad = function() {
             idActividadEditando = null;
             const formAct = document.getElementById('form-crear-actividad');
@@ -1573,6 +1345,7 @@
             window.renderLucide();
         };
 
+        // REINICIO INDIVIDUAL DE ACTIVIDAD
         window.reiniciarActividadEstudiante = async function(estudianteId, actividadId, nombreEstudiante) {
             if(confirm(`¿Deseas reiniciar la actividad para ${nombreEstudiante}? Se eliminará su nota para que pueda volver a presentarla.`)) {
                 localStorage.removeItem(`nota_${estudianteId}_${actividadId}`);
@@ -1597,6 +1370,7 @@
             }
         };
 
+        // REINICIO PARA TODO EL GRUPO
         window.reiniciarGrupoActual = async function() {
             if (!window.reporteActividadActualId) return;
             const targetGrado = window.filtroGradoActual || 'Todos';
@@ -1637,6 +1411,7 @@
             }
         };
 
+        // RENDER DIRECTORIO ESTUDIANTES Y DOCENTES CON BOTÓN DE BASURA
         window.renderEstudiantesLocales = function() {
             const tbody = document.getElementById('tabla-estudiantes-locales');
             if(!tbody) return;
@@ -1681,6 +1456,7 @@
             window.renderLucide();
         };
 
+        // ELIMINAR ESTUDIANTE O DOCENTE DEL DIRECTORIO Y DE SHEETS
         window.eliminarUsuarioDirectorio = async function(grado, codigo, nombre) {
             if (confirm(`¿Estás seguro de eliminar a ${nombre} (${grado} - ${codigo}) del sistema y de Google Sheets?`)) {
                 window.baseEstudiantes = window.baseEstudiantes.filter(e => !(String(e.grado) === String(grado) && String(e.codigo).trim().toLowerCase() === String(codigo).trim().toLowerCase()));
