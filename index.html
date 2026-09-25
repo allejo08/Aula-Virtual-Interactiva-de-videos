@@ -27,7 +27,7 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <!-- OVERLAY DE CARGA (Para Sincronización) -->
+    <!-- OVERLAY DE CARGA -->
     <div id="loading-overlay" class="hidden fixed inset-0 bg-[#F9F7F2]/80 z-[100] flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-caramel mb-4"></div>
         <h2 class="text-2xl font-black text-caramel">Sincronizando con CaféLab...</h2>
@@ -432,7 +432,6 @@
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwU-4PYRnAFAo7TrNau5QKyXOOntvlzbvIF2IcotVslMjiZI7qloelbuPqwU83NyBnQ/exec';
-        
         const LISTA_GRADOS = ["6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
         
         let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0 };
@@ -502,11 +501,9 @@
                     }
                     window.mostrarToast("Sincronización Completa con la Nube ✅", "success");
                 } else {
-                    console.error("Backend reportó error:", result.error);
                     window.mostrarToast(result.error || "No se pudo obtener datos.", "error");
                 }
             } catch (error) {
-                console.error("Error de Fetch:", error);
                 window.mostrarToast("Error de conexión. Trabajando offline.", "warning");
             } finally {
                 window.renderDashboardDocente(filtroGradoActual);
@@ -652,7 +649,7 @@
                     }
 
                     let nombreEst = "Cód: " + codigoDetectado;
-                    const estObj = baseEstudiantes.find(e => e.grado === gradoDetectado && e.codigo === codigoDetectado);
+                    const estObj = baseEstudiantes.find(e => e.grado === gradoDetectado && String(e.codigo) === codigoDetectado);
                     if(estObj) nombreEst = estObj.nombre;
 
                     let valObj = localStorage.getItem(key);
@@ -726,11 +723,11 @@
                 <div class="glass-card p-5 border-l-4 border-l-botanical"><h4 class="text-xs font-extrabold text-gray-400 uppercase">Aprobación Filtrada</h4><p class="text-3xl font-black text-botanical">${porcAprob}%</p></div>
             `;
 
+            window.actualizarGraficoReporte(filtrados, fGrado, fAct);
             document.getElementById('contenedor-grafico-reporte').style.display = 'block';
-            actualizarGraficoReporte(filtrados, fGrado, fAct);
         };
 
-        function actualizarGraficoReporte(datos, fGrado, fAct) {
+        window.actualizarGraficoReporte = function(datos, fGrado, fAct) {
             if(window.chartRepGlobal) window.chartRepGlobal.destroy();
             const ctx = document.getElementById('chartReporte').getContext('2d');
             let labels = []; let data = [];
@@ -772,7 +769,7 @@
                     }
 
                     let nombreEst = "Cód: " + codigoDetectado;
-                    const estObj = baseEstudiantes.find(e => e.grado === gradoDetectado && e.codigo === codigoDetectado);
+                    const estObj = baseEstudiantes.find(e => e.grado === gradoDetectado && String(e.codigo) === codigoDetectado);
                     if(estObj) nombreEst = estObj.nombre;
 
                     let valObj = localStorage.getItem(key);
@@ -822,10 +819,352 @@
             window.mostrarVistaDocente('vista-reportes');
         };
 
-        function extraerIdYouTubeFront(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : "M7lc1UVf-VE"; 
+        window.renderEstudiantesLocales = function() {
+            const tbody = document.getElementById('tabla-estudiantes-locales');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            baseEstudiantes.forEach((est, index) => {
+                const idPas = `pass-${index}`;
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="px-6 py-3 font-bold">${window.escapeHTML(est.grado)}</td>
+                        <td class="px-6 py-3 font-bold text-caramel">${window.escapeHTML(est.codigo)}</td>
+                        <td class="px-6 py-3 text-gray-700">${window.escapeHTML(est.nombre)}</td>
+                        <td class="px-6 py-3 text-center text-gray-500 font-mono">
+                            <span id="${idPas}-txt" class="hidden">${window.escapeHTML(est.pass)}</span>
+                            <span id="${idPas}-dots">••••••••</span>
+                            <button type="button" onclick="document.getElementById('${idPas}-txt').classList.toggle('hidden'); document.getElementById('${idPas}-dots').classList.toggle('hidden');" class="ml-3 text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">👁 Ver</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.renderDashboardDocente = function(filtroGrado = null) {
+            filtroGradoActual = filtroGrado; 
+            window.mostrarVistaDocente('vista-dashboard');
+            const kpiTot = document.getElementById('kpi-total-actividades');
+            if(kpiTot) kpiTot.innerText = baseActividades.length;
+            
+            const listaGrupos = document.getElementById('lista-grupos-docente');
+            if(listaGrupos) {
+                listaGrupos.innerHTML = '';
+                const gradosLabels = []; const promediosData = []; const participacionData = [];
+
+                LISTA_GRADOS.forEach(grado => {
+                    const actAsignadas = baseActividades.filter(a => a.grados.includes(grado) || a.grados.includes('Todos')).length;
+                    const isActive = filtroGrado === grado ? 'bg-caramel text-white border-l-4 border-[#EAE4D8]' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200';
+                    const seguroGrado = window.escapeHTML(grado);
+                    listaGrupos.innerHTML += `<li onclick="window.renderDashboardDocente('${seguroGrado}')" class="px-4 py-2.5 cursor-pointer flex justify-between items-center rounded-r-lg transition-colors group mb-1 ${isActive}"><span class="text-sm font-bold">Grado ${seguroGrado}</span><span class="bg-[#2B1B12] text-gray-300 text-xs font-bold px-2.5 py-0.5 rounded-md shadow-inner">${actAsignadas}</span></li>`;
+                    
+                    let totalNotas = 0, count = 0;
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith(`nota_${grado}-`)) { 
+                            let valObj = localStorage.getItem(key);
+                            try { let parseado = JSON.parse(valObj); totalNotas += parseFloat(parseado.nota || valObj); } catch(e) { totalNotas += parseFloat(valObj); }
+                            count++; 
+                        }
+                    }
+                    const promStr = count > 0 ? (totalNotas/count).toFixed(1) : '0';
+                    const porc = actAsignadas > 0 ? (count > 0 ? Math.min(Math.round((count/(actAsignadas*5))*100), 100) : 0) : 0; 
+                    
+                    gradosLabels.push(`Grado ${grado}`);
+                    promediosData.push(parseFloat(promStr));
+                    participacionData.push(porc);
+                });
+
+                if(window.myChart1) window.myChart1.destroy();
+                const ctx1 = document.getElementById('chartPromedios');
+                if(ctx1) { window.myChart1 = new Chart(ctx1.getContext('2d'), { type: 'bar', data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#8C522B', borderRadius: 4 }] }, options: { scales: { y: { beginAtZero: true, max: 5 } } } }); }
+
+                if(window.myChart2) window.myChart2.destroy();
+                const ctx2 = document.getElementById('chartParticipacion');
+                if(ctx2) { window.myChart2 = new Chart(ctx2.getContext('2d'), { type: 'line', data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#3E6B4A', backgroundColor: 'rgba(62, 107, 74, 0.1)', fill: true, tension: 0.3 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } }); }
+            }
+
+            let acts = filtroGrado ? baseActividades.filter(a => a.grados.includes(filtroGrado) || a.grados.includes('Todos')) : baseActividades;
+            const titTab = document.getElementById('titulo-tabla-actividades');
+            if(titTab) titTab.innerText = filtroGrado ? `Actividades - Grado ${window.escapeHTML(filtroGrado)}` : `Gestión de Actividades Creadas`;
+
+            const tabla = document.getElementById('tabla-actividades-creadas');
+            if(tabla) {
+                tabla.innerHTML = '';
+                [...acts].reverse().forEach(act => {
+                    if(!act || !Array.isArray(act.grados)) return; 
+                    const badge = act.estado === 'Activa' ? 'bg-[#3E6B4A]/20 text-[#3E6B4A] border border-[#3E6B4A]/30' : 'bg-gray-200 text-gray-600 border border-gray-300';
+                    const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
+                    const seguroId = window.escapeHTML(act.id);
+                    const labelLab = act.requiereLaboratorio ? '🧪 Sí' : 'No';
+
+                    tabla.innerHTML += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 font-black text-[#2B1B12]">${window.escapeHTML(act.grados.join(', '))}</td>
+                            <td class="px-6 py-4 font-bold text-gray-700">${window.escapeHTML(act.titulo)}</td>
+                            <td class="px-6 py-4 text-center text-gray-500 font-bold text-sm">${labelLab}</td>
+                            <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-md text-[11px] font-black uppercase ${badge}">${window.escapeHTML(act.estado)}</span></td>
+                            <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
+                                <button onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-gray-600 border border-gray-300 bg-white px-3 py-2 rounded-lg hover:bg-gray-100 shadow-sm">${btnEstado}</button>
+                                <button onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-caramel border border-[#D6BCA2] bg-[#EAE4D8] hover:bg-[#D6BCA2] transition-colors px-3 py-2 rounded-lg shadow-sm">✏️ Editar</button>
+                                <button onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors px-3 py-2 rounded-lg shadow-sm">🗑️</button>
+                                <button onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-[#B37032] border border-[#B37032]/30 bg-[#B37032]/10 hover:bg-[#B37032]/20 transition-colors px-3 py-2 rounded-lg shadow-sm">👁 Reporte</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        window.crearBloquePregunta = function(t='', p='', oArr=[], c='1', f='') {
+            const contPreguntas = document.getElementById('contenedor-preguntas');
+            if(!contPreguntas) return;
+            const div = document.createElement('div');
+            div.className = "p-6 border border-gray-200 rounded-xl bg-white relative mt-4 shadow-sm";
+            
+            const opt1 = window.escapeHTML(oArr[0] || ''); const opt2 = window.escapeHTML(oArr[1] || '');
+            const opt3 = window.escapeHTML(oArr[2] || ''); const opt4 = window.escapeHTML(oArr[3] || '');
+            const selC = c.toString();
+
+            div.innerHTML = `
+                <button type="button" class="absolute top-4 right-4 text-red-500 font-bold hover:bg-red-50 px-3 py-1 rounded-lg text-sm transition-colors border border-transparent hover:border-red-200" onclick="this.parentElement.remove()">✕ Quitar</button>
+                
+                <div class="grid grid-cols-4 gap-6 mb-4 mt-2">
+                    <div class="col-span-1">
+                        <label class="block text-sm font-bold text-gray-600 mb-1">Seg</label>
+                        <input type="number" value="${window.escapeHTML(t)}" class="q-time w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50" required>
+                    </div>
+                    <div class="col-span-3">
+                        <label class="block text-sm font-bold text-gray-600 mb-1">Pregunta</label>
+                        <input type="text" value="${window.escapeHTML(p)}" class="q-text w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50" required>
+                    </div>
+                    <div class="col-span-4 mt-2 mb-2">
+                        <label class="block text-sm font-bold text-gray-600 mb-1">💡 Retroalimentación (Mensaje al estudiante al responder)</label>
+                        <input type="text" placeholder="Ej: Recuerda que la temperatura óptima es de 90°C..." value="${window.escapeHTML(f)}" class="q-feedback w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50">
+                    </div>
+                </div>
+                
+                <label class="block text-sm font-bold text-gray-600 mb-2">Opciones de Respuesta</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                    <div><input type="text" placeholder="Opción 1 (Requerida)" value="${opt1}" class="q-opt1 w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50" required></div>
+                    <div><input type="text" placeholder="Opción 2 (Requerida)" value="${opt2}" class="q-opt2 w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50" required></div>
+                    <div><input type="text" placeholder="Opción 3 (Opcional)" value="${opt3}" class="q-opt3 w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50"></div>
+                    <div><input type="text" placeholder="Opción 4 (Opcional)" value="${opt4}" class="q-opt4 w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50"></div>
+                </div>
+
+                <label class="block text-sm font-bold text-gray-600 mb-2">Seleccione la Opción Correcta</label>
+                <select class="q-correct w-full p-3 border border-gray-300 rounded-lg sm:w-1/3 outline-none focus:ring-2 focus:ring-caramel bg-gray-50 font-bold">
+                    <option value="1" ${selC === '1' ? 'selected' : ''}>Opción 1</option>
+                    <option value="2" ${selC === '2' ? 'selected' : ''}>Opción 2</option>
+                    <option value="3" ${selC === '3' ? 'selected' : ''}>Opción 3</option>
+                    <option value="4" ${selC === '4' ? 'selected' : ''}>Opción 4</option>
+                </select>
+            `;
+            contPreguntas.appendChild(div);
+        };
+
+        window.iniciarSesionEstudianteLocal = function(grado, codigo, nombre) {
+            estudianteIdActual = `${grado}-${codigo}`; nombreEstudianteActual = nombre; gradoEstudianteActual = grado; 
+            document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
+            
+            const panelEst = document.getElementById('panel-estudiante');
+            panelEst.classList.remove('hidden'); 
+            panelEst.classList.add('flex');
+
+            document.getElementById('nombre-estudiante-display').innerText = window.escapeHTML(nombre);
+            document.getElementById('grado-estudiante-display').innerText = window.escapeHTML(grado);
+            document.getElementById('codigo-estudiante-display').innerText = window.escapeHTML(codigo);
+            window.construirDashboardEstudiante(grado);
+            
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obtenerDatos' }) }).then(res => res.json()).then(result => {
+                if(result.success && result.data && result.data.actividades) {
+                    baseActividades = result.data.actividades;
+                    localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
+                    window.construirDashboardEstudiante(grado);
+                }
+            }).catch(e => { window.construirDashboardEstudiante(grado); }); 
+        }
+
+        window.construirDashboardEstudiante = function(grado) {
+            const listaP = document.getElementById('lista-pendientes'), listaR = document.getElementById('lista-realizadas');
+            if(!listaP || !listaR) return;
+            listaP.innerHTML = ''; listaR.innerHTML = ''; let pCount = 0, rCount = 0;
+            baseActividades.forEach(act => {
+                if(act.grados.includes(grado) || act.grados.includes('Todos')) {
+                    const notaGuardadaObj = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
+                    const seguroTitulo = window.escapeHTML(act.titulo);
+                    const seguroId = window.escapeHTML(act.id);
+
+                    if (notaGuardadaObj) {
+                        rCount++;
+                        let val = "0.0";
+                        try { let parseado = JSON.parse(notaGuardadaObj); val = window.escapeHTML(parseado.nota || notaGuardadaObj); } catch(e) { val = window.escapeHTML(notaGuardadaObj); }
+                        listaR.innerHTML += `<div class="p-6 bg-white rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4><p class="text-sm text-botanical font-bold mt-1">Completada</p></div><div class="bg-[#F9F7F2] px-5 py-3 rounded-lg border border-[#EAE4D8] text-[#2B1B12] font-black text-xl shadow-inner">${val}</div></div>`;
+                    } else if (act.estado === 'Activa') { 
+                        pCount++;
+                        listaP.innerHTML += `<div class="p-6 bg-white rounded-xl border border-[#D6BCA2] flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden"><div class="absolute left-0 top-0 w-1.5 h-full bg-caramel"></div><div class="w-full pl-2"><h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4><p class="text-sm text-gray-500 font-medium mt-1">Video Asignado</p></div><button onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 bg-caramel hover-bg-caramel text-white px-8 py-4 rounded-xl shadow-md font-bold text-lg">▶ Iniciar</button></div>`;
+                    }
+                }
+            });
+            if(pCount===0) listaP.innerHTML = `<div class="p-10 text-center bg-white rounded-xl border border-dashed border-gray-300"><span class="text-4xl">🎉</span><p class="text-gray-600 font-bold mt-4 text-xl">¡Sin pendientes!</p></div>`;
+            if(rCount===0) listaR.innerHTML = `<p class="text-gray-500 text-lg font-medium p-8 text-center border border-dashed border-gray-300 rounded-xl bg-white">Aún no hay calificaciones registradas.</p>`;
+        }
+
+        window.iniciarActividadPorId = function(idActividad) {
+            const act = baseActividades.find(a => a.id === idActividad);
+            if(!act) return;
+            actividadActual = JSON.parse(JSON.stringify(act));
+            document.getElementById('vista-bienvenida-estudiante').classList.add('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.remove('flex');
+            document.getElementById('vista-reproductor').classList.remove('hidden'); document.getElementById('vista-reproductor').classList.add('flex');
+            document.getElementById('titulo-reproductor').innerText = window.escapeHTML(actividadActual.titulo);
+            intentoActual = { correctas: 0, resueltas: 0 }; document.getElementById('progreso-text').innerText = "0%";
+            maxTiempoVisto = 0; 
+            
+            function prepararReproductor() {
+                const estG = JSON.parse(localStorage.getItem(`estado_${actividadActual.id}_${estudianteIdActual}`));
+                let tIn = 0;
+                if (estG && confirm("Tienes una sesión guardada. ¿Reanudar?")) {
+                    actividadActual.preguntas = estG.preguntas; intentoActual = estG.intento; tIn = estG.ultimoTiempo;
+                    maxTiempoVisto = estG.maxTiempoVisto || tIn;
+                    document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
+                } else { maxTiempoVisto = 0; }
+
+                try {
+                    const vId = actividadActual.video ? actividadActual.video.id : actividadActual.videoId; 
+                    let originSeguro = window.location.origin;
+                    if(!originSeguro || originSeguro === 'null' || originSeguro.includes('file://')) originSeguro = 'https://cafelab.co';
+
+                    if (player && typeof player.loadVideoById === 'function') { player.loadVideoById({videoId: vId, startSeconds: Math.floor(tIn)}); } 
+                    else {
+                        player = new YT.Player('youtube-player', { 
+                            videoId: vId, host: 'https://www.youtube-nocookie.com',
+                            playerVars: { 'autoplay': 1, 'controls': 0, 'start': Math.floor(tIn), 'rel': 0, 'modestbranding': 1, 'origin': originSeguro }, 
+                            events: { 'onStateChange': (e) => { if (e.data == YT.PlayerState.PLAYING) { intervaloVideo = setInterval(verificarTiempo, 1000); } else { clearInterval(intervaloVideo); } } } 
+                        });
+                    }
+                } catch(e){}
+            }
+            prepararReproductor();
+        };
+
+        function verificarTiempo() {
+            if (!player || typeof player.getCurrentTime !== 'function') return;
+            const tAct = player.getCurrentTime();
+
+            if (tAct > maxTiempoVisto + 3) { 
+                player.seekTo(maxTiempoVisto); window.mostrarToast("⚠️ No puedes adelantar el video. Debes ver la clase completa.", "warning"); return;
+            }
+            if(tAct > maxTiempoVisto) { maxTiempoVisto = tAct; } 
+
+            localStorage.setItem(`estado_${actividadActual.id}_${estudianteIdActual}`, JSON.stringify({ ultimoTiempo: tAct, maxTiempoVisto: maxTiempoVisto, preguntas: actividadActual.preguntas, intento: intentoActual }));
+            
+            actividadActual.preguntas.forEach((pregunta, index) => {
+                if (!pregunta.respondida && tAct >= pregunta.tiempo && tAct < (pregunta.tiempo + 2)) {
+                    player.pauseVideo(); clearInterval(intervaloVideo);
+                    const qBox = document.getElementById('question-box');
+                    qBox.innerHTML = `
+                        <span class="text-caramel font-bold tracking-widest uppercase text-sm mb-4 block">Pregunta de validación</span>
+                        <h3 class="text-3xl mb-10 font-bold text-[#2B1B12] leading-relaxed">${window.escapeHTML(pregunta.texto)}</h3>
+                        <div id="q-options" class="grid grid-cols-1 gap-5 mb-4"></div>
+                    `;
+                    const contO = document.getElementById('q-options');
+                    
+                    pregunta.opciones.forEach((opcion, i) => {
+                        const btn = document.createElement('button');
+                        btn.className = "w-full bg-white text-[#2B1B12] hover:bg-caramel hover:text-white font-bold py-6 px-8 rounded-2xl transition-colors text-left text-2xl border-2 border-[#D6BCA2] shadow-sm";
+                        btn.innerText = opcion; 
+                        btn.onclick = () => {
+                            const esCorrecta = ((i + 1) === parseInt(pregunta.correcta));
+                            actividadActual.preguntas[index].respondida = true; intentoActual.resueltas++;
+                            if (esCorrecta) intentoActual.correctas++;
+                            document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
+                            
+                            const boxColor = esCorrecta ? 'bg-[#3E6B4A]/10 border-[#3E6B4A] text-[#3E6B4A]' : 'bg-red-50 border-red-300 text-red-700';
+                            const msjFeedback = pregunta.feedback ? window.escapeHTML(pregunta.feedback) : (esCorrecta ? '¡Muy bien! Sigue prestando atención.' : 'Presta mucha atención a la siguiente parte del video.');
+                            
+                            qBox.innerHTML = `
+                                <div class="p-8 rounded-2xl border-2 ${boxColor} mb-8 shadow-sm">
+                                    <h4 class="text-3xl font-black mb-4">${esCorrecta ? '¡Respuesta Correcta! ✅' : 'Respuesta Incorrecta ❌'}</h4>
+                                    <p class="text-xl font-medium leading-relaxed">${msjFeedback}</p>
+                                </div>
+                                <button id="btn-continuar-video" class="w-full bg-caramel hover-bg-caramel text-white font-bold py-5 px-8 rounded-2xl transition-colors text-2xl shadow-lg border-2 border-[#6B3E21]">Continuar Clase ▶</button>
+                            `;
+                            
+                            document.getElementById('btn-continuar-video').onclick = () => {
+                                document.getElementById('question-overlay').classList.add('hidden');
+                                if (intentoActual.resueltas === actividadActual.preguntas.length) mostrarPantallaFinalizacion();
+                                else player.playVideo();
+                            };
+                        };
+                        contO.appendChild(btn);
+                    });
+                    document.getElementById('question-overlay').classList.remove('hidden');
+                }
+            });
+        }
+
+        function mostrarPantallaFinalizacion() {
+            const estReflexion = document.getElementById('estudiante-reflexion');
+            if(estReflexion) estReflexion.value = '';
+            const labSection = document.getElementById('estudiante-lab-section');
+            const labInputs = document.getElementById('estudiante-lab-inputs');
+            if(labInputs) labInputs.innerHTML = '';
+
+            if (actividadActual.requiereLaboratorio && actividadActual.laboratorioCampos && actividadActual.laboratorioCampos.length > 0) {
+                if(labSection) labSection.classList.remove('hidden');
+                actividadActual.laboratorioCampos.forEach(campo => {
+                    if(labInputs) {
+                        labInputs.innerHTML += `
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">${window.escapeHTML(campo)}</label>
+                                <input type="text" data-campo="${window.escapeHTML(campo)}" class="dyn-lab-input w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-white shadow-sm">
+                            </div>
+                        `;
+                    }
+                });
+            } else { if(labSection) labSection.classList.add('hidden'); }
+            
+            const finalOv = document.getElementById('final-overlay');
+            if(finalOv) finalOv.classList.remove('hidden');
+        }
+
+        window.guardarEvidenciasYFinalizar = function() {
+            const refEl = document.getElementById('estudiante-reflexion');
+            const reflexion = refEl ? refEl.value.trim() : "";
+            if (!reflexion) { window.mostrarToast("Por favor, ingresa tus aprendizajes.", "warning"); return; }
+
+            let datosLab = null;
+            if (actividadActual.requiereLaboratorio && actividadActual.laboratorioCampos && actividadActual.laboratorioCampos.length > 0) {
+                datosLab = {};
+                const inputs = document.querySelectorAll('.dyn-lab-input');
+                inputs.forEach(inp => { datosLab[inp.getAttribute('data-campo')] = inp.value; });
+            }
+
+            intentoActual.reflexion = reflexion;
+            if (datosLab) intentoActual.laboratorio = datosLab;
+
+            const finalOv = document.getElementById('final-overlay');
+            if(finalOv) finalOv.classList.add('hidden');
+            finalizarActividad();
+        }
+
+        async function finalizarActividad() {
+            localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
+            const notaFinal = (((intentoActual.correctas / actividadActual.preguntas.length) * 4) + 1).toFixed(1);
+            
+            const entrega = {
+                idEntrega: "ENT_" + Date.now().toString(36).toUpperCase(),
+                estudianteId: estudianteIdActual, actividadId: actividadActual.id, versionActividad: actividadActual.version || 1,
+                correctas: intentoActual.correctas, resueltas: intentoActual.resueltas, nota: notaFinal,
+                fecha: new Date().toLocaleString(),
+                laboratorio: intentoActual.laboratorio || null, reflexion: intentoActual.reflexion || "",
+                validador: btoa(notaFinal + "_" + estudianteIdActual + "_CafeLab")
+            };
+            
+            localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, JSON.stringify(entrega));
+            window.volverDashboardEstudiante(); window.mostrarToast(`¡Completado! Nota: ${notaFinal}`, "success");
+
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) })
+                .catch(() => console.log("Nota guardada en caché."));
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -855,44 +1194,47 @@
             });
             document.getElementById('nav-estudiantes').addEventListener('click', () => { window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes'); });
 
-            document.getElementById('form-docente').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btnSubmit = e.target.querySelector('button[type="submit"]');
-                const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Ingresar";
-                if(btnSubmit) { btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true; }
+            const formDoc = document.getElementById('form-docente');
+            if(formDoc) {
+                formDoc.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btnSubmit = e.target.querySelector('button[type="submit"]');
+                    const btnOriginalText = btnSubmit ? btnSubmit.innerText : "Ingresar";
+                    if(btnSubmit) { btnSubmit.innerText = "Verificando..."; btnSubmit.disabled = true; }
 
-                const password = document.getElementById('pass-docente').value;
+                    const password = document.getElementById('pass-docente').value;
 
-                try {
-                    const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarDocente', password: password }) });
-                    const result = await response.json();
-                    if(result.success) {
-                        document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
-                        document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
-                        window.sincronizarConNube(); 
-                    } else { 
+                    try {
+                        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarDocente', password: password }) });
+                        const result = await response.json();
+                        if(result.success) {
+                            document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
+                            document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
+                            window.sincronizarConNube(); 
+                        } else { 
+                            if(password === "AdminCafeLab") {
+                                window.mostrarToast("Sesión iniciada (Modo Offline)", "warning");
+                                document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
+                                document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
+                                window.sincronizarConNube(); 
+                            } else {
+                                window.mostrarToast(result.error || "Contraseña incorrecta", "error"); 
+                            }
+                        }
+                    } catch(error) {
                         if(password === "AdminCafeLab") {
                             window.mostrarToast("Sesión iniciada (Modo Offline)", "warning");
                             document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
                             document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
                             window.sincronizarConNube(); 
                         } else {
-                            window.mostrarToast(result.error || "Contraseña incorrecta", "error"); 
+                            window.mostrarToast("Error de conexión. Intenta de nuevo.", "error");
                         }
+                    } finally {
+                        if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
                     }
-                } catch(error) {
-                    if(password === "AdminCafeLab") {
-                        window.mostrarToast("Sesión iniciada (Modo Offline)", "warning");
-                        document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
-                        document.getElementById('panel-docente').classList.remove('hidden'); document.getElementById('panel-docente').classList.add('flex');
-                        window.sincronizarConNube(); 
-                    } else {
-                        window.mostrarToast("Error de conexión. Intenta de nuevo.", "error");
-                    }
-                } finally {
-                    if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; }
-                }
-            });
+                });
+            }
 
             document.getElementById('btn-show-estudiante').addEventListener('click', () => {
                 document.getElementById('form-estudiante').classList.remove('hidden'); document.getElementById('form-docente').classList.add('hidden');
@@ -900,169 +1242,6 @@
             document.getElementById('btn-show-docente').addEventListener('click', () => {
                 document.getElementById('form-docente').classList.remove('hidden'); document.getElementById('form-estudiante').classList.add('hidden');
             });
-
-            window.renderEstudiantesLocales = function() {
-                const tbody = document.getElementById('tabla-estudiantes-locales');
-                if(!tbody) return;
-                tbody.innerHTML = '';
-                baseEstudiantes.forEach((est, index) => {
-                    const idPas = `pass-${index}`;
-                    tbody.innerHTML += `
-                        <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="px-6 py-3 font-bold">${window.escapeHTML(est.grado)}</td>
-                            <td class="px-6 py-3 font-bold text-caramel">${window.escapeHTML(est.codigo)}</td>
-                            <td class="px-6 py-3 text-gray-700">${window.escapeHTML(est.nombre)}</td>
-                            <td class="px-6 py-3 text-center text-gray-500 font-mono">
-                                <span id="${idPas}-txt" class="hidden">${window.escapeHTML(est.pass)}</span>
-                                <span id="${idPas}-dots">••••••••</span>
-                                <button type="button" onclick="document.getElementById('${idPas}-txt').classList.toggle('hidden'); document.getElementById('${idPas}-dots').classList.toggle('hidden');" class="ml-3 text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">👁 Ver</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-
-            const formEst = document.getElementById('form-add-estudiante');
-            if(formEst) {
-                formEst.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const grado = document.getElementById('new-est-grado').value;
-                    const codigo = document.getElementById('new-est-codigo').value;
-                    const nombre = document.getElementById('new-est-nombre').value;
-                    const pass = codigo + nombre.trim().charAt(0).toUpperCase();
-
-                    baseEstudiantes.push({ grado, codigo, nombre, pass });
-                    localStorage.setItem('cafelab_estudiantes', JSON.stringify(baseEstudiantes));
-                    window.renderEstudiantesLocales();
-                    e.target.reset();
-                    window.mostrarToast(`Estudiante guardado. Pass: ${pass}`, "success");
-
-                    try { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'agregarEstudiante', payload: {grado, codigo, nombre} }) }); 
-                    } catch(err) { console.log(err); }
-                });
-            }
-
-            window.renderDashboardDocente = function(filtroGrado = null) {
-                filtroGradoActual = filtroGrado; 
-                window.mostrarVistaDocente('vista-dashboard');
-                const kpiTot = document.getElementById('kpi-total-actividades');
-                if(kpiTot) kpiTot.innerText = baseActividades.length;
-                
-                const listaGrupos = document.getElementById('lista-grupos-docente');
-                if(listaGrupos) {
-                    listaGrupos.innerHTML = '';
-                    const gradosLabels = []; const promediosData = []; const participacionData = [];
-
-                    LISTA_GRADOS.forEach(grado => {
-                        const actAsignadas = baseActividades.filter(a => a.grados.includes(grado) || a.grados.includes('Todos')).length;
-                        const isActive = filtroGrado === grado ? 'bg-caramel text-white border-l-4 border-[#EAE4D8]' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200';
-                        const seguroGrado = window.escapeHTML(grado);
-                        listaGrupos.innerHTML += `<li onclick="window.renderDashboardDocente('${seguroGrado}')" class="px-4 py-2.5 cursor-pointer flex justify-between items-center rounded-r-lg transition-colors group mb-1 ${isActive}"><span class="text-sm font-bold">Grado ${seguroGrado}</span><span class="bg-[#2B1B12] text-gray-300 text-xs font-bold px-2.5 py-0.5 rounded-md shadow-inner">${actAsignadas}</span></li>`;
-                        
-                        let totalNotas = 0, count = 0;
-                        for (let i = 0; i < localStorage.length; i++) {
-                            const key = localStorage.key(i);
-                            if (key.startsWith(`nota_${grado}-`)) { 
-                                let valObj = localStorage.getItem(key);
-                                try { let parseado = JSON.parse(valObj); totalNotas += parseFloat(parseado.nota || valObj); } catch(e) { totalNotas += parseFloat(valObj); }
-                                count++; 
-                            }
-                        }
-                        const promStr = count > 0 ? (totalNotas/count).toFixed(1) : '0';
-                        const porc = actAsignadas > 0 ? (count > 0 ? Math.min(Math.round((count/(actAsignadas*5))*100), 100) : 0) : 0; 
-                        
-                        gradosLabels.push(`Grado ${grado}`);
-                        promediosData.push(parseFloat(promStr));
-                        participacionData.push(porc);
-                    });
-
-                    if(window.myChart1) window.myChart1.destroy();
-                    const ctx1 = document.getElementById('chartPromedios');
-                    if(ctx1) { window.myChart1 = new Chart(ctx1.getContext('2d'), { type: 'bar', data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#8C522B', borderRadius: 4 }] }, options: { scales: { y: { beginAtZero: true, max: 5 } } } }); }
-
-                    if(window.myChart2) window.myChart2.destroy();
-                    const ctx2 = document.getElementById('chartParticipacion');
-                    if(ctx2) { window.myChart2 = new Chart(ctx2.getContext('2d'), { type: 'line', data: { labels: gradosLabels, datasets: [{ label: '% de Participación', data: participacionData, borderColor: '#3E6B4A', backgroundColor: 'rgba(62, 107, 74, 0.1)', fill: true, tension: 0.3 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } }); }
-                }
-
-                let acts = filtroGrado ? baseActividades.filter(a => a.grados.includes(filtroGrado) || a.grados.includes('Todos')) : baseActividades;
-                const titTab = document.getElementById('titulo-tabla-actividades');
-                if(titTab) titTab.innerText = filtroGrado ? `Actividades - Grado ${window.escapeHTML(filtroGrado)}` : `Gestión de Actividades Creadas`;
-
-                const tabla = document.getElementById('tabla-actividades-creadas');
-                if(tabla) {
-                    tabla.innerHTML = '';
-                    [...acts].reverse().forEach(act => {
-                        if(!act || !Array.isArray(act.grados)) return; 
-                        const badge = act.estado === 'Activa' ? 'bg-[#3E6B4A]/20 text-[#3E6B4A] border border-[#3E6B4A]/30' : 'bg-gray-200 text-gray-600 border border-gray-300';
-                        const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
-                        const seguroId = window.escapeHTML(act.id);
-                        const labelLab = act.requiereLaboratorio ? '🧪 Sí' : 'No';
-
-                        tabla.innerHTML += `
-                            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 font-black text-[#2B1B12]">${window.escapeHTML(act.grados.join(', '))}</td>
-                                <td class="px-6 py-4 font-bold text-gray-700">${window.escapeHTML(act.titulo)}</td>
-                                <td class="px-6 py-4 text-center text-gray-500 font-bold text-sm">${labelLab}</td>
-                                <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-md text-[11px] font-black uppercase ${badge}">${window.escapeHTML(act.estado)}</span></td>
-                                <td class="px-6 py-4 text-right space-x-1 whitespace-nowrap">
-                                    <button onclick="window.toggleEstadoActividad('${seguroId}')" class="text-xs font-bold text-gray-600 border border-gray-300 bg-white px-3 py-2 rounded-lg hover:bg-gray-100 shadow-sm">${btnEstado}</button>
-                                    <button onclick="window.editarActividad('${seguroId}')" class="text-xs font-bold text-caramel border border-[#D6BCA2] bg-[#EAE4D8] hover:bg-[#D6BCA2] transition-colors px-3 py-2 rounded-lg shadow-sm">✏️ Editar</button>
-                                    <button onclick="window.eliminarActividad('${seguroId}')" class="text-xs font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors px-3 py-2 rounded-lg shadow-sm">🗑️</button>
-                                    <button onclick="window.generarReporteActividad('${seguroId}')" class="text-xs font-bold text-[#B37032] border border-[#B37032]/30 bg-[#B37032]/10 hover:bg-[#B37032]/20 transition-colors px-3 py-2 rounded-lg shadow-sm">👁 Reporte</button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }
-            }
-
-            window.crearBloquePregunta = function(t='', p='', oArr=[], c='1', f='') {
-                const contPreguntas = document.getElementById('contenedor-preguntas');
-                if(!contPreguntas) return;
-                const div = document.createElement('div');
-                div.className = "p-6 border border-gray-200 rounded-xl bg-white relative mt-4 shadow-sm";
-                
-                const opt1 = window.escapeHTML(oArr[0] || ''); const opt2 = window.escapeHTML(oArr[1] || '');
-                const opt3 = window.escapeHTML(oArr[2] || ''); const opt4 = window.escapeHTML(oArr[3] || '');
-                const selC = c.toString();
-
-                div.innerHTML = `
-                    <button type="button" class="absolute top-4 right-4 text-red-500 font-bold hover:bg-red-50 px-3 py-1 rounded-lg text-sm transition-colors border border-transparent hover:border-red-200" onclick="this.parentElement.remove()">✕ Quitar</button>
-                    
-                    <div class="grid grid-cols-4 gap-6 mb-4 mt-2">
-                        <div class="col-span-1">
-                            <label class="block text-sm font-bold text-gray-600 mb-1">Seg</label>
-                            <input type="number" value="${window.escapeHTML(t)}" class="q-time w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50" required>
-                        </div>
-                        <div class="col-span-3">
-                            <label class="block text-sm font-bold text-gray-600 mb-1">Pregunta</label>
-                            <input type="text" value="${window.escapeHTML(p)}" class="q-text w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50" required>
-                        </div>
-                        <div class="col-span-4 mt-2 mb-2">
-                            <label class="block text-sm font-bold text-gray-600 mb-1">💡 Retroalimentación (Mensaje al estudiante al responder)</label>
-                            <input type="text" placeholder="Ej: Recuerda que la temperatura óptima es de 90°C..." value="${window.escapeHTML(f)}" class="q-feedback w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50">
-                        </div>
-                    </div>
-                    
-                    <label class="block text-sm font-bold text-gray-600 mb-2">Opciones de Respuesta</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-                        <div><input type="text" placeholder="Opción 1 (Requerida)" value="${opt1}" class="q-opt1 w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50" required></div>
-                        <div><input type="text" placeholder="Opción 2 (Requerida)" value="${opt2}" class="q-opt2 w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50" required></div>
-                        <div><input type="text" placeholder="Opción 3 (Opcional)" value="${opt3}" class="q-opt3 w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50"></div>
-                        <div><input type="text" placeholder="Opción 4 (Opcional)" value="${opt4}" class="q-opt4 w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-gray-50"></div>
-                    </div>
-
-                    <label class="block text-sm font-bold text-gray-600 mb-2">Seleccione la Opción Correcta</label>
-                    <select class="q-correct w-full p-3 border border-gray-300 rounded-lg sm:w-1/3 outline-none focus:ring-2 focus:ring-caramel bg-gray-50 font-bold">
-                        <option value="1" ${selC === '1' ? 'selected' : ''}>Opción 1</option>
-                        <option value="2" ${selC === '2' ? 'selected' : ''}>Opción 2</option>
-                        <option value="3" ${selC === '3' ? 'selected' : ''}>Opción 3</option>
-                        <option value="4" ${selC === '4' ? 'selected' : ''}>Opción 4</option>
-                    </select>
-                `;
-                contPreguntas.appendChild(div);
-            };
 
             const formCrearAct = document.getElementById('form-crear-actividad');
             if(formCrearAct) {
@@ -1194,8 +1373,8 @@
                             window.mostrarToast("Sesión iniciada", "success"); 
                             window.iniciarSesionEstudianteLocal(grado, codigo, result.nombre); 
                         } else { 
-                            const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo.toLowerCase() === codigoLower);
-                            if(localEst && localEst.pass === password) {
+                            const localEst = baseEstudiantes.find(es => es.grado === grado && String(es.codigo).toLowerCase() === codigoLower);
+                            if(localEst && String(localEst.pass) === password) {
                                 window.mostrarToast("Sesión iniciada (Modo Offline)", "success");
                                 window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
                             } else {
@@ -1203,8 +1382,8 @@
                             }
                         }
                     } catch (error) { 
-                        const localEst = baseEstudiantes.find(es => es.grado === grado && es.codigo.toLowerCase() === codigoLower);
-                        if(localEst && localEst.pass === password) {
+                        const localEst = baseEstudiantes.find(es => es.grado === grado && String(es.codigo).toLowerCase() === codigoLower);
+                        if(localEst && String(localEst.pass) === password) {
                             window.mostrarToast("Sesión iniciada (Modo Offline)", "success");
                             window.iniciarSesionEstudianteLocal(grado, codigo, localEst.nombre);
                         } else {
@@ -1212,211 +1391,6 @@
                         }
                     } finally { if(btnSubmit) { btnSubmit.innerText = btnOriginalText; btnSubmit.disabled = false; } }
                 });
-            }
-
-            window.iniciarSesionEstudianteLocal = function(grado, codigo, nombre) {
-                estudianteIdActual = `${grado}-${codigo}`; nombreEstudianteActual = nombre; gradoEstudianteActual = grado; 
-                document.getElementById('login-panel').classList.add('hidden'); document.getElementById('login-panel').classList.remove('flex');
-                
-                const panelEst = document.getElementById('panel-estudiante');
-                panelEst.classList.remove('hidden'); 
-                panelEst.classList.add('flex');
-
-                document.getElementById('nombre-estudiante-display').innerText = window.escapeHTML(nombre);
-                document.getElementById('grado-estudiante-display').innerText = window.escapeHTML(grado);
-                document.getElementById('codigo-estudiante-display').innerText = window.escapeHTML(codigo);
-                window.construirDashboardEstudiante(grado);
-                
-                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'obtenerDatos' }) }).then(res => res.json()).then(result => {
-                    if(result.success && result.data && result.data.actividades) {
-                        baseActividades = result.data.actividades;
-                        localStorage.setItem('cafelab_actividades', JSON.stringify(baseActividades));
-                        window.construirDashboardEstudiante(grado);
-                    }
-                }).catch(e => { window.construirDashboardEstudiante(grado); }); 
-            }
-
-            window.construirDashboardEstudiante = function(grado) {
-                const listaP = document.getElementById('lista-pendientes'), listaR = document.getElementById('lista-realizadas');
-                if(!listaP || !listaR) return;
-                listaP.innerHTML = ''; listaR.innerHTML = ''; let pCount = 0, rCount = 0;
-                baseActividades.forEach(act => {
-                    if(act.grados.includes(grado) || act.grados.includes('Todos')) {
-                        const notaGuardadaObj = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
-                        const seguroTitulo = window.escapeHTML(act.titulo);
-                        const seguroId = window.escapeHTML(act.id);
-
-                        if (notaGuardadaObj) {
-                            rCount++;
-                            let val = "0.0";
-                            try { let parseado = JSON.parse(notaGuardadaObj); val = window.escapeHTML(parseado.nota || notaGuardadaObj); } catch(e) { val = window.escapeHTML(notaGuardadaObj); }
-                            listaR.innerHTML += `<div class="p-6 bg-white rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4><p class="text-sm text-botanical font-bold mt-1">Completada</p></div><div class="bg-[#F9F7F2] px-5 py-3 rounded-lg border border-[#EAE4D8] text-[#2B1B12] font-black text-xl shadow-inner">${val}</div></div>`;
-                        } else if (act.estado === 'Activa') { 
-                            pCount++;
-                            listaP.innerHTML += `<div class="p-6 bg-white rounded-xl border border-[#D6BCA2] flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden"><div class="absolute left-0 top-0 w-1.5 h-full bg-caramel"></div><div class="w-full pl-2"><h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4><p class="text-sm text-gray-500 font-medium mt-1">Video Asignado</p></div><button onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 bg-caramel hover-bg-caramel text-white px-8 py-4 rounded-xl shadow-md font-bold text-lg">▶ Iniciar</button></div>`;
-                        }
-                    }
-                });
-                if(pCount===0) listaP.innerHTML = `<div class="p-10 text-center bg-white rounded-xl border border-dashed border-gray-300"><span class="text-4xl">🎉</span><p class="text-gray-600 font-bold mt-4 text-xl">¡Sin pendientes!</p></div>`;
-                if(rCount===0) listaR.innerHTML = `<p class="text-gray-500 text-lg font-medium p-8 text-center border border-dashed border-gray-300 rounded-xl bg-white">Aún no hay calificaciones registradas.</p>`;
-            }
-
-            window.iniciarActividadPorId = function(idActividad) {
-                const act = baseActividades.find(a => a.id === idActividad);
-                if(!act) return;
-                actividadActual = JSON.parse(JSON.stringify(act));
-                document.getElementById('vista-bienvenida-estudiante').classList.add('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.remove('flex');
-                document.getElementById('vista-reproductor').classList.remove('hidden'); document.getElementById('vista-reproductor').classList.add('flex');
-                document.getElementById('titulo-reproductor').innerText = window.escapeHTML(actividadActual.titulo);
-                intentoActual = { correctas: 0, resueltas: 0 }; document.getElementById('progreso-text').innerText = "0%";
-                maxTiempoVisto = 0; 
-                prepararReproductor();
-            };
-
-            function prepararReproductor() {
-                const estG = JSON.parse(localStorage.getItem(`estado_${actividadActual.id}_${estudianteIdActual}`));
-                let tIn = 0;
-                if (estG && confirm("Tienes una sesión guardada. ¿Reanudar?")) {
-                    actividadActual.preguntas = estG.preguntas; intentoActual = estG.intento; tIn = estG.ultimoTiempo;
-                    maxTiempoVisto = estG.maxTiempoVisto || tIn;
-                    document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
-                } else { maxTiempoVisto = 0; }
-
-                try {
-                    const vId = actividadActual.video ? actividadActual.video.id : actividadActual.videoId; 
-                    let originSeguro = window.location.origin;
-                    if(!originSeguro || originSeguro === 'null' || originSeguro.includes('file://')) originSeguro = 'https://cafelab.co';
-
-                    if (player && typeof player.loadVideoById === 'function') { player.loadVideoById({videoId: vId, startSeconds: Math.floor(tIn)}); } 
-                    else {
-                        player = new YT.Player('youtube-player', { 
-                            videoId: vId, host: 'https://www.youtube-nocookie.com',
-                            playerVars: { 'autoplay': 1, 'controls': 0, 'start': Math.floor(tIn), 'rel': 0, 'modestbranding': 1, 'origin': originSeguro }, 
-                            events: { 'onStateChange': (e) => { if (e.data == YT.PlayerState.PLAYING) { intervaloVideo = setInterval(verificarTiempo, 1000); } else { clearInterval(intervaloVideo); } } } 
-                        });
-                    }
-                } catch(e){}
-            }
-
-            function verificarTiempo() {
-                if (!player || typeof player.getCurrentTime !== 'function') return;
-                const tAct = player.getCurrentTime();
-
-                if (tAct > maxTiempoVisto + 3) { 
-                    player.seekTo(maxTiempoVisto); window.mostrarToast("⚠️ No puedes adelantar el video. Debes ver la clase completa.", "warning"); return;
-                }
-                if(tAct > maxTiempoVisto) { maxTiempoVisto = tAct; } 
-
-                localStorage.setItem(`estado_${actividadActual.id}_${estudianteIdActual}`, JSON.stringify({ ultimoTiempo: tAct, maxTiempoVisto: maxTiempoVisto, preguntas: actividadActual.preguntas, intento: intentoActual }));
-                
-                actividadActual.preguntas.forEach((pregunta, index) => {
-                    if (!pregunta.respondida && tAct >= pregunta.tiempo && tAct < (pregunta.tiempo + 2)) {
-                        player.pauseVideo(); clearInterval(intervaloVideo);
-                        const qBox = document.getElementById('question-box');
-                        qBox.innerHTML = `
-                            <span class="text-caramel font-bold tracking-widest uppercase text-sm mb-4 block">Pregunta de validación</span>
-                            <h3 class="text-3xl mb-10 font-bold text-[#2B1B12] leading-relaxed">${window.escapeHTML(pregunta.texto)}</h3>
-                            <div id="q-options" class="grid grid-cols-1 gap-5 mb-4"></div>
-                        `;
-                        const contO = document.getElementById('q-options');
-                        
-                        pregunta.opciones.forEach((opcion, i) => {
-                            const btn = document.createElement('button');
-                            btn.className = "w-full bg-white text-[#2B1B12] hover:bg-caramel hover:text-white font-bold py-6 px-8 rounded-2xl transition-colors text-left text-2xl border-2 border-[#D6BCA2] shadow-sm";
-                            btn.innerText = opcion; 
-                            btn.onclick = () => {
-                                const esCorrecta = ((i + 1) === parseInt(pregunta.correcta));
-                                actividadActual.preguntas[index].respondida = true; intentoActual.resueltas++;
-                                if (esCorrecta) intentoActual.correctas++;
-                                document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
-                                
-                                const boxColor = esCorrecta ? 'bg-[#3E6B4A]/10 border-[#3E6B4A] text-[#3E6B4A]' : 'bg-red-50 border-red-300 text-red-700';
-                                const msjFeedback = pregunta.feedback ? window.escapeHTML(pregunta.feedback) : (esCorrecta ? '¡Muy bien! Sigue prestando atención.' : 'Presta mucha atención a la siguiente parte del video.');
-                                
-                                qBox.innerHTML = `
-                                    <div class="p-8 rounded-2xl border-2 ${boxColor} mb-8 shadow-sm">
-                                        <h4 class="text-3xl font-black mb-4">${esCorrecta ? '¡Respuesta Correcta! ✅' : 'Respuesta Incorrecta ❌'}</h4>
-                                        <p class="text-xl font-medium leading-relaxed">${msjFeedback}</p>
-                                    </div>
-                                    <button id="btn-continuar-video" class="w-full bg-caramel hover-bg-caramel text-white font-bold py-5 px-8 rounded-2xl transition-colors text-2xl shadow-lg border-2 border-[#6B3E21]">Continuar Clase ▶</button>
-                                `;
-                                
-                                document.getElementById('btn-continuar-video').onclick = () => {
-                                    document.getElementById('question-overlay').classList.add('hidden');
-                                    if (intentoActual.resueltas === actividadActual.preguntas.length) mostrarPantallaFinalizacion();
-                                    else player.playVideo();
-                                };
-                            };
-                            contO.appendChild(btn);
-                        });
-                        document.getElementById('question-overlay').classList.remove('hidden');
-                    }
-                });
-            }
-
-            function mostrarPantallaFinalizacion() {
-                const estReflexion = document.getElementById('estudiante-reflexion');
-                if(estReflexion) estReflexion.value = '';
-                const labSection = document.getElementById('estudiante-lab-section');
-                const labInputs = document.getElementById('estudiante-lab-inputs');
-                if(labInputs) labInputs.innerHTML = '';
-
-                if (actividadActual.requiereLaboratorio && actividadActual.laboratorioCampos && actividadActual.laboratorioCampos.length > 0) {
-                    if(labSection) labSection.classList.remove('hidden');
-                    actividadActual.laboratorioCampos.forEach(campo => {
-                        if(labInputs) {
-                            labInputs.innerHTML += `
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-1">${window.escapeHTML(campo)}</label>
-                                    <input type="text" data-campo="${window.escapeHTML(campo)}" class="dyn-lab-input w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-caramel bg-white shadow-sm">
-                                </div>
-                            `;
-                        }
-                    });
-                } else { if(labSection) labSection.classList.add('hidden'); }
-                
-                const finalOv = document.getElementById('final-overlay');
-                if(finalOv) finalOv.classList.remove('hidden');
-            }
-
-            window.guardarEvidenciasYFinalizar = function() {
-                const refEl = document.getElementById('estudiante-reflexion');
-                const reflexion = refEl ? refEl.value.trim() : "";
-                if (!reflexion) { window.mostrarToast("Por favor, ingresa tus aprendizajes.", "warning"); return; }
-
-                let datosLab = null;
-                if (actividadActual.requiereLaboratorio && actividadActual.laboratorioCampos && actividadActual.laboratorioCampos.length > 0) {
-                    datosLab = {};
-                    const inputs = document.querySelectorAll('.dyn-lab-input');
-                    inputs.forEach(inp => { datosLab[inp.getAttribute('data-campo')] = inp.value; });
-                }
-
-                intentoActual.reflexion = reflexion;
-                if (datosLab) intentoActual.laboratorio = datosLab;
-
-                const finalOv = document.getElementById('final-overlay');
-                if(finalOv) finalOv.classList.add('hidden');
-                finalizarActividad();
-            }
-
-            async function finalizarActividad() {
-                localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
-                const notaFinal = (((intentoActual.correctas / actividadActual.preguntas.length) * 4) + 1).toFixed(1);
-                
-                const entrega = {
-                    idEntrega: "ENT_" + Date.now().toString(36).toUpperCase(),
-                    estudianteId: estudianteIdActual, actividadId: actividadActual.id, versionActividad: actividadActual.version || 1,
-                    correctas: intentoActual.correctas, resueltas: intentoActual.resueltas, nota: notaFinal,
-                    fecha: new Date().toLocaleString(),
-                    laboratorio: intentoActual.laboratorio || null, reflexion: intentoActual.reflexion || "",
-                    validador: btoa(notaFinal + "_" + estudianteIdActual + "_CafeLab")
-                };
-                
-                localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, JSON.stringify(entrega));
-                window.volverDashboardEstudiante(); window.mostrarToast(`¡Completado! Nota: ${notaFinal}`, "success");
-
-                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) })
-                    .catch(() => console.log("Nota guardada en caché."));
             }
         });
     </script>
