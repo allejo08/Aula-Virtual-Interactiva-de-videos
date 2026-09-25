@@ -25,13 +25,14 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
+    <!-- OVERLAY DE CARGA -->
     <div id="loading-overlay" class="hidden fixed inset-0 bg-[#F9F7F2]/80 z-[100] flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-caramel mb-4"></div>
         <h2 class="text-2xl font-black text-caramel">Sincronizando con CaféLab...</h2>
-        <p class="text-gray-500 font-medium">Conectando con la base de datos</p>
+        <p class="text-gray-500 font-medium">Descargando datos desde la nube</p>
     </div>
 
-    <!-- PANEL LOGIN -->
+    <!-- LOGIN PANEL -->
     <div id="login-panel" class="flex-grow flex items-center justify-center p-4">
         <div class="glass-card p-10 w-full max-w-lg relative">
             <div class="text-center mb-8">
@@ -57,7 +58,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Código de Estudiante</label>
-                    <input type="text" id="codigo-estudiante" placeholder="Ej: 12254" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg" required>
+                    <input type="text" id="codigo-estudiante" placeholder="Ej: 12254 (Escribe 'ensayo' para prueba)" class="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 outline-none text-lg" required>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-600 mb-1">Contraseña</label>
@@ -110,6 +111,7 @@
         </aside>
 
         <main class="flex-1 p-10 overflow-y-auto h-full">
+            <!-- VISTA: DASHBOARD DOCENTE -->
             <div id="vista-dashboard" class="view-docente block max-w-[1400px] mx-auto">
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-4xl font-black text-[#2B1B12]">Dashboard Analítico</h2>
@@ -166,11 +168,12 @@
                 </div>
             </div>
 
+            <!-- VISTA: REPORTES INTERACTIVOS HTML -->
             <div id="vista-reportes" class="view-docente hidden max-w-[1400px] mx-auto">
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-3xl font-black text-[#2B1B12]" id="titulo-vista-reporte">Reporte de Calificaciones</h2>
                     <div class="flex gap-3">
-                        <button type="button" onclick="window.limpiarNotasLocales()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
+                        <button type="button" onclick="window.limpiarNotasLocales()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm" title="Limpia la caché si borraste la base de datos de Google">
                             🗑️ Limpiar Caché Local
                         </button>
                         <button type="button" onclick="document.getElementById('nav-dashboard').click()" class="bg-white hover:bg-gray-100 text-gray-800 border border-gray-200 px-6 py-2.5 rounded-xl font-bold transition-colors text-sm shadow-sm">
@@ -206,7 +209,7 @@
                                     <th class="px-8 py-5">Grado</th>
                                     <th class="px-8 py-5">Estudiante</th>
                                     <th class="px-8 py-5">Actividad</th>
-                                    <th class="px-8 py-5 text-center">Evidencias / Aprendizajes</th>
+                                    <th class="px-8 py-5 text-center">Evidencias / Evaluación</th>
                                     <th class="px-8 py-5 text-center">Nota Final</th>
                                 </tr>
                             </thead>
@@ -216,6 +219,7 @@
                 </div>
             </div>
 
+            <!-- VISTA: GESTIÓN DE ESTUDIANTES -->
             <div id="vista-estudiantes" class="view-docente hidden max-w-[1400px] mx-auto">
                 <h2 class="text-3xl font-black text-[#2B1B12] mb-8">Gestión de Estudiantes</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -262,6 +266,7 @@
                 </div>
             </div>
 
+            <!-- VISTA: AÑADIR / EDITAR ACTIVIDAD -->
             <div id="vista-actividad" class="view-docente hidden max-w-5xl mx-auto">
                 <h2 class="text-3xl font-black text-[#2B1B12] mb-8" id="titulo-formulario-actividad">Crear Nueva Actividad Interactiva</h2>
                 
@@ -399,14 +404,23 @@
         </div>
     </div>
 
-    <!-- MODAL VISOR DE DETALLES (DOCENTE) -->
+    <!-- MODAL VISOR DE DETALLES Y EVIDENCIAS (COMPARTIDO DOCENTE/ESTUDIANTE) -->
     <div id="view-detalle-overlay" class="hidden fixed inset-0 bg-[#2B1B12]/95 flex flex-col items-center justify-center p-8 z-50">
-        <div class="bg-white border border-[#EAE4D8] p-10 rounded-3xl max-w-2xl w-full shadow-2xl text-[#2B1B12] max-h-[90vh] overflow-y-auto">
+        <div class="bg-white border border-[#EAE4D8] p-10 rounded-3xl max-w-3xl w-full shadow-2xl text-[#2B1B12] max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h3 class="text-2xl font-black text-caramel">Detalle de la Entrega</h3>
+                <h3 class="text-2xl font-black text-caramel">Detalle de la Entrega y Evaluación</h3>
                 <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-gray-500 hover:text-red-500 font-bold text-xl">✕</button>
             </div>
             
+            <!-- Resumen de Nota y Fecha -->
+            <div id="view-detalle-resumen" class="grid grid-cols-2 gap-4 mb-6"></div>
+
+            <!-- Desglose de Preguntas y Respuestas -->
+            <div id="view-detalle-preguntas-container" class="mb-6 hidden">
+                <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">📝 Evaluación y Retroalimentación Detallada</h4>
+                <div id="view-detalle-preguntas-list" class="space-y-4"></div>
+            </div>
+
             <div id="view-detalle-lab-container" class="mb-6 hidden">
                 <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">🧪 Datos de Laboratorio Registrados</h4>
                 <div id="view-detalle-lab-grid" class="grid grid-cols-2 gap-4"></div>
@@ -427,7 +441,7 @@
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwU-4PYRnAFAo7TrNau5QKyXOOntvlzbvIF2IcotVslMjiZI7qloelbuPqwU83NyBnQ/exec';
         const LISTA_GRADOS = ["6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
         
-        let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0 };
+        let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0, respuestas: [] };
         let estudianteIdActual = "", nombreEstudianteActual = "", gradoEstudianteActual = "";
         let idActividadEditando = null, maxTiempoVisto = 0; 
         window.filtroGradoActual = null; window.datosReporteGlobal = [];
@@ -605,18 +619,73 @@
             window.mostrarVistaDocente('vista-actividad');
         };
 
-        window.verDetalleEntrega = function(encodedLab, encodedReflexion) {
-            const reflexion = encodedReflexion && encodedReflexion !== 'null' ? decodeURIComponent(encodedReflexion) : 'El estudiante no registró aprendizajes.';
-            document.getElementById('view-detalle-reflexion').innerText = reflexion;
+        window.verDetalleEntrega = function(encodedData) {
+            if (!encodedData || encodedData === 'null') return;
+            let data;
+            try {
+                data = JSON.parse(decodeURIComponent(encodedData));
+            } catch(e) {
+                console.error("Error decodificando entrega:", e);
+                return;
+            }
 
+            // Resumen de Nota y Fecha
+            const resumenEl = document.getElementById('view-detalle-resumen');
+            if (resumenEl) {
+                const notaNum = parseFloat(data.nota || 0);
+                const notaColor = notaNum >= 3.0 ? 'text-botanical' : 'text-red-500';
+                resumenEl.innerHTML = `
+                    <div class="bg-[#F9F7F2] p-4 rounded-xl border border-[#EAE4D8]">
+                        <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Calificación Final</span>
+                        <span class="text-3xl font-black ${notaColor}">${window.escapeHTML(data.nota != null ? data.nota : '--')}</span>
+                        <span class="text-xs text-gray-500 font-medium ml-1">/ 5.0</span>
+                    </div>
+                    <div class="bg-[#F9F7F2] p-4 rounded-xl border border-[#EAE4D8]">
+                        <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Fecha de Entrega</span>
+                        <span class="text-sm font-bold text-gray-800">${window.escapeHTML(data.fecha || 'No registrada')}</span>
+                    </div>
+                `;
+            }
+
+            // Desglose de Preguntas, Respuestas y Retroalimentación
+            const pregContainer = document.getElementById('view-detalle-preguntas-container');
+            const pregList = document.getElementById('view-detalle-preguntas-list');
+            if (pregContainer && pregList) {
+                if (data.respuestas && Array.isArray(data.respuestas) && data.respuestas.length > 0) {
+                    pregList.innerHTML = '';
+                    data.respuestas.forEach((r, idx) => {
+                        const esOk = r.esCorrecta;
+                        const statusBadge = esOk 
+                            ? `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-[#3E6B4A]/20 text-[#3E6B4A] border border-[#3E6B4A]/30">Correcta ✅</span>`
+                            : `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-red-100 text-red-700 border border-red-200">Incorrecta ❌</span>`;
+                        
+                        pregList.innerHTML += `
+                            <div class="p-4 rounded-xl border ${esOk ? 'border-[#3E6B4A]/30 bg-[#3E6B4A]/5' : 'border-red-200 bg-red-50/40'}">
+                                <div class="flex justify-between items-start gap-2 mb-2">
+                                    <h5 class="font-bold text-sm text-[#2B1B12]">${idx + 1}. ${window.escapeHTML(r.textoPregunta)}</h5>
+                                    ${statusBadge}
+                                </div>
+                                <div class="text-xs space-y-1 mt-2">
+                                    <p class="text-gray-700"><strong>Tu respuesta:</strong> <span class="${esOk ? 'text-botanical font-bold' : 'text-red-600 font-bold'}">${window.escapeHTML(r.opcionSeleccionada)}</span></p>
+                                    ${!esOk ? `<p class="text-gray-700"><strong>Opción correcta:</strong> <span class="text-botanical font-bold">${window.escapeHTML(r.opcionCorrecta)}</span></p>` : ''}
+                                    ${r.feedback ? `<p class="text-gray-600 italic bg-white/70 p-2 rounded-lg mt-2 border border-gray-200">💡 <strong>Retroalimentación:</strong> ${window.escapeHTML(r.feedback)}</p>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    pregContainer.classList.remove('hidden');
+                } else {
+                    pregContainer.classList.add('hidden');
+                }
+            }
+
+            // Laboratorio
             const labGrid = document.getElementById('view-detalle-lab-grid');
             const labContainer = document.getElementById('view-detalle-lab-container');
-            labGrid.innerHTML = '';
-
-            if (encodedLab && encodedLab !== 'null') {
-                try {
-                    const labData = JSON.parse(decodeURIComponent(encodedLab));
-                    for (const [campo, valor] of Object.entries(labData)) {
+            if (labGrid && labContainer) {
+                labGrid.innerHTML = '';
+                if (data.laboratorio && typeof data.laboratorio === 'object' && Object.keys(data.laboratorio).length > 0) {
+                    for (const [campo, valor] of Object.entries(data.laboratorio)) {
                         labGrid.innerHTML += `
                             <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
                                 <span class="block text-xs font-bold text-gray-500 uppercase">${window.escapeHTML(campo)}</span>
@@ -625,10 +694,17 @@
                         `;
                     }
                     labContainer.classList.remove('hidden');
-                } catch(e) { labContainer.classList.add('hidden'); }
-            } else {
-                labContainer.classList.add('hidden');
+                } else {
+                    labContainer.classList.add('hidden');
+                }
             }
+
+            // Reflexión
+            const reflEl = document.getElementById('view-detalle-reflexion');
+            if (reflEl) {
+                reflEl.innerText = data.reflexion || 'El estudiante no registró reflexiones adicionales.';
+            }
+
             document.getElementById('view-detalle-overlay').classList.remove('hidden');
         };
 
@@ -669,16 +745,18 @@
                     if(estObj) nombreEst = estObj.nombre;
 
                     let valObj = localStorage.getItem(key);
-                    let val = 0.0; let labData = null; let refData = "";
+                    let val = 0.0; let labData = null; let refData = ""; let respData = []; let fechaData = "";
                     try { 
                         let parseado = JSON.parse(valObj);
                         val = parseFloat(parseado.nota || valObj); 
                         labData = parseado.laboratorio || null;
                         refData = parseado.reflexion || "";
+                        respData = parseado.respuestas || [];
+                        fechaData = parseado.fecha || "";
                     } catch(e) { val = parseFloat(valObj); }
                     
                     const nombreAct = window.baseActividades.find(a => a.id === actId)?.titulo || actId;
-                    window.datosReporteGlobal.push({ estId: estIdRaw, grado: gradoDetectado, nombreEst, actId, nombreAct, nota: val, lab: labData, reflexion: refData });
+                    window.datosReporteGlobal.push({ estId: estIdRaw, grado: gradoDetectado, nombreEst, actId, nombreAct, nota: val, lab: labData, reflexion: refData, respuestas: respData, fecha: fechaData });
                 }
             }
             
@@ -715,9 +793,15 @@
                 if(d.nota >= 3.0) aprobados++;
                 const color = d.nota >= 3.0 ? 'text-botanical' : 'text-red-500';
                 
-                const safeLab = d.lab ? encodeURIComponent(JSON.stringify(d.lab)) : 'null';
-                const safeRef = encodeURIComponent(d.reflexion || '');
-                const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeLab}', '${safeRef}')" class="text-xs bg-[#EAE4D8] hover:bg-[#D6BCA2] text-caramel font-bold px-3 py-1.5 rounded-lg border border-[#D6BCA2] whitespace-nowrap">Ver Evidencias 👁</button>`;
+                const entregaObj = {
+                    nota: d.nota.toFixed(1),
+                    fecha: d.fecha,
+                    laboratorio: d.lab,
+                    reflexion: d.reflexion,
+                    respuestas: d.respuestas
+                };
+                const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
+                const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-[#EAE4D8] hover:bg-[#D6BCA2] text-caramel font-bold px-3 py-1.5 rounded-lg border border-[#D6BCA2] whitespace-nowrap">Ver Evidencias 👁</button>`;
 
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-100 hover:bg-gray-50">
@@ -789,15 +873,17 @@
                     if(estObj) nombreEst = estObj.nombre;
 
                     let valObj = localStorage.getItem(key);
-                    let val = 0.0; let labData = null; let refData = "";
+                    let val = 0.0; let labData = null; let refData = ""; let respData = []; let fechaData = "";
                     try {
                         let parseado = JSON.parse(valObj);
                         val = parseFloat(parseado.nota || valObj);
                         labData = parseado.laboratorio || null;
                         refData = parseado.reflexion || "";
+                        respData = parseado.respuestas || [];
+                        fechaData = parseado.fecha || "";
                     } catch(e) { val = parseFloat(valObj); }
 
-                    notas.push({ grado: gradoDetectado, nombre: nombreEst, val: val, valStr: val.toFixed(1), lab: labData, reflexion: refData });
+                    notas.push({ grado: gradoDetectado, nombre: nombreEst, val: val, valStr: val.toFixed(1), lab: labData, reflexion: refData, respuestas: respData, fecha: fechaData });
                     totalNotas += val;
                     if (val >= 3.0) aprobados++;
                 }
@@ -809,9 +895,15 @@
             } else {
                 notas.forEach(n => {
                     const color = n.val >= 3.0 ? 'text-botanical' : 'text-red-500';
-                    const safeLab = n.lab ? encodeURIComponent(JSON.stringify(n.lab)) : 'null';
-                    const safeRef = encodeURIComponent(n.reflexion || '');
-                    const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeLab}', '${safeRef}')" class="text-xs bg-[#EAE4D8] hover:bg-[#D6BCA2] text-caramel font-bold px-3 py-1.5 rounded-lg border border-[#D6BCA2] whitespace-nowrap">Ver Evidencias 👁</button>`;
+                    const entregaObj = {
+                        nota: n.valStr,
+                        fecha: n.fecha,
+                        laboratorio: n.lab,
+                        reflexion: n.reflexion,
+                        respuestas: n.respuestas
+                    };
+                    const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
+                    const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-[#EAE4D8] hover:bg-[#D6BCA2] text-caramel font-bold px-3 py-1.5 rounded-lg border border-[#D6BCA2] whitespace-nowrap">Ver Evidencias 👁</button>`;
 
                     tbody.innerHTML += `
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
@@ -1154,7 +1246,7 @@
             const password = document.getElementById('pass-estudiante').value.trim();
             const codigoLower = codigo.toLowerCase();
 
-            // BYPASS UNIVERSAL PARA PRUEBAS
+            // BYPASS DIRECTO PARA PRUEBAS
             if (codigoLower === 'ejemplo' || codigoLower === 'ensayo') {
                 window.mostrarToast("Sesión de Prueba Iniciada", "success");
                 window.iniciarSesionEstudianteLocal(grado, codigo.toUpperCase(), 'Estudiante de Prueba');
@@ -1173,7 +1265,6 @@
                     window.mostrarToast("Sesión iniciada", "success"); 
                     window.iniciarSesionEstudianteLocal(grado, codigo, result.nombre); 
                 } else { 
-                    // Fallback a base local
                     const localEst = window.baseEstudiantes.find(es => String(es.grado) === grado && String(es.codigo).trim().toLowerCase() === codigoLower);
                     if(localEst && String(localEst.pass).trim() === password) {
                         window.mostrarToast("Sesión iniciada (Modo Local)", "success");
@@ -1231,15 +1322,55 @@
                         const notaGuardadaObj = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
                         const seguroTitulo = window.escapeHTML(act.titulo);
                         const seguroId = window.escapeHTML(act.id);
+                        const fechaCreacionAct = window.escapeHTML(act.fechaCreacion || act.fecha || 'Sin fecha');
 
                         if (notaGuardadaObj) {
                             rCount++;
-                            let val = "0.0";
-                            try { let parseado = JSON.parse(notaGuardadaObj); val = window.escapeHTML(parseado.nota || notaGuardadaObj); } catch(e) { val = window.escapeHTML(notaGuardadaObj); }
-                            listaR.innerHTML += `<div class="p-6 bg-white rounded-xl flex justify-between items-center border border-gray-200 shadow-sm"><div><h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4><p class="text-sm text-botanical font-bold mt-1">Completada</p></div><div class="bg-[#F9F7F2] px-5 py-3 rounded-lg border border-[#EAE4D8] text-[#2B1B12] font-black text-xl shadow-inner">${val}</div></div>`;
+                            let entregaObj = {};
+                            try { entregaObj = JSON.parse(notaGuardadaObj); } catch(e) { entregaObj = { nota: notaGuardadaObj }; }
+                            
+                            const val = entregaObj.nota != null ? entregaObj.nota : '0.0';
+                            const fechaRespondida = window.escapeHTML(entregaObj.fecha || 'Fecha no registrada');
+                            const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
+
+                            listaR.innerHTML += `
+                                <div class="p-6 bg-white rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-gray-200 shadow-sm">
+                                    <div>
+                                        <h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4>
+                                        <div class="flex flex-wrap items-center gap-2 mt-1 text-sm text-botanical font-semibold">
+                                            <span>✅ Completada</span>
+                                            <span class="text-gray-400">•</span>
+                                            <span class="text-gray-500 font-normal">📅 Respondida: ${fechaRespondida}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                                        <button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-[#EAE4D8] hover:bg-[#D6BCA2] text-caramel font-bold px-3.5 py-2.5 rounded-lg border border-[#D6BCA2] shadow-sm transition-colors whitespace-nowrap">
+                                            Ver Detalle 👁
+                                        </button>
+                                        <div class="bg-[#F9F7F2] px-4 py-2 rounded-lg border border-[#EAE4D8] text-[#2B1B12] font-black text-xl shadow-inner">
+                                            ${val}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
                         } else if (act.estado === 'Activa') { 
                             pCount++;
-                            listaP.innerHTML += `<div class="p-6 bg-white rounded-xl border border-[#D6BCA2] flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden"><div class="absolute left-0 top-0 w-1.5 h-full bg-caramel"></div><div class="w-full pl-2"><h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4><p class="text-sm text-gray-500 font-medium mt-1">Video Asignado</p></div><button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 bg-caramel hover-bg-caramel text-white px-8 py-4 rounded-xl shadow-md font-bold text-lg">▶ Iniciar</button></div>`;
+                            listaP.innerHTML += `
+                                <div class="p-6 bg-white rounded-xl border border-[#D6BCA2] flex flex-col sm:flex-row justify-between items-center gap-5 shadow-sm relative overflow-hidden">
+                                    <div class="absolute left-0 top-0 w-1.5 h-full bg-caramel"></div>
+                                    <div class="w-full pl-2">
+                                        <h4 class="font-bold text-[#2B1B12] text-xl">${seguroTitulo}</h4>
+                                        <div class="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500 font-medium">
+                                            <span>Video Asignado</span>
+                                            <span>•</span>
+                                            <span>📅 Publicada: ${fechaCreacionAct}</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="w-full sm:w-auto shrink-0 bg-caramel hover-bg-caramel text-white px-8 py-4 rounded-xl shadow-md font-bold text-lg whitespace-nowrap">
+                                        ▶ Iniciar
+                                    </button>
+                                </div>
+                            `;
                         }
                     }
                 });
@@ -1258,7 +1389,8 @@
             document.getElementById('vista-bienvenida-estudiante').classList.add('hidden'); document.getElementById('vista-bienvenida-estudiante').classList.remove('flex');
             document.getElementById('vista-reproductor').classList.remove('hidden'); document.getElementById('vista-reproductor').classList.add('flex');
             document.getElementById('titulo-reproductor').innerText = window.escapeHTML(actividadActual.titulo);
-            intentoActual = { correctas: 0, resueltas: 0 }; document.getElementById('progreso-text').innerText = "0%";
+            intentoActual = { correctas: 0, resueltas: 0, respuestas: [] }; 
+            document.getElementById('progreso-text').innerText = "0%";
             maxTiempoVisto = 0; 
             
             function prepararReproductor() {
@@ -1266,7 +1398,7 @@
                 let tIn = 0;
                 if (estG && confirm("Tienes una sesión guardada. ¿Reanudar?")) {
                     actividadActual.preguntas = estG.preguntas || []; 
-                    intentoActual = estG.intento || { correctas: 0, resueltas: 0 }; 
+                    intentoActual = estG.intento || { correctas: 0, resueltas: 0, respuestas: [] }; 
                     tIn = estG.ultimoTiempo || 0;
                     maxTiempoVisto = estG.maxTiempoVisto || tIn;
                     const totalP = actividadActual.preguntas.length || 1;
@@ -1322,8 +1454,21 @@
                         btn.innerText = opcion; 
                         btn.onclick = () => {
                             const esCorrecta = ((i + 1) === parseInt(pregunta.correcta));
-                            actividadActual.preguntas[index].respondida = true; intentoActual.resueltas++;
+                            actividadActual.preguntas[index].respondida = true; 
+                            intentoActual.resueltas++;
                             if (esCorrecta) intentoActual.correctas++;
+                            
+                            // Registro de respuesta para visor pedagógico
+                            if (!intentoActual.respuestas) intentoActual.respuestas = [];
+                            const optCorrectaTexto = pregunta.opciones[parseInt(pregunta.correcta) - 1] || 'Opción ' + pregunta.correcta;
+                            intentoActual.respuestas.push({
+                                textoPregunta: pregunta.texto,
+                                opcionSeleccionada: opcion,
+                                opcionCorrecta: optCorrectaTexto,
+                                esCorrecta: esCorrecta,
+                                feedback: pregunta.feedback || ""
+                            });
+
                             document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
                             
                             const boxColor = esCorrecta ? 'bg-[#3E6B4A]/10 border-[#3E6B4A] text-[#3E6B4A]' : 'bg-red-50 border-red-300 text-red-700';
@@ -1402,10 +1547,16 @@
             
             const entrega = {
                 idEntrega: "ENT_" + Date.now().toString(36).toUpperCase(),
-                estudianteId: estudianteIdActual, actividadId: actividadActual.id, versionActividad: actividadActual.version || 1,
-                correctas: intentoActual.correctas, resueltas: intentoActual.resueltas, nota: notaFinal,
+                estudianteId: estudianteIdActual, 
+                actividadId: actividadActual.id, 
+                versionActividad: actividadActual.version || 1,
+                correctas: intentoActual.correctas, 
+                resueltas: intentoActual.resueltas, 
+                nota: notaFinal,
                 fecha: new Date().toLocaleString(),
-                laboratorio: intentoActual.laboratorio || null, reflexion: intentoActual.reflexion || "",
+                laboratorio: intentoActual.laboratorio || null, 
+                reflexion: intentoActual.reflexion || "",
+                respuestas: intentoActual.respuestas || [],
                 validador: btoa(notaFinal + "_" + estudianteIdActual + "_CafeLab")
             };
             
