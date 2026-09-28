@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: radial-gradient(130% 120% at 0% 0%, #F5F3FF 0%, #EEF2FF 40%, #FAF5FF 80%, #FDF4FF 100%); color: #0F172A; min-height: 100vh; }
         .sidebar-bg { background: linear-gradient(180deg, #0F172A 0%, #1E1B4B 100%); }
         .glass-card { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(16px); border-radius: 20px; box-shadow: 0 10px 40px -10px rgba(79, 70, 229, 0.08); border: 1px solid rgba(224, 231, 255, 0.8); }
@@ -20,6 +20,30 @@
         .toggle-checkbox:checked { right: 0; border-color: #6366F1; }
         .toggle-checkbox:checked + .toggle-label { background: linear-gradient(135deg, #4F46E5, #7C3AED); }
         .table-container { -webkit-overflow-scrolling: touch; }
+        
+        /* Estilos de lectura por renglón antifatiga visual */
+        .fuente-lectura { font-family: 'Merriweather', Georgia, serif; }
+        .linea-lectura {
+            display: block;
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: background-color 0.25s ease, opacity 0.25s ease, transform 0.2s ease;
+            opacity: 0.45;
+        }
+        .linea-activa {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.14) 0%, rgba(192, 38, 211, 0.14) 100%) !important;
+            border-left: 4px solid #6366F1;
+            opacity: 1 !important;
+            transform: translateX(4px);
+        }
+        .linea-leida {
+            opacity: 0.65;
+        }
+        .palabra-glosario {
+            border-bottom: 2px dashed #818CF8;
+            cursor: pointer;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen antialiased">
@@ -224,8 +248,8 @@
                                     <th class="px-4 sm:px-5 py-3">Grados / Destinos</th>
                                     <th class="px-4 sm:px-5 py-3">Clase / Unidad</th>
                                     <th class="px-4 sm:px-5 py-3">Título Actividad</th>
+                                    <th class="px-4 sm:px-5 py-3 text-center">Tipo</th>
                                     <th class="px-4 sm:px-5 py-3 text-center">Intentos</th>
-                                    <th class="px-4 sm:px-5 py-3 text-center">Laboratorio</th>
                                     <th class="px-4 sm:px-5 py-3 text-center">Estado</th>
                                     <th class="px-4 sm:px-5 py-3 text-right">Acciones</th>
                                 </tr>
@@ -247,6 +271,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <!-- VIDEOS INTERACTIVOS -->
                     <div onclick="window.prepararNuevaActividad()" class="glass-card p-5 sm:p-6 border-2 border-indigo-200 hover:border-indigo-600 cursor-pointer transition-all hover:-translate-y-1 group">
                         <div class="flex items-start justify-between mb-4">
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-md">
@@ -261,6 +286,22 @@
                         </div>
                     </div>
 
+                    <!-- LECTURA INTERACTIVA Y FLUIDEZ -->
+                    <div onclick="window.prepararNuevaActividadLectura()" class="glass-card p-5 sm:p-6 border-2 border-emerald-200 hover:border-emerald-600 cursor-pointer transition-all hover:-translate-y-1 group">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center shadow-md">
+                                <i data-lucide="book-open-check" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                            </div>
+                            <span class="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">Activo</span>
+                        </div>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 mb-1.5 group-hover:text-emerald-600">Lectura Interactiva y Fluidez</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Entrenador de velocidad (WPM) y comprensión lectora con textos científicos, antifatiga y modo inmersivo.</p>
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                            <span>Configurar módulo de lectura</span><i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </div>
+                    </div>
+
+                    <!-- EVALUACIONES Y QUIZZES -->
                     <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
                         <div class="flex items-start justify-between mb-4">
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-fuchsia-500 to-pink-600 text-white flex items-center justify-center opacity-70">
@@ -272,17 +313,7 @@
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">Pruebas tipo Saber con tiempo límite y banco de preguntas automatizado.</p>
                     </div>
 
-                    <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center opacity-70">
-                                <i data-lucide="book-open-check" class="w-5 h-5 sm:w-6 sm:h-6"></i>
-                            </div>
-                            <span class="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">Próximamente</span>
-                        </div>
-                        <h3 class="text-sm sm:text-base font-extrabold text-slate-800 mb-1.5">Lectura Interactiva y Fluidez</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Entrenador de velocidad y comprensión lectora con textos científicos de café.</p>
-                    </div>
-
+                    <!-- TALLERES Y PRÁCTICAS -->
                     <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
                         <div class="flex items-start justify-between mb-4">
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center opacity-70">
@@ -342,7 +373,7 @@
                             <div id="contenedor-grados-destino" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200"></div>
                         </div>
 
-                        <!-- SELECCIÓN Y CREACIÓN DE CLASE / UNIDAD (CARPETA) -->
+                        <!-- SELECCIÓN Y CREACIÓN DE CLASE / UNIDAD -->
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                             <label class="block text-xs font-bold text-slate-700 uppercase flex items-center gap-1.5">
                                 <i data-lucide="folder-plus" class="w-4 h-4 text-indigo-600"></i>
@@ -421,6 +452,95 @@
 
                         <button type="submit" id="btn-submit-actividad" class="w-full histudy-btn py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2">
                             <i data-lucide="save" class="w-4 h-4"></i><span>Guardar Actividad y Publicar</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- VISTA: FORMULARIO ACTIVIDAD LECTURA (NUEVO) -->
+            <div id="vista-actividad-lectura" class="view-docente hidden max-w-4xl mx-auto">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                    <button type="button" onclick="window.mostrarVistaDocente('vista-hub-actividades')" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-all">
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Volver a Módulos</span>
+                    </button>
+                    <span class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">Módulo: Lectura y Fluidez</span>
+                </div>
+
+                <div class="glass-card p-5 sm:p-8">
+                    <h2 class="text-lg sm:text-xl font-black text-slate-900 mb-1" id="titulo-formulario-lectura">Crear Nueva Lectura Interactiva</h2>
+                    <p class="text-xs text-slate-500 mb-5">Configura el texto formativo, glosario técnico y evaluación tipo Saber</p>
+                    
+                    <form id="form-crear-lectura" onsubmit="window.guardarActividadLectura(event)" class="space-y-4">
+                        <div>
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
+                                <label class="block text-xs font-bold text-slate-600 uppercase">Grados Destino</label>
+                                <button type="button" onclick="window.toggleTodosGradosDestinoLectura()" class="text-xs text-emerald-600 font-bold hover:underline text-left sm:text-right">Marcar / Desmarcar Todos</button>
+                            </div>
+                            <div id="contenedor-grados-destino-lectura" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200"></div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                            <label class="block text-xs font-bold text-slate-700 uppercase flex items-center gap-1.5">
+                                <i data-lucide="folder-plus" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Clase / Unidad de Aprendizaje</span>
+                            </label>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <select id="select-clase-existente-lec" onchange="window.gestionarCambioClaseLectura()" class="w-full sm:w-1/2 p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option value="__NUEVA__">+ Crear Nueva Clase...</option>
+                                </select>
+                                <input type="text" id="input-nueva-clase-lec" placeholder="Ej: Fisiología y Densidad" class="w-full sm:w-1/2 p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Título de la Lectura</label>
+                            <input type="text" id="lec-titulo" placeholder="Ej: La Cinética del Secado en Café Especial" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 outline-none text-xs font-semibold focus:ring-2 focus:ring-emerald-500" required>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Velocidad Meta (Palabras por minuto - WPM)</label>
+                                <input type="number" id="lec-wpm" value="165" min="60" max="400" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Intentos Permitidos</label>
+                                <select id="lec-intentos" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option value="1">1 intento</option>
+                                    <option value="2" selected>2 intentos</option>
+                                    <option value="3">3 intentos</option>
+                                    <option value="999">Ilimitados</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Texto de la Lectura (Usa doble Enter para separar párrafos)</label>
+                            <textarea id="lec-texto" rows="7" placeholder="Pega el texto formativo completo aquí..." oninput="window.actualizarConteoPalabrasDocente(this.value)" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 text-xs leading-relaxed outline-none focus:ring-2 focus:ring-emerald-500" required></textarea>
+                            <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1">
+                                <span>El visor segmenta renglones y resalta términos automáticamente.</span>
+                                <span id="lec-contador-palabras" class="font-bold text-emerald-700">0 palabras (~0 seg)</span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 space-y-2">
+                            <label class="block text-xs font-bold text-emerald-950 uppercase flex items-center gap-1.5">
+                                <i data-lucide="bookmark" class="w-3.5 h-3.5 text-emerald-700"></i>
+                                <span>Glosario Técnico (Definiciones flotantes en el texto)</span>
+                            </label>
+                            <div id="contenedor-items-glosario" class="space-y-2"></div>
+                            <button type="button" onclick="window.agregarFilaGlosarioDocente()" class="text-xs text-emerald-700 font-bold hover:underline flex items-center gap-1">+ Añadir término y definición</button>
+                        </div>
+
+                        <div class="border-t border-slate-100 pt-4">
+                            <h3 class="text-xs font-extrabold text-slate-900 uppercase mb-2">Preguntas de Comprensión Lectora</h3>
+                            <div id="contenedor-preguntas-lectura" class="space-y-3 mb-3"></div>
+                            <button type="button" onclick="window.crearBloquePreguntaLecturaDocente()" class="w-full bg-emerald-50 text-emerald-700 border-2 border-dashed border-emerald-200 p-3 rounded-xl text-xs font-bold hover:bg-emerald-100/50 flex items-center justify-center gap-1.5">
+                                <i data-lucide="plus" class="w-4 h-4"></i><span>Añadir Pregunta Saber</span>
+                            </button>
+                        </div>
+
+                        <button type="submit" id="btn-submit-lectura" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md">
+                            <i data-lucide="save" class="w-4 h-4"></i><span>Guardar y Publicar Lectura</span>
                         </button>
                     </form>
                 </div>
@@ -584,7 +704,7 @@
             </div>
         </div>
 
-        <!-- REPRODUCTOR INTERACTIVO -->
+        <!-- REPRODUCTOR INTERACTIVO VIDEO -->
         <div id="vista-reproductor" class="hidden w-full max-w-5xl glass-card p-3 sm:p-6 flex-col min-h-[75vh] md:h-[85vh] mt-1 sm:mt-2">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 sm:mb-4">
                 <div>
@@ -606,7 +726,7 @@
             <div class="relative w-full flex-grow bg-slate-950 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center aspect-video md:aspect-auto">
                 <div id="youtube-player" class="w-full h-full absolute inset-0"></div>
                 
-                <!-- OVERLAY PREGUNTAS -->
+                <!-- OVERLAY PREGUNTAS VIDEO -->
                 <div id="question-overlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-6 z-50 text-white overflow-y-auto">
                     <div class="glass-card p-5 sm:p-8 rounded-2xl max-w-xl w-full text-center shadow-2xl text-slate-900 my-auto" id="question-box"></div>
                 </div>
@@ -619,7 +739,7 @@
         </div>
     </div>
 
-    <!-- MODAL FINALIZACIÓN -->
+    <!-- MODAL FINALIZACIÓN VIDEO -->
     <div id="final-overlay" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-6 z-50 overflow-y-auto">
         <div class="glass-card p-5 sm:p-8 rounded-2xl max-w-xl w-full text-center shadow-2xl text-slate-900 my-auto">
             <h3 class="text-lg sm:text-xl font-black mb-1 text-slate-900">¡Actividad Completada!</h3>
@@ -637,6 +757,90 @@
 
             <button type="button" onclick="window.guardarEvidenciasYFinalizar()" class="w-full histudy-btn py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2">
                 <i data-lucide="send" class="w-4 h-4"></i><span>Guardar Evidencias y Finalizar</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- VISOR INMERSIVO PANTALLA COMPLETA: LECTURA Y FLUIDEZ -->
+    <div id="vista-lector-inmersivo" class="hidden fixed inset-0 z-[80] flex-col bg-[#FBF0D9] text-[#292524] transition-colors duration-200">
+        <!-- HEADER ERGONÓMICO -->
+        <header class="w-full px-4 sm:px-8 py-3.5 flex items-center justify-between border-b border-black/10 bg-white/40 backdrop-blur-md shrink-0">
+            <div class="flex items-center gap-3">
+                <span id="inmersivo-clase-badge" class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">Lectura</span>
+                <h2 id="inmersivo-titulo" class="text-xs sm:text-base font-black truncate max-w-xs sm:max-w-md">Título</h2>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <!-- Selectores de color antifatiga -->
+                <button type="button" onclick="window.setTemaInmersivo('sepia')" class="w-6 h-6 rounded-full bg-[#FBF0D9] border-2 border-amber-400 shadow-xs" title="Modo Sepia"></button>
+                <button type="button" onclick="window.setTemaInmersivo('noche')" class="w-6 h-6 rounded-full bg-[#0F172A] border-2 border-slate-700 shadow-xs" title="Modo Noche"></button>
+                <button type="button" onclick="window.setTemaInmersivo('claro')" class="w-6 h-6 rounded-full bg-white border-2 border-slate-300 shadow-xs" title="Modo Claro"></button>
+                
+                <div class="h-4 w-px bg-black/10 mx-1"></div>
+
+                <!-- Botones de tamaño de fuente -->
+                <button type="button" onclick="window.cambiarTamanoTexto(-2)" class="px-2 py-1 bg-white/70 hover:bg-white text-xs font-bold rounded-lg border border-black/10">A-</button>
+                <button type="button" onclick="window.cambiarTamanoTexto(2)" class="px-2 py-1 bg-white/70 hover:bg-white text-xs font-bold rounded-lg border border-black/10">A+</button>
+                
+                <!-- Fullscreen nativo -->
+                <button type="button" onclick="window.toggleFullScreenNativo()" class="p-1.5 bg-white/70 hover:bg-white rounded-lg border border-black/10 text-xs font-bold" title="Pantalla completa">
+                    <i data-lucide="maximize" class="w-4 h-4" id="icon-fullscreen"></i>
+                </button>
+
+                <button type="button" onclick="window.salirModoLecturaInmersiva()" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg border border-rose-200 text-xs font-bold" title="Pausar y salir">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- LIENZO DE LECTURA (RENGLONES COMPLETOS) -->
+        <main class="flex-1 w-full overflow-y-auto px-4 sm:px-6 py-6 sm:py-10 flex justify-center">
+            <div id="inmersivo-columna-texto" class="w-full max-w-3xl fuente-lectura text-lg sm:text-xl leading-relaxed tracking-wide select-none space-y-5 pb-20"></div>
+        </main>
+
+        <!-- FOOTER INMERSIVO (MÉTRICAS Y CONTROL) -->
+        <footer class="w-full px-4 sm:px-8 py-3 bg-white/60 backdrop-blur-md border-t border-black/10 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-4 text-xs font-bold">
+                <span>Progreso: <strong id="inmersivo-progreso" class="text-indigo-600">0%</strong></span>
+                <span>Tiempo: <strong id="inmersivo-tiempo">00:00</strong></span>
+                <span>Ritmo: <strong id="inmersivo-wpm-display">165 WPM</strong></span>
+                <span class="text-[11px] text-slate-400">Intento <strong id="inmersivo-intento-num">1</strong></span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="button" id="btn-inmersivo-play" onclick="window.toggleReproduccionLectura()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md">
+                    <i data-lucide="play" class="w-4 h-4"></i><span>Iniciar Ritmo</span>
+                </button>
+                <button type="button" id="btn-inmersivo-evaluar" onclick="window.pasarAEvaluacionLectura()" class="hidden px-5 py-2 rounded-xl histudy-btn font-bold text-xs flex items-center gap-2 shadow-md">
+                    <span>Responder Preguntas</span><i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MODAL EVALUACIÓN Y COMPRENSIÓN DE LECTURA -->
+    <div id="modal-evaluacion-lectura" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-6 z-[90] overflow-y-auto">
+        <div class="glass-card p-5 sm:p-8 rounded-2xl max-w-xl w-full shadow-2xl text-slate-900 my-auto max-h-[92vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <div>
+                    <span class="text-[10px] font-black uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Evaluación de Comprensión</span>
+                    <h3 class="text-base sm:text-lg font-black text-slate-900 mt-0.5">Preguntas de Comprensión Lectora</h3>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs font-bold text-slate-400 block">Velocidad real</span>
+                    <strong id="eval-wpm-real" class="text-emerald-600 text-sm">-- WPM</strong>
+                </div>
+            </div>
+
+            <div id="caja-preguntas-lectura-estudiante" class="space-y-4 mb-5"></div>
+
+            <div class="mb-4 text-left">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Síntesis o Análisis de la lectura</label>
+                <textarea id="estudiante-reflexion-lectura" rows="2" placeholder="Escribe brevemente tu conclusión principal..." class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-500" required></textarea>
+            </div>
+
+            <button type="button" onclick="window.finalizarEvaluacionLectura()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md">
+                <i data-lucide="send" class="w-4 h-4"></i><span>Calificar y Registrar Lectura</span>
             </button>
         </div>
     </div>
@@ -659,7 +863,7 @@
                 <div id="view-detalle-lab-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
             </div>
             <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 mb-4">
-                <span class="block text-xs font-extrabold text-indigo-950 uppercase mb-1">Aprendizajes</span>
+                <span class="block text-xs font-extrabold text-indigo-950 uppercase mb-1">Aprendizajes / Síntesis</span>
                 <p class="text-slate-700 font-medium text-xs whitespace-pre-wrap leading-relaxed" id="view-detalle-reflexion">--</p>
             </div>
             <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 py-2.5 rounded-xl font-bold text-xs">Cerrar Detalle</button>

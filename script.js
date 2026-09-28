@@ -2,7 +2,6 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwU-4PYRnAFAo7TrNau5
 const LISTA_GRADOS = ["6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
 const OPCIONES_DESTINO = ["Docente", "6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
 
-// Paleta de degradados para distinguir clases visualmente
 const CLASE_GRADIENTES = [
     { bg: 'from-indigo-600 to-purple-600', border: 'border-indigo-200', text: 'text-indigo-600', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
     { bg: 'from-emerald-600 to-teal-600', border: 'border-emerald-200', text: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
@@ -18,6 +17,16 @@ let idActividadEditando = null, maxTiempoVisto = 0;
 window.filtroGradoActual = null; 
 window.reporteActividadActualId = null;
 window.datosReporteGlobal = [];
+
+/* VARIABLES MOTOR DE LECTURA POR RENGLÓN */
+let lineasLecturaArray = [];
+let palabrasLecturaArray = [];
+let indiceLineaLector = 0;
+let timeoutLineaPacer = null;
+let estadoLecturaPausada = true;
+let segundosTranscurridosLectura = 0;
+let cronometroLecturaInterval = null;
+let tamanoFuenteLectura = 20;
 
 window.baseActividades = [];
 try { const temp = JSON.parse(localStorage.getItem('cafelab_actividades')); if (Array.isArray(temp)) window.baseActividades = temp; } catch(e) {}
@@ -101,7 +110,7 @@ window.mostrarVistaDocente = function(idVista) {
     
     let btnId = null;
     if (idVista === 'vista-dashboard') btnId = 'nav-dashboard';
-    else if (idVista === 'vista-hub-actividades' || idVista === 'vista-actividad') btnId = 'nav-actividad';
+    else if (idVista === 'vista-hub-actividades' || idVista === 'vista-actividad' || idVista === 'vista-actividad-lectura') btnId = 'nav-actividad';
     else if (idVista === 'vista-estudiantes') btnId = 'nav-estudiantes';
 
     if(btnId) {
@@ -111,8 +120,8 @@ window.mostrarVistaDocente = function(idVista) {
     window.renderLucide();
 };
 
-window.renderSelectoresGradosDestino = function(seleccionados = []) {
-    const cont = document.getElementById('contenedor-grados-destino');
+window.renderSelectoresGradosDestino = function(seleccionados = [], containerId = 'contenedor-grados-destino') {
+    const cont = document.getElementById(containerId);
     if (!cont) return;
     cont.innerHTML = '';
     const todosMarcados = seleccionados.includes('Todos');
@@ -121,9 +130,10 @@ window.renderSelectoresGradosDestino = function(seleccionados = []) {
         const isChecked = todosMarcados || seleccionados.includes(opt);
         const isDocente = opt === 'Docente';
         const labelColor = isDocente ? 'text-purple-700 bg-purple-50 border-purple-200' : 'text-slate-800 bg-white border-slate-200';
+        const fnChange = containerId === 'contenedor-grados-destino' ? 'window.actualizarSelectClasesFormulario()' : 'window.actualizarSelectClasesLectura()';
         cont.innerHTML += `
             <label class="flex items-center gap-1.5 p-2 rounded-lg border ${labelColor} cursor-pointer hover:border-indigo-400 text-xs font-bold select-none">
-                <input type="checkbox" value="${opt}" onchange="window.actualizarSelectClasesFormulario()" class="checkbox-grado-destino rounded text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5" ${isChecked ? 'checked' : ''}>
+                <input type="checkbox" value="${opt}" onchange="${fnChange}" class="checkbox-grado-${containerId} rounded text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5" ${isChecked ? 'checked' : ''}>
                 <span>${isDocente ? '⭐ Docente' : opt}</span>
             </label>
         `;
@@ -131,28 +141,33 @@ window.renderSelectoresGradosDestino = function(seleccionados = []) {
 };
 
 window.toggleTodosGradosDestino = function() {
-    const boxes = document.querySelectorAll('.checkbox-grado-destino');
+    const boxes = document.querySelectorAll('.checkbox-grado-contenedor-grados-destino');
     const algunDesmarcado = Array.from(boxes).some(b => !b.checked);
     boxes.forEach(b => b.checked = algunDesmarcado);
     window.actualizarSelectClasesFormulario();
 };
 
-/* GESTIÓN DE CLASES EN EL FORMULARIO DOCENTE */
+window.toggleTodosGradosDestinoLectura = function() {
+    const boxes = document.querySelectorAll('.checkbox-grado-contenedor-grados-destino-lectura');
+    const algunDesmarcado = Array.from(boxes).some(b => !b.checked);
+    boxes.forEach(b => b.checked = algunDesmarcado);
+    window.actualizarSelectClasesLectura();
+};
+
+/* GESTIÓN DE CLASES EN FORMULARIOS DOCENTE */
 window.actualizarSelectClasesFormulario = function(claseSeleccionada = '') {
     const select = document.getElementById('select-clase-existente');
     const inputNueva = document.getElementById('input-nueva-clase');
     if(!select || !inputNueva) return;
 
-    const checkedBoxes = document.querySelectorAll('.checkbox-grado-destino:checked');
+    const checkedBoxes = document.querySelectorAll('.checkbox-grado-contenedor-grados-destino:checked');
     const grados = Array.from(checkedBoxes).map(cb => cb.value);
 
     const clasesSet = new Set();
     window.baseActividades.forEach(act => {
         if (!act.clase || !act.clase.trim()) return;
         const coincide = act.grados && act.grados.some(g => grados.includes(g) || grados.includes('Todos') || g === 'Todos');
-        if (coincide || grados.length === 0) {
-            clasesSet.add(act.clase.trim());
-        }
+        if (coincide || grados.length === 0) clasesSet.add(act.clase.trim());
     });
 
     select.innerHTML = '<option value="__NUEVA__">+ Crear Nueva Clase...</option>';
@@ -191,6 +206,54 @@ window.gestionarCambioClase = function() {
     }
 };
 
+/* GESTIÓN DE CLASES FORMULARIO LECTURA */
+window.actualizarSelectClasesLectura = function(claseSeleccionada = '') {
+    const select = document.getElementById('select-clase-existente-lec');
+    const inputNueva = document.getElementById('input-nueva-clase-lec');
+    if(!select || !inputNueva) return;
+
+    const checkedBoxes = document.querySelectorAll('.checkbox-grado-contenedor-grados-destino-lectura:checked');
+    const grados = Array.from(checkedBoxes).map(cb => cb.value);
+
+    const clasesSet = new Set();
+    window.baseActividades.forEach(act => {
+        if (!act.clase || !act.clase.trim()) return;
+        const coincide = act.grados && act.grados.some(g => grados.includes(g) || grados.includes('Todos') || g === 'Todos');
+        if (coincide || grados.length === 0) clasesSet.add(act.clase.trim());
+    });
+
+    select.innerHTML = '<option value="__NUEVA__">+ Crear Nueva Clase...</option>';
+    clasesSet.forEach(cl => {
+        const sel = (cl === claseSeleccionada) ? 'selected' : '';
+        select.innerHTML += `<option value="${window.escapeHTML(cl)}" ${sel}>Clase: ${window.escapeHTML(cl)}</option>`;
+    });
+
+    if (claseSeleccionada && clasesSet.has(claseSeleccionada)) {
+        select.value = claseSeleccionada;
+        inputNueva.classList.add('hidden');
+        inputNueva.value = claseSeleccionada;
+    } else {
+        select.value = '__NUEVA__';
+        inputNueva.classList.remove('hidden');
+        inputNueva.value = claseSeleccionada || '';
+    }
+};
+
+window.gestionarCambioClaseLectura = function() {
+    const select = document.getElementById('select-clase-existente-lec');
+    const inputNueva = document.getElementById('input-nueva-clase-lec');
+    if (!select || !inputNueva) return;
+    if (select.value === '__NUEVA__') {
+        inputNueva.classList.remove('hidden');
+        inputNueva.value = '';
+        inputNueva.focus();
+    } else {
+        inputNueva.classList.add('hidden');
+        inputNueva.value = select.value;
+    }
+};
+
+/* DASHBOARD DOCENTE */
 window.renderDashboardDocente = function(filtroGrado = null) {
     window.filtroGradoActual = filtroGrado; 
     window.mostrarVistaDocente('vista-dashboard');
@@ -279,17 +342,20 @@ window.renderDashboardDocente = function(filtroGrado = null) {
             const badge = act.estado === 'Activa' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200';
             const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
             const seguroId = window.escapeHTML(act.id);
-            const labelLab = act.requiereLaboratorio ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Sí</span>' : '<span class="text-[10px] text-slate-400">No</span>';
             const claseNombre = act.clase ? window.escapeHTML(act.clase) : '<span class="text-slate-400 italic">General</span>';
             const intentosTxt = (act.evaluacion && act.evaluacion.intentosPermitidos >= 999) ? 'Ilimitados' : ((act.evaluacion && act.evaluacion.intentosPermitidos) || 1);
+            const esLectura = act.tipo === 'lectura';
+            const tipoBadge = esLectura 
+                ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">📖 Lectura</span>'
+                : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">🎬 Video</span>';
 
             tabla.innerHTML += `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-4 sm:px-5 py-3 font-extrabold text-slate-900">${window.escapeHTML(act.grados.join(', '))}</td>
                     <td class="px-4 sm:px-5 py-3 font-bold text-indigo-700">${claseNombre}</td>
                     <td class="px-4 sm:px-5 py-3 font-bold text-slate-800">${window.escapeHTML(act.titulo)}</td>
+                    <td class="px-4 sm:px-5 py-3 text-center">${tipoBadge}</td>
                     <td class="px-4 sm:px-5 py-3 text-center font-bold text-slate-600">${intentosTxt}</td>
-                    <td class="px-4 sm:px-5 py-3 text-center">${labelLab}</td>
                     <td class="px-4 sm:px-5 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${badge}">${window.escapeHTML(act.estado)}</span></td>
                     <td class="px-4 sm:px-5 py-3 text-right space-x-1 whitespace-nowrap">
                         <button type="button" onclick="window.toggleEstadoActividad('${seguroId}')" class="text-[11px] font-bold text-slate-600 border border-slate-200 bg-white px-2.5 py-1 rounded-lg hover:bg-slate-50">${btnEstado}</button>
@@ -340,6 +406,7 @@ window.sincronizarConNube = async function() {
     }
 };
 
+/* ACTIVIDADES VIDEO INTERACTIVO */
 window.prepararNuevaActividad = function() {
     idActividadEditando = null;
     const formAct = document.getElementById('form-crear-actividad');
@@ -363,6 +430,34 @@ window.prepararNuevaActividad = function() {
 window.editarActividad = function(idActividad) {
     const act = window.baseActividades.find(a => a.id === idActividad);
     if(!act) return;
+
+    if (act.tipo === 'lectura') {
+        idActividadEditando = act.id;
+        document.getElementById('titulo-formulario-lectura').innerText = "Editar Lectura Interactiva";
+        document.getElementById('lec-titulo').value = act.titulo;
+        document.getElementById('lec-wpm').value = act.lectura?.wpmSugerido || 165;
+        document.getElementById('lec-intentos').value = (act.evaluacion?.intentosPermitidos || 2).toString();
+        document.getElementById('lec-texto').value = act.lectura?.texto || '';
+        window.actualizarConteoPalabrasDocente(act.lectura?.texto || '');
+        
+        window.renderSelectoresGradosDestino(act.grados || [], 'contenedor-grados-destino-lectura');
+        window.actualizarSelectClasesLectura(act.clase || '');
+
+        const contGlo = document.getElementById('contenedor-items-glosario');
+        contGlo.innerHTML = '';
+        if(act.lectura?.glosario) {
+            act.lectura.glosario.forEach(g => window.agregarFilaGlosarioDocente(g.termino, g.def));
+        }
+
+        const contP = document.getElementById('contenedor-preguntas-lectura');
+        contP.innerHTML = '';
+        if(act.preguntas) {
+            act.preguntas.forEach(p => window.crearBloquePreguntaLecturaDocente(p.texto, p.opciones, p.correcta, p.feedback));
+        }
+        window.mostrarVistaDocente('vista-actividad-lectura');
+        return;
+    }
+
     idActividadEditando = act.id;
     document.getElementById('titulo-formulario-actividad').innerText = "Editar Actividad Interactiva";
     document.getElementById('btn-submit-actividad').innerText = "Actualizar Actividad";
@@ -488,7 +583,7 @@ window.guardarActividad = async function(e) {
     if(btnSubmit) btnSubmit.disabled = true;
 
     try {
-        const checkedBoxes = document.querySelectorAll('.checkbox-grado-destino:checked');
+        const checkedBoxes = document.querySelectorAll('.checkbox-grado-contenedor-grados-destino:checked');
         let gradosSeleccionados = Array.from(checkedBoxes).map(cb => cb.value);
         if (gradosSeleccionados.length === 0) {
             window.mostrarToast("Selecciona al menos un grado o Docente", "warning");
@@ -579,7 +674,184 @@ window.guardarActividad = async function(e) {
     }
 };
 
-/* MODAL Y PARSER CSV */
+/* GESTIÓN DOCENTE: LECTURA Y FLUIDEZ */
+window.prepararNuevaActividadLectura = function() {
+    idActividadEditando = null;
+    const form = document.getElementById('form-crear-lectura');
+    if (form) form.reset();
+    
+    const tit = document.getElementById('titulo-formulario-lectura');
+    if (tit) tit.innerText = "Crear Nueva Lectura Interactiva";
+    
+    const contGlo = document.getElementById('contenedor-items-glosario');
+    if (contGlo) contGlo.innerHTML = '';
+    
+    const contPreg = document.getElementById('contenedor-preguntas-lectura');
+    if (contPreg) contPreg.innerHTML = '';
+    
+    window.actualizarConteoPalabrasDocente('');
+    window.renderSelectoresGradosDestino([], 'contenedor-grados-destino-lectura');
+    window.actualizarSelectClasesLectura('');
+    window.agregarFilaGlosarioDocente();
+    window.crearBloquePreguntaLecturaDocente();
+    
+    window.mostrarVistaDocente('vista-actividad-lectura');
+};
+
+window.actualizarConteoPalabrasDocente = function(texto) {
+    const palabras = texto && texto.trim() ? texto.trim().split(/\s+/).length : 0;
+    const wpmInput = document.getElementById('lec-wpm');
+    const wpm = wpmInput ? (parseInt(wpmInput.value) || 165) : 165;
+    const seg = Math.round((palabras / wpm) * 60);
+    const cont = document.getElementById('lec-contador-palabras');
+    if (cont) cont.innerText = `${palabras} palabras (~${seg} seg a ${wpm} WPM)`;
+};
+
+window.agregarFilaGlosarioDocente = function(term='', def='') {
+    const cont = document.getElementById('contenedor-items-glosario');
+    if (!cont) return;
+    const div = document.createElement('div');
+    div.className = "flex flex-col sm:flex-row gap-2 items-center bg-white p-2 rounded-lg border border-slate-200";
+    div.innerHTML = `
+        <input type="text" placeholder="Término (ej: endospermo)" value="${window.escapeHTML(term)}" class="glo-term w-full sm:w-1/3 p-2 border border-slate-200 rounded-md text-xs font-bold text-slate-800">
+        <input type="text" placeholder="Definición pedagógica..." value="${window.escapeHTML(def)}" class="glo-def w-full sm:w-2/3 p-2 border border-slate-200 rounded-md text-xs">
+        <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 font-bold p-1 text-xs">✕</button>
+    `;
+    cont.appendChild(div);
+};
+
+window.crearBloquePreguntaLecturaDocente = function(texto='', opts=[], corr='1', fdbk='') {
+    const cont = document.getElementById('contenedor-preguntas-lectura');
+    if (!cont) return;
+    const div = document.createElement('div');
+    div.className = "p-3 sm:p-4 border border-slate-200 rounded-xl bg-slate-50 relative mt-2";
+
+    const opt1 = window.escapeHTML(opts[0] || '');
+    const opt2 = window.escapeHTML(opts[1] || '');
+    const opt3 = window.escapeHTML(opts[2] || '');
+    const opt4 = window.escapeHTML(opts[3] || '');
+    const cStr = String(corr);
+
+    div.innerHTML = `
+        <button type="button" class="absolute top-2 right-2 text-rose-600 font-bold p-1 text-xs" onclick="this.parentElement.remove()">✕ Quitar</button>
+        <div class="mb-2 mt-4 sm:mt-1 space-y-1">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase">Pregunta Tipo Saber</label>
+            <input type="text" value="${window.escapeHTML(texto)}" class="q-lec-text w-full p-2 border border-slate-200 rounded-lg bg-white text-xs font-semibold" required>
+            <input type="text" placeholder="Retroalimentación formativa..." value="${window.escapeHTML(fdbk)}" class="q-lec-feedback w-full p-2 border border-slate-200 rounded-lg bg-white text-xs">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+            <input type="text" placeholder="Opción 1" value="${opt1}" class="q-lec-opt1 p-2 border border-slate-200 rounded-lg bg-white text-xs" required>
+            <input type="text" placeholder="Opción 2" value="${opt2}" class="q-lec-opt2 p-2 border border-slate-200 rounded-lg bg-white text-xs" required>
+            <input type="text" placeholder="Opción 3" value="${opt3}" class="q-lec-opt3 p-2 border border-slate-200 rounded-lg bg-white text-xs">
+            <input type="text" placeholder="Opción 4" value="${opt4}" class="q-lec-opt4 p-2 border border-slate-200 rounded-lg bg-white text-xs">
+        </div>
+        <div class="flex items-center gap-2">
+            <label class="text-[10px] font-bold text-slate-500 uppercase">Opción Correcta:</label>
+            <select class="q-lec-correct p-1.5 border border-slate-200 rounded-lg bg-white text-xs font-bold text-emerald-700">
+                <option value="1" ${cStr === '1' ? 'selected' : ''}>Opción 1</option>
+                <option value="2" ${cStr === '2' ? 'selected' : ''}>Opción 2</option>
+                <option value="3" ${cStr === '3' ? 'selected' : ''}>Opción 3</option>
+                <option value="4" ${cStr === '4' ? 'selected' : ''}>Opción 4</option>
+            </select>
+        </div>
+    `;
+    cont.appendChild(div);
+};
+
+window.guardarActividadLectura = async function(e) {
+    e.preventDefault();
+    const btnSubmit = document.getElementById('btn-submit-lectura');
+    if(btnSubmit) btnSubmit.disabled = true;
+
+    try {
+        const checkedBoxes = document.querySelectorAll('.checkbox-grado-contenedor-grados-destino-lectura:checked');
+        let gradosSeleccionados = Array.from(checkedBoxes).map(cb => cb.value);
+        if (gradosSeleccionados.length === 0) {
+            window.mostrarToast("Selecciona al menos un grado o Docente", "warning");
+            if(btnSubmit) btnSubmit.disabled = false;
+            return;
+        }
+        if (gradosSeleccionados.length === OPCIONES_DESTINO.length) gradosSeleccionados = ['Todos', ...OPCIONES_DESTINO];
+
+        let nombreClaseFinal = document.getElementById('input-nueva-clase-lec').value.trim();
+        if (!nombreClaseFinal) {
+            const selClase = document.getElementById('select-clase-existente-lec').value;
+            if (selClase !== '__NUEVA__') nombreClaseFinal = selClase;
+        }
+        if (!nombreClaseFinal) nombreClaseFinal = "General";
+
+        const titulo = document.getElementById('lec-titulo').value.trim();
+        const wpm = parseInt(document.getElementById('lec-wpm').value) || 165;
+        const intentos = parseInt(document.getElementById('lec-intentos').value) || 2;
+        const texto = document.getElementById('lec-texto').value.trim();
+
+        const glosario = [];
+        document.querySelectorAll('#contenedor-items-glosario > div').forEach(row => {
+            const term = row.querySelector('.glo-term').value.trim();
+            const def = row.querySelector('.glo-def').value.trim();
+            if (term && def) glosario.push({ termino: term, def: def });
+        });
+
+        const preguntas = [];
+        document.querySelectorAll('#contenedor-preguntas-lectura > div').forEach(row => {
+            const txt = row.querySelector('.q-lec-text').value.trim();
+            const fdbk = row.querySelector('.q-lec-feedback').value.trim();
+            const o1 = row.querySelector('.q-lec-opt1').value.trim();
+            const o2 = row.querySelector('.q-lec-opt2').value.trim();
+            const o3 = row.querySelector('.q-lec-opt3').value.trim();
+            const o4 = row.querySelector('.q-lec-opt4').value.trim();
+            const corr = parseInt(row.querySelector('.q-lec-correct').value) || 1;
+            
+            const opciones = [o1, o2, o3, o4].filter(Boolean);
+            if (txt && opciones.length >= 2) {
+                preguntas.push({ texto: txt, opciones, correcta: corr, feedback: fdbk });
+            }
+        });
+
+        let payload = null;
+        if (idActividadEditando) {
+            const idx = window.baseActividades.findIndex(a => a.id === idActividadEditando);
+            if(idx !== -1) {
+                window.baseActividades[idx].grados = gradosSeleccionados;
+                window.baseActividades[idx].clase = nombreClaseFinal;
+                window.baseActividades[idx].titulo = titulo;
+                window.baseActividades[idx].evaluacion = { intentosPermitidos: intentos, notaMinima: 3.0 };
+                window.baseActividades[idx].lectura = { wpmSugerido: wpm, texto, glosario };
+                window.baseActividades[idx].preguntas = preguntas;
+                payload = window.baseActividades[idx];
+            }
+        } else {
+            const nuevoId = "ACT_LEC_" + Date.now().toString(36).toUpperCase();
+            const d = new Date();
+            const nueva = {
+                id: nuevoId,
+                tipo: "lectura",
+                version: 1,
+                clase: nombreClaseFinal,
+                titulo: titulo,
+                grados: gradosSeleccionados,
+                estado: "Activa",
+                fechaCreacion: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
+                evaluacion: { intentosPermitidos: intentos, notaMinima: 3.0 },
+                lectura: { wpmSugerido: wpm, texto, glosario },
+                preguntas: preguntas
+            };
+            window.baseActividades.push(nueva);
+            payload = nueva;
+        }
+
+        localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
+        window.mostrarToast("Lectura guardada con éxito", "success");
+        document.getElementById('nav-dashboard').click();
+        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload }) }).catch(()=>{});
+    } catch(e) {
+        window.mostrarToast("Error al guardar lectura", "error");
+    } finally {
+        if(btnSubmit) btnSubmit.disabled = false;
+    }
+};
+
+/* MODAL Y PARSER CSV (VIDEOS Y LECTURAS) */
 window.abrirModalPegarCSV = function() {
     const modal = document.getElementById('modal-pegar-csv');
     const txtArea = document.getElementById('texto-pegar-csv');
@@ -651,7 +923,65 @@ window.procesarTextoCSV = function(csvText) {
     };
 
     const primera = filas[1];
-    
+    const tipo = getVal(primera, 'tipo').toLowerCase();
+
+    // RUTA 1: IMPORTAR LECTURA INTERACTIVA
+    if (tipo === 'lectura' || headers.includes('texto')) {
+        const rawGlosario = getVal(primera, 'glosario');
+        const glosarioArray = [];
+        if (rawGlosario) {
+            rawGlosario.split(';').forEach(par => {
+                const parts = par.split(':');
+                if (parts.length >= 2) glosarioArray.push({ termino: parts[0].trim(), def: parts.slice(1).join(':').trim() });
+            });
+        }
+
+        const preguntas = [];
+        for (let i = 1; i < filas.length; i++) {
+            const pTexto = getVal(filas[i], 'pregunta');
+            if (pTexto) {
+                preguntas.push({
+                    texto: pTexto,
+                    opciones: [
+                        getVal(filas[i], 'opcion1'),
+                        getVal(filas[i], 'opcion2'),
+                        getVal(filas[i], 'opcion3'),
+                        getVal(filas[i], 'opcion4')
+                    ].filter(Boolean),
+                    correcta: parseInt(getVal(filas[i], 'correcta')) || 1,
+                    feedback: getVal(filas[i], 'feedback') || ''
+                });
+            }
+        }
+
+        const d = new Date();
+        const nuevaLectura = {
+            id: "ACT_LEC_" + Date.now().toString(36).toUpperCase(),
+            tipo: "lectura",
+            version: 1,
+            clase: getVal(primera, 'clase') || 'General',
+            titulo: getVal(primera, 'titulo'),
+            grados: getVal(primera, 'grados').split(';').map(g => g.trim()).filter(Boolean),
+            estado: "Activa",
+            fechaCreacion: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
+            evaluacion: { intentosPermitidos: parseInt(getVal(primera, 'intentos')) || 2, notaMinima: 3.0 },
+            lectura: {
+                wpmSugerido: parseInt(getVal(primera, 'wpm')) || 165,
+                texto: getVal(primera, 'texto').replace(/\\n/g, '\n'),
+                glosario: glosarioArray
+            },
+            preguntas: preguntas
+        };
+
+        window.baseActividades.push(nuevaLectura);
+        localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
+        window.renderDashboardDocente(window.filtroGradoActual);
+        window.mostrarToast(`Lectura "${nuevaLectura.titulo}" importada con éxito`, "success");
+        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload: nuevaLectura }) }).catch(()=>{});
+        return;
+    }
+
+    // RUTA 2: IMPORTAR VIDEO INTERACTIVO
     document.getElementById('titulo-clase').value = getVal(primera, 'titulo');
     document.getElementById('url-video').value = getVal(primera, 'youtube_url');
     document.getElementById('objetivo-actividad').value = getVal(primera, 'objetivo');
@@ -702,39 +1032,58 @@ window.procesarTextoCSV = function(csvText) {
     window.renderLucide();
 };
 
+/* AUTENTICACIÓN Y ROLES: LOGIN DOCENTE */
 window.loginDocente = async function(e) {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
     const btnSubmit = document.getElementById('btn-submit-docente');
-    if(btnSubmit) btnSubmit.disabled = true;
-    const password = document.getElementById('pass-docente').value.trim();
+    const inputPass = document.getElementById('pass-docente');
+    if (!inputPass) return;
+    
+    const password = inputPass.value.trim();
+    if (!password) {
+        window.mostrarToast("Por favor ingresa la contraseña", "warning");
+        return;
+    }
+
+    if (btnSubmit) btnSubmit.disabled = true;
+
+    const abrirPanelAdmin = () => {
+        const loginPanel = document.getElementById('login-panel');
+        const panelDoc = document.getElementById('panel-docente');
+        if (loginPanel) loginPanel.classList.add('hidden');
+        if (panelDoc) {
+            panelDoc.classList.remove('hidden');
+            panelDoc.classList.add('flex');
+        }
+        window.renderDashboardDocente(window.filtroGradoActual);
+        window.mostrarToast("Bienvenido al Dashboard Administrador", "success");
+    };
+
+    // Acceso inmediato por clave maestra offline / respaldo
+    if (password === "AdminCafeLab") {
+        abrirPanelAdmin();
+        if (btnSubmit) btnSubmit.disabled = false;
+        window.sincronizarConNube().catch(() => {});
+        return;
+    }
 
     try {
-        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'validarDocente', password: password }) });
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'validarDocente', password: password })
+        });
         const result = await response.json();
-        if(result.success) {
-            document.getElementById('login-panel').classList.add('hidden');
-            document.getElementById('panel-docente').classList.remove('hidden');
-            document.getElementById('panel-docente').classList.add('flex');
-            window.sincronizarConNube(); 
-        } else if(password === "AdminCafeLab") {
-            document.getElementById('login-panel').classList.add('hidden');
-            document.getElementById('panel-docente').classList.remove('hidden');
-            document.getElementById('panel-docente').classList.add('flex');
-            window.renderDashboardDocente(window.filtroGradoActual);
+        
+        if (result && result.success) {
+            abrirPanelAdmin();
+            window.sincronizarConNube().catch(() => {});
         } else {
-            window.mostrarToast(result.error || "Contraseña incorrecta", "error"); 
+            window.mostrarToast(result.error || "Contraseña incorrecta", "error");
         }
-    } catch(error) {
-        if(password === "AdminCafeLab") {
-            document.getElementById('login-panel').classList.add('hidden');
-            document.getElementById('panel-docente').classList.remove('hidden');
-            document.getElementById('panel-docente').classList.add('flex');
-            window.renderDashboardDocente(window.filtroGradoActual);
-        } else {
-            window.mostrarToast("Error de conexión", "error");
-        }
+    } catch (error) {
+        window.mostrarToast("Error de conexión. Si usas la clave maestra usa: AdminCafeLab", "error");
     } finally {
-        if(btnSubmit) btnSubmit.disabled = false;
+        if (btnSubmit) btnSubmit.disabled = false;
     }
 };
 
@@ -792,6 +1141,7 @@ window.renderEstudiantesLocales = function() {
     });
 };
 
+/* REPORTES Y CALIFICACIONES */
 window.generarReporteGlobal = function() {
     window.reporteActividadActualId = null;
     document.getElementById('titulo-vista-reporte').innerText = "Reporte Global";
@@ -808,8 +1158,9 @@ window.generarReporteGlobal = function() {
         const key = localStorage.key(i);
         if (key.startsWith('nota_')) {
             const raw = key.replace('nota_', '');
-            const estIdRaw = raw.split('_ACT_')[0]; 
-            const actId = 'ACT_' + raw.split('_ACT_')[1];
+            const separator = raw.includes('_ACT_LEC_') ? '_ACT_LEC_' : '_ACT_';
+            const estIdRaw = raw.split(separator)[0]; 
+            const actId = (separator === '_ACT_LEC_' ? 'ACT_LEC_' : 'ACT_') + raw.split(separator)[1];
             
             let gradoDetectado = "Desconocido", codigoDetectado = estIdRaw;
             for(let g of LISTA_GRADOS) {
@@ -824,7 +1175,7 @@ window.generarReporteGlobal = function() {
             let valObj = localStorage.getItem(key);
             let val = 0.0, labData = null, refData = "", respData = [], fechaData = "", numIntento = 1;
             try { 
-                let parseado = JSON.parse(valObj);
+                let parseado = JSON.parse(valObj); 
                 val = parseFloat(parseado.nota || valObj); 
                 labData = parseado.laboratorio || null;
                 refData = parseado.reflexion || "";
@@ -871,7 +1222,6 @@ window.actualizarFiltrosReporte = function() {
         const color = d.nota >= 3.0 ? 'text-emerald-600' : 'text-rose-600';
         const entregaObj = { nota: d.nota.toFixed(1), fecha: d.fecha, laboratorio: d.lab, reflexion: d.reflexion, respuestas: d.respuestas, numeroIntento: d.numIntento };
         const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
-        // En vista docente siempre se permite ver evidencias completas
         const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}', true)" class="text-xs bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-lg border border-indigo-200">Ver Evidencias</button>`;
 
         tbody.innerHTML += `
@@ -939,7 +1289,8 @@ window.generarReporteActividad = function(idActividad) {
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key.startsWith('nota_') && key.includes(idActividad)) {
-            const estIdRaw = key.replace('nota_', '').split('_ACT_')[0];
+            const separator = idActividad.startsWith('ACT_LEC_') ? '_ACT_LEC_' : '_ACT_';
+            const estIdRaw = key.replace('nota_', '').split(separator)[0];
             if (window.filtroGradoActual && !estIdRaw.startsWith(window.filtroGradoActual + '-')) continue; 
 
             let gradoDetectado = "Desconocido", codigoDetectado = estIdRaw;
@@ -1025,7 +1376,8 @@ window.reiniciarGrupoActual = async function() {
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (key.startsWith('nota_') && key.includes(window.reporteActividadActualId)) {
-                const rawEstId = key.replace('nota_', '').split('_ACT_')[0];
+                const separator = window.reporteActividadActualId.startsWith('ACT_LEC_') ? '_ACT_LEC_' : '_ACT_';
+                const rawEstId = key.replace('nota_', '').split(separator)[0];
                 if (targetGrado === 'Todos' || rawEstId.startsWith(targetGrado + '-')) {
                     localStorage.removeItem(key);
                     localStorage.removeItem(`estado_${window.reporteActividadActualId}_${rawEstId}`);
@@ -1039,6 +1391,7 @@ window.reiniciarGrupoActual = async function() {
     }
 };
 
+/* INGRESO Y SESIÓN DE ESTUDIANTE */
 window.loginEstudiante = async function(e) {
     e.preventDefault();
     const btnSubmit = document.getElementById('btn-submit-estudiante');
@@ -1100,7 +1453,6 @@ window.iniciarSesionEstudianteLocal = function(grado, codigo, nombre) {
     }).catch(()=>{}); 
 };
 
-// Pausar y guardar estado exacto de segundo visto y avance
 window.volverDashboardEstudiante = function() {
     let tiempoPausa = 0;
     if(player && typeof player.getCurrentTime === 'function') {
@@ -1111,8 +1463,7 @@ window.volverDashboardEstudiante = function() {
     }
     if(intervaloVideo) clearInterval(intervaloVideo);
     
-    // Guardar progreso de sesión parcial
-    if(actividadActual && estudianteIdActual) {
+    if(actividadActual && actividadActual.tipo !== 'lectura' && estudianteIdActual) {
         const sesionGuardada = {
             tiempoGuardado: Math.max(tiempoPausa, maxTiempoVisto),
             maxTiempoVisto: Math.max(tiempoPausa, maxTiempoVisto),
@@ -1134,6 +1485,7 @@ window.cerrarSesion = function() {
         try { player.pauseVideo(); } catch(e) {}
     }
     if(intervaloVideo) clearInterval(intervaloVideo);
+    window.salirModoLecturaInmersiva();
 
     document.getElementById('panel-docente').classList.add('hidden');
     document.getElementById('panel-docente').classList.remove('flex');
@@ -1143,7 +1495,7 @@ window.cerrarSesion = function() {
     window.toggleSidebarDocente(false);
 };
 
-/* CONSTRUCCIÓN DEL DASHBOARD ESTUDIANTE: CARPETAS CON GRADIENTES Y ATAJOS */
+/* CONSTRUCCIÓN DASHBOARD ESTUDIANTE: CARPETAS Y ATAJOS */
 window.construirDashboardEstudiante = function(grado) {
     const contenedorAtajos = document.getElementById('lista-pendientes-atajos');
     const badgeAtajos = document.getElementById('badge-pendientes-count');
@@ -1179,14 +1531,15 @@ window.construirDashboardEstudiante = function(grado) {
         if (esPendiente && act.estado === 'Activa') {
             countPendientesTotal++;
             const txtIntentosAtajo = maxIntentos >= 999 ? 'Ilimitados' : `${intentosRealizados} de ${maxIntentos}`;
+            const esLec = act.tipo === 'lectura';
             contenedorAtajos.innerHTML += `
                 <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3 shadow-xs hover:border-indigo-300 transition-all">
                     <div class="min-w-0">
-                        <span class="text-[9px] font-black uppercase text-indigo-600 tracking-wider">${window.escapeHTML(nombreClase)}</span>
-                        <h4 class="font-bold text-slate-900 text-xs truncate">${window.escapeHTML(act.titulo)}</h4>
+                        <span class="text-[9px] font-black uppercase ${esLec ? 'text-emerald-700' : 'text-indigo-600'} tracking-wider">${window.escapeHTML(nombreClase)}</span>
+                        <h4 class="font-bold text-slate-900 text-xs truncate">${esLec ? '📖 ' : '🎬 '}${window.escapeHTML(act.titulo)}</h4>
                         <span class="text-[10px] text-slate-400 font-semibold">Intentos: ${txtIntentosAtajo}</span>
                     </div>
-                    <button type="button" onclick="window.iniciarActividadPorId('${window.escapeHTML(act.id)}')" class="histudy-btn px-3 py-1.5 rounded-lg text-xs font-bold shrink-0">
+                    <button type="button" onclick="window.iniciarActividadPorId('${window.escapeHTML(act.id)}')" class="${esLec ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'histudy-btn'} px-3 py-1.5 rounded-lg text-xs font-bold shrink-0">
                         ${intentosRealizados > 0 ? 'Reintentar' : 'Iniciar'}
                     </button>
                 </div>
@@ -1213,8 +1566,6 @@ window.construirDashboardEstudiante = function(grado) {
         const idCarpeta = `carpeta-clase-${index}`;
         const totalActs = items.length;
         const completadas = items.filter(it => it.entrega).length;
-        
-        // Asignación de gradiente diferenciador según índice
         const estiloClase = CLASE_GRADIENTES[index % CLASE_GRADIENTES.length];
 
         let actividadesHTML = '';
@@ -1222,26 +1573,28 @@ window.construirDashboardEstudiante = function(grado) {
             const { act, entrega, maxIntentos, intentosRealizados, puedeReintentar } = it;
             const seguroId = window.escapeHTML(act.id);
             const intentosMaxTxt = maxIntentos >= 999 ? '∞' : maxIntentos;
-            
+            const esLec = act.tipo === 'lectura';
+            const iconTipo = esLec ? 'book-open' : 'play-circle';
+            const bgIcon = esLec ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-700';
+
             if (entrega) {
                 const val = entrega.nota != null ? entrega.nota : '0.0';
                 const esGanada = parseFloat(val) >= 3.0;
                 const badgeColor = esGanada ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200';
                 const notaBoxColor = esGanada ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-rose-50 text-rose-700 border-rose-300';
                 
-                // Determinar si puede ver retroalimentación completa: último intento o nota > 4.0
                 const permitirVerRespuestas = (intentosRealizados >= maxIntentos) || (parseFloat(val) > 4.0);
                 const safeEntrega = encodeURIComponent(JSON.stringify(entrega));
 
                 const btnReintentar = (puedeReintentar && act.estado === 'Activa')
-                    ? `<button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg shadow-xs transition-all">Reintentar</button>`
+                    ? `<button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="text-xs ${esLec ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white font-bold px-3 py-1.5 rounded-lg shadow-xs transition-all">Reintentar</button>`
                     : `<span class="text-[10px] text-slate-400 font-bold px-2 py-1 bg-slate-100 rounded-lg">Intentos agotados</span>`;
 
                 actividadesHTML += `
                     <div class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <span class="p-1 rounded-md bg-purple-100 text-purple-700"><i data-lucide="play-circle" class="w-3.5 h-3.5"></i></span>
+                                <span class="p-1 rounded-md ${bgIcon}"><i data-lucide="${iconTipo}" class="w-3.5 h-3.5"></i></span>
                                 <h5 class="font-bold text-slate-900 text-xs sm:text-sm">${window.escapeHTML(act.titulo)}</h5>
                             </div>
                             <div class="flex flex-wrap items-center gap-2 text-[11px] font-bold text-slate-500">
@@ -1262,17 +1615,17 @@ window.construirDashboardEstudiante = function(grado) {
                     <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-xs">
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <span class="p-1 rounded-md bg-indigo-100 text-indigo-700"><i data-lucide="play-circle" class="w-3.5 h-3.5"></i></span>
+                                <span class="p-1 rounded-md ${esLec ? 'bg-emerald-50 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}"><i data-lucide="${iconTipo}" class="w-3.5 h-3.5"></i></span>
                                 <h5 class="font-bold text-slate-900 text-xs sm:text-sm">${window.escapeHTML(act.titulo)}</h5>
                             </div>
                             <div class="flex items-center gap-2 text-[11px] font-bold text-slate-400">
-                                <span>Intentos permitidos: ${intentosMaxTxt}</span>
+                                <span>Intentos: ${intentosMaxTxt}</span>
                                 <span>•</span>
                                 <span>📅 ${window.escapeHTML(act.fechaCreacion || 'Activo')}</span>
                             </div>
                         </div>
-                        <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="histudy-btn px-4 py-2 rounded-lg text-xs font-bold w-full sm:w-auto">
-                            Comenzar Actividad
+                        <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="${esLec ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold' : 'histudy-btn'} px-4 py-2 rounded-lg text-xs w-full sm:w-auto">
+                            ${esLec ? 'Iniciar Lectura' : 'Comenzar Actividad'}
                         </button>
                     </div>
                 `;
@@ -1313,13 +1666,17 @@ window.construirDashboardEstudiante = function(grado) {
     window.renderLucide();
 };
 
-/* INICIAR O REANUDAR ACTIVIDAD */
+/* ENRUTADOR POLIMÓRFICO: INICIAR VIDEO O LECTURA INMERSIVA */
 window.iniciarActividadPorId = function(idActividad) {
     const act = window.baseActividades.find(a => a.id === idActividad);
     if(!act) return;
-    actividadActual = JSON.parse(JSON.stringify(act));
 
-    // Determinar número de intento
+    if (act.tipo === 'lectura') {
+        window.iniciarLectorInmersivo(act);
+        return;
+    }
+
+    actividadActual = JSON.parse(JSON.stringify(act));
     const notaGuardada = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
     let intentoNum = 1;
     if (notaGuardada) {
@@ -1329,7 +1686,6 @@ window.iniciarActividadPorId = function(idActividad) {
         } catch(e) { intentoNum = 2; }
     }
 
-    // Verificar si hay sesión previa guardada para reanudar tiempo y preguntas
     let tiempoInicio = 0;
     const sesionPreviaStr = localStorage.getItem(`progreso_sesion_${estudianteIdActual}_${act.id}`);
     if (sesionPreviaStr) {
@@ -1338,15 +1694,12 @@ window.iniciarActividadPorId = function(idActividad) {
             tiempoInicio = Math.floor(sesionPrevia.tiempoGuardado || 0);
             maxTiempoVisto = sesionPrevia.maxTiempoVisto || tiempoInicio;
             intentoActual = sesionPrevia.intentoActual || { correctas: 0, resueltas: 0, respuestas: [], numeroIntento: intentoNum };
-            
-            // Rehidratar preguntas contestadas
             if (sesionPrevia.preguntas && Array.isArray(sesionPrevia.preguntas)) {
                 actividadActual.preguntas = sesionPrevia.preguntas;
             }
             window.mostrarToast(`Reanudando clase desde el segundo ${tiempoInicio}`, "info");
         } catch(e) {
-            tiempoInicio = 0;
-            maxTiempoVisto = 0;
+            tiempoInicio = 0; maxTiempoVisto = 0;
             intentoActual = { correctas: 0, resueltas: 0, respuestas: [], numeroIntento: intentoNum };
         }
     } else {
@@ -1440,7 +1793,6 @@ window.verificarTiempo = function() {
                     
                     document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
                     
-                    // Condición: en intento en curso, solo dar feedback formativo sin revelar respuesta correcta
                     const boxColor = esCorrecta ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-rose-50 border-rose-300 text-rose-800';
                     const mensajeRetro = esCorrecta 
                         ? (pregunta.feedback || '¡Excelente trabajo! Has comprendido el concepto.')
@@ -1507,7 +1859,6 @@ window.guardarEvidenciasYFinalizar = function() {
 };
 
 window.finalizarActividad = async function() {
-    // Al finalizar completamente, se limpia el progreso en pausa
     localStorage.removeItem(`progreso_sesion_${estudianteIdActual}_${actividadActual.id}`);
     localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
     
@@ -1536,7 +1887,291 @@ window.finalizarActividad = async function() {
     fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) }).catch(()=>{});
 };
 
-/* VISOR DE DETALLES CON REVELACIÓN CONDICIONAL DE RESPUESTAS */
+/* MOTOR DEL LECTOR INMERSIVO POR RENGLÓN COMPLETO */
+window.iniciarLectorInmersivo = function(actividad) {
+    actividadActual = JSON.parse(JSON.stringify(actividad));
+    
+    const notaGuardada = localStorage.getItem(`nota_${estudianteIdActual}_${actividad.id}`);
+    let intentoNum = 1;
+    if (notaGuardada) {
+        try { intentoNum = (parseInt(JSON.parse(notaGuardada).numeroIntento) || 1) + 1; } catch(e) { intentoNum = 2; }
+    }
+    intentoActual = { correctas: 0, resueltas: 0, respuestas: [], numeroIntento: intentoNum };
+
+    indiceLineaLector = 0;
+    segundosTranscurridosLectura = 0;
+    estadoLecturaPausada = true;
+    if (timeoutLineaPacer) clearTimeout(timeoutLineaPacer);
+    if (cronometroLecturaInterval) clearInterval(cronometroLecturaInterval);
+
+    document.getElementById('inmersivo-titulo').innerText = actividad.titulo;
+    document.getElementById('inmersivo-clase-badge').innerText = actividad.clase || 'Lectura';
+    document.getElementById('inmersivo-wpm-display').innerText = `${actividad.lectura?.wpmSugerido || 165} WPM`;
+    document.getElementById('inmersivo-progreso').innerText = '0%';
+    document.getElementById('inmersivo-tiempo').innerText = '00:00';
+    document.getElementById('inmersivo-intento-num').innerText = intentoNum;
+    
+    document.getElementById('btn-inmersivo-evaluar').classList.add('hidden');
+    document.getElementById('btn-inmersivo-play').innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>Iniciar Ritmo</span>`;
+
+    const lienzo = document.getElementById('inmersivo-columna-texto');
+    lienzo.innerHTML = '';
+    lineasLecturaArray = [];
+    palabrasLecturaArray = [];
+
+    const parrafos = (actividad.lectura?.texto || '').split(/\n\s*\n/);
+    let idLineaGlobal = 0;
+
+    parrafos.forEach(parrafoTexto => {
+        const pElem = document.createElement('div');
+        pElem.className = "mb-6 space-y-1.5";
+
+        // Segmentar el párrafo en renglones u oraciones coherentes por signos de puntuación
+        const segmentos = parrafoTexto.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [parrafoTexto];
+
+        segmentos.forEach(seg => {
+            const textoSegmento = seg.trim();
+            if (!textoSegmento) return;
+
+            const palabras = textoSegmento.split(/\s+/);
+            const lineaElem = document.createElement('div');
+            lineaElem.id = `linea-lec-${idLineaGlobal}`;
+            lineaElem.className = "linea-lectura";
+
+            palabras.forEach(palabra => {
+                const span = document.createElement('span');
+                span.innerText = palabra + ' ';
+
+                const palabraLimpia = palabra.toLowerCase().replace(/[.,;:()]/g, '');
+                const defItem = actividad.lectura?.glosario?.find(g => palabraLimpia === g.termino.toLowerCase().trim());
+                if (defItem) {
+                    span.classList.add('palabra-glosario');
+                    span.title = defItem.def;
+                    span.onclick = (e) => {
+                        e.stopPropagation();
+                        window.mostrarToast(`📖 ${defItem.termino.toUpperCase()}: ${defItem.def}`, "info");
+                    };
+                }
+                lineaElem.appendChild(span);
+                palabrasLecturaArray.push(palabra);
+            });
+
+            pElem.appendChild(lineaElem);
+            lineasLecturaArray.push({
+                elem: lineaElem,
+                conteoPalabras: palabras.length
+            });
+            idLineaGlobal++;
+        });
+
+        lienzo.appendChild(pElem);
+    });
+
+    document.getElementById('vista-lector-inmersivo').classList.remove('hidden');
+    document.getElementById('vista-lector-inmersivo').classList.add('flex');
+    window.renderLucide();
+};
+
+window.toggleReproduccionLectura = function() {
+    if (estadoLecturaPausada) {
+        window.reanudarRitmoLectura();
+    } else {
+        window.pausarRitmoLectura();
+    }
+};
+
+window.reanudarRitmoLectura = function() {
+    estadoLecturaPausada = false;
+    const wpm = actividadActual.lectura?.wpmSugerido || 165;
+
+    const btn = document.getElementById('btn-inmersivo-play');
+    btn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i><span>Pausar</span>`;
+    window.renderLucide();
+
+    if (!cronometroLecturaInterval) {
+        cronometroLecturaInterval = setInterval(() => {
+            segundosTranscurridosLectura++;
+            const m = String(Math.floor(segundosTranscurridosLectura / 60)).padStart(2, '0');
+            const s = String(segundosTranscurridosLectura % 60).padStart(2, '0');
+            document.getElementById('inmersivo-tiempo').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+
+    const avanzarRenglon = () => {
+        if (estadoLecturaPausada) return;
+
+        if (indiceLineaLector < lineasLecturaArray.length) {
+            if (indiceLineaLector > 0) {
+                const prev = lineasLecturaArray[indiceLineaLector - 1].elem;
+                prev.classList.remove('linea-activa');
+                prev.classList.add('linea-leida');
+            }
+
+            const lineaActual = lineasLecturaArray[indiceLineaLector];
+            lineaActual.elem.classList.add('linea-activa');
+            lineaActual.elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            const duracionMs = Math.max((lineaActual.conteoPalabras / wpm) * 60 * 1000, 1200);
+
+            indiceLineaLector++;
+            const porc = Math.round((indiceLineaLector / lineasLecturaArray.length) * 100);
+            document.getElementById('inmersivo-progreso').innerText = `${porc}%`;
+
+            timeoutLineaPacer = setTimeout(avanzarRenglon, duracionMs);
+        } else {
+            window.pausarRitmoLectura();
+            document.getElementById('btn-inmersivo-evaluar').classList.remove('hidden');
+            window.mostrarToast("🎉 ¡Lectura finalizada! Pasa a la evaluación.", "success");
+        }
+    };
+
+    avanzarRenglon();
+};
+
+window.pausarRitmoLectura = function() {
+    estadoLecturaPausada = true;
+    if (timeoutLineaPacer) clearTimeout(timeoutLineaPacer);
+    if (cronometroLecturaInterval) { clearInterval(cronometroLecturaInterval); cronometroLecturaInterval = null; }
+    
+    const btn = document.getElementById('btn-inmersivo-play');
+    if (btn) {
+        btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>Continuar</span>`;
+        window.renderLucide();
+    }
+};
+
+window.salirModoLecturaInmersiva = function() {
+    if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+    window.pausarRitmoLectura();
+    document.getElementById('vista-lector-inmersivo').classList.add('hidden');
+    document.getElementById('vista-lector-inmersivo').classList.remove('flex');
+    window.volverDashboardEstudiante();
+};
+
+window.toggleFullScreenNativo = function() {
+    const doc = document.documentElement;
+    const icon = document.getElementById('icon-fullscreen');
+    if (!document.fullscreenElement) {
+        if (doc.requestFullscreen) doc.requestFullscreen();
+        if (icon) icon.setAttribute('data-lucide', 'minimize');
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        if (icon) icon.setAttribute('data-lucide', 'maximize');
+    }
+    window.renderLucide();
+};
+
+window.setTemaInmersivo = function(modo) {
+    const vista = document.getElementById('vista-lector-inmersivo');
+    if (!vista) return;
+    if (modo === 'sepia') {
+        vista.className = "fixed inset-0 z-[80] flex flex-col bg-[#FBF0D9] text-[#292524] transition-colors duration-200";
+    } else if (modo === 'noche') {
+        vista.className = "fixed inset-0 z-[80] flex flex-col bg-[#0F172A] text-[#E2E8F0] transition-colors duration-200";
+    } else {
+        vista.className = "fixed inset-0 z-[80] flex flex-col bg-slate-50 text-[#0F172A] transition-colors duration-200";
+    }
+};
+
+window.cambiarTamanoTexto = function(delta) {
+    tamanoFuenteLectura = Math.max(16, Math.min(32, tamanoFuenteLectura + delta));
+    const contenedor = document.getElementById('inmersivo-columna-texto');
+    if (contenedor) contenedor.style.fontSize = `${tamanoFuenteLectura}px`;
+};
+
+/* EVALUACIÓN DE COMPRENSIÓN LECTORA */
+window.pasarAEvaluacionLectura = function() {
+    window.pausarRitmoLectura();
+    const totalPalabras = palabrasLecturaArray.length;
+    const tiempoMinutos = Math.max(segundosTranscurridosLectura / 60, 0.1);
+    const wpmReal = Math.round(totalPalabras / tiempoMinutos);
+    
+    document.getElementById('eval-wpm-real').innerText = `${wpmReal} WPM`;
+    const cajaP = document.getElementById('caja-preguntas-lectura-estudiante');
+    cajaP.innerHTML = '';
+
+    (actividadActual.preguntas || []).forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.className = "bg-white p-3.5 rounded-xl border border-slate-200 text-left";
+        div.innerHTML = `
+            <p class="text-xs sm:text-sm font-bold text-slate-900 mb-2">${idx + 1}. ${window.escapeHTML(p.texto)}</p>
+            <div class="space-y-1.5" id="opts-lec-pregunta-${idx}"></div>
+        `;
+        const oCont = div.querySelector(`#opts-lec-pregunta-${idx}`);
+        p.opciones.forEach((opcion, oIdx) => {
+            oCont.innerHTML += `
+                <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer text-xs font-semibold select-none">
+                    <input type="radio" name="resp_lec_${idx}" value="${oIdx + 1}" class="text-emerald-600 focus:ring-emerald-500">
+                    <span>${window.escapeHTML(opcion)}</span>
+                </label>
+            `;
+        });
+        cajaP.appendChild(div);
+    });
+
+    document.getElementById('estudiante-reflexion-lectura').value = '';
+    document.getElementById('modal-evaluacion-lectura').classList.remove('hidden');
+};
+
+window.finalizarEvaluacionLectura = async function() {
+    const reflexion = document.getElementById('estudiante-reflexion-lectura').value.trim();
+    if (!reflexion) {
+        window.mostrarToast("Por favor escribe tu síntesis de la lectura", "warning");
+        return;
+    }
+
+    const preguntas = actividadActual.preguntas || [];
+    let correctas = 0;
+    const respuestasArray = [];
+
+    for (let i = 0; i < preguntas.length; i++) {
+        const sel = document.querySelector(`input[name="resp_lec_${i}"]:checked`);
+        if (!sel) {
+            window.mostrarToast(`Responde la pregunta #${i + 1}`, "warning");
+            return;
+        }
+        const seleccionadaVal = parseInt(sel.value);
+        const esCorrecta = seleccionadaVal === parseInt(preguntas[i].correcta);
+        if (esCorrecta) correctas++;
+
+        respuestasArray.push({
+            textoPregunta: preguntas[i].texto,
+            opcionSeleccionada: preguntas[i].opciones[seleccionadaVal - 1],
+            opcionCorrecta: preguntas[i].opciones[parseInt(preguntas[i].correcta) - 1],
+            esCorrecta: esCorrecta,
+            feedback: preguntas[i].feedback || ""
+        });
+    }
+
+    const totalP = preguntas.length > 0 ? preguntas.length : 1;
+    const notaFinal = (((correctas / totalP) * 4) + 1).toFixed(1);
+    const tiempoMinutos = Math.max(segundosTranscurridosLectura / 60, 0.1);
+    const wpmReal = Math.round(palabrasLecturaArray.length / tiempoMinutos);
+
+    const entrega = {
+        idEntrega: "ENT_LEC_" + Date.now().toString(36).toUpperCase(),
+        estudianteId: estudianteIdActual,
+        actividadId: actividadActual.id,
+        versionActividad: actividadActual.version || 1,
+        correctas: correctas,
+        resueltas: preguntas.length,
+        nota: notaFinal,
+        numeroIntento: intentoActual.numeroIntento || 1,
+        fecha: new Date().toLocaleString(),
+        laboratorio: { "Velocidad": `${wpmReal} WPM`, "Tiempo": `${segundosTranscurridosLectura} seg` },
+        reflexion: reflexion,
+        respuestas: respuestasArray,
+        validador: btoa(notaFinal + "_" + estudianteIdActual + "_LecturaCafeLab")
+    };
+
+    localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, JSON.stringify(entrega));
+    document.getElementById('modal-evaluacion-lectura').classList.add('hidden');
+    window.salirModoLecturaInmersiva();
+    window.mostrarToast(`¡Lectura calificada! Tu nota: ${notaFinal}`, "success");
+    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) }).catch(()=>{});
+};
+
+/* VISOR DE DETALLES CON REVELACIÓN CONDICIONAL */
 window.verDetalleEntrega = function(encodedData, permitirVerCorrectas = false) {
     if (!encodedData || encodedData === 'null') return;
     let data;
@@ -1544,8 +2179,6 @@ window.verDetalleEntrega = function(encodedData, permitirVerCorrectas = false) {
 
     const notaNum = parseFloat(data.nota || 0);
     const notaColor = notaNum >= 3.0 ? 'text-emerald-600' : 'text-rose-600';
-    
-    // Regla pedagógica: revela respuestas correctas si docente lo abre, si es el último intento o si nota > 4.0
     const puedeVerCorrectas = permitirVerCorrectas || (notaNum > 4.0);
 
     document.getElementById('view-detalle-resumen').innerHTML = `
@@ -1570,19 +2203,14 @@ window.verDetalleEntrega = function(encodedData, permitirVerCorrectas = false) {
         pregList.innerHTML = '';
         data.respuestas.forEach((r, idx) => {
             const esOk = r.esCorrecta;
-            
             let bloqueOpcionCorrecta = '';
             let bloqueFeedback = '';
 
             if (puedeVerCorrectas) {
-                if (!esOk) {
-                    bloqueOpcionCorrecta = `<p class="text-emerald-700 font-bold bg-emerald-50 p-1.5 rounded border border-emerald-300">Opción correcta: ${window.escapeHTML(r.opcionCorrecta)}</p>`;
-                }
-                if (r.feedback) {
-                    bloqueFeedback = `<p class="text-slate-500 italic mt-1">💡 ${window.escapeHTML(r.feedback)}</p>`;
-                }
+                if (!esOk) bloqueOpcionCorrecta = `<p class="text-emerald-700 font-bold bg-emerald-50 p-1.5 rounded border border-emerald-300">Opción correcta: ${window.escapeHTML(r.opcionCorrecta)}</p>`;
+                if (r.feedback) bloqueFeedback = `<p class="text-slate-500 italic mt-1">💡 ${window.escapeHTML(r.feedback)}</p>`;
             } else if (!esOk) {
-                bloqueOpcionCorrecta = `<p class="text-slate-500 italic text-[11px] bg-slate-100 p-1.5 rounded">🔒 La respuesta correcta y retroalimentación completa estarán disponibles en tu último intento o al obtener una nota superior a 4.0.</p>`;
+                bloqueOpcionCorrecta = `<p class="text-slate-500 italic text-[11px] bg-slate-100 p-1.5 rounded">🔒 La respuesta correcta estará disponible en tu último intento o al obtener una nota superior a 4.0.</p>`;
             }
 
             pregList.innerHTML += `
