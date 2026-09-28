@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Plataforma Interactiva - CaféLab</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -12,20 +12,23 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: radial-gradient(130% 120% at 0% 0%, #F5F3FF 0%, #EEF2FF 40%, #FAF5FF 80%, #FDF4FF 100%); color: #0F172A; min-height: 100vh; }
         .sidebar-bg { background: linear-gradient(180deg, #0F172A 0%, #1E1B4B 100%); }
-        .glass-card { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(16px); border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(79, 70, 229, 0.08); border: 1px solid rgba(224, 231, 255, 0.8); }
+        .glass-card { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(16px); border-radius: 20px; box-shadow: 0 10px 40px -10px rgba(79, 70, 229, 0.08); border: 1px solid rgba(224, 231, 255, 0.8); }
         .histudy-btn { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #C026D3 100%); color: white; font-weight: 700; transition: all 0.25s; }
         .histudy-btn:hover { box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.4); transform: translateY(-1px); }
         .text-gradient { background: linear-gradient(135deg, #4F46E5, #7C3AED, #C026D3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .badge-gradient { background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(192, 38, 211, 0.12)); color: #6D28D9; border: 1px solid rgba(124, 58, 237, 0.2); }
         .toggle-checkbox:checked { right: 0; border-color: #6366F1; }
         .toggle-checkbox:checked + .toggle-label { background: linear-gradient(135deg, #4F46E5, #7C3AED); }
+        
+        /* Smooth scrolling y soporte responsive de tablas */
+        .table-container { -webkit-overflow-scrolling: touch; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen antialiased">
 
     <!-- OVERLAY CARGA -->
-    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-950/40 backdrop-blur-md z-[100] flex flex-col items-center justify-center">
-        <div class="glass-card p-8 flex flex-col items-center shadow-2xl">
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-950/40 backdrop-blur-md z-[100] flex flex-col items-center justify-center p-4">
+        <div class="glass-card p-6 sm:p-8 flex flex-col items-center shadow-2xl text-center max-w-xs sm:max-w-sm w-full">
             <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-100 border-t-indigo-600 mb-4"></div>
             <h2 class="text-base font-extrabold text-slate-900">Sincronizando con CaféLab</h2>
             <p class="text-slate-500 font-medium text-xs mt-1">Conectando con la base de datos cloud...</p>
@@ -33,23 +36,23 @@
     </div>
 
     <!-- LOGIN -->
-    <div id="login-panel" class="flex-grow flex items-center justify-center p-6 relative">
-        <div class="glass-card p-8 sm:p-10 w-full max-w-md relative z-10">
+    <div id="login-panel" class="flex-grow flex items-center justify-center p-4 sm:p-6 relative">
+        <div class="glass-card p-6 sm:p-10 w-full max-w-md relative z-10 my-auto">
             <div class="text-center mb-6">
                 <div class="inline-flex p-3 bg-gradient-to-tr from-indigo-500 to-fuchsia-500 rounded-2xl text-white shadow-lg shadow-indigo-500/25 mb-3">
-                    <i data-lucide="book-open" class="w-7 h-7"></i>
+                    <i data-lucide="book-open" class="w-6 h-6 sm:w-7 sm:h-7"></i>
                 </div>
-                <h1 class="text-3xl font-black text-slate-900">Café<span class="text-gradient">Lab</span></h1>
-                <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full badge-gradient text-[11px] font-extrabold uppercase mt-2">
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900">Café<span class="text-gradient">Lab</span></h1>
+                <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full badge-gradient text-[10px] sm:text-[11px] font-extrabold uppercase mt-2">
                     <i data-lucide="sparkles" class="w-3 h-3"></i> Plataforma Educativa All-in-One
                 </div>
             </div>
             
             <div class="flex p-1 bg-slate-100 rounded-2xl mb-6 border border-slate-200">
-                <button type="button" id="tab-estudiante" onclick="window.cambiarTabLogin('estudiante')" class="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white text-indigo-700 font-bold rounded-xl shadow-sm w-full text-xs transition-all">
+                <button type="button" id="tab-estudiante" onclick="window.cambiarTabLogin('estudiante')" class="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-indigo-700 font-bold rounded-xl shadow-sm w-full text-xs transition-all">
                     <i data-lucide="graduation-cap" class="w-4 h-4"></i><span>Estudiante</span>
                 </button>
-                <button type="button" id="tab-docente" onclick="window.cambiarTabLogin('docente')" class="flex items-center justify-center gap-1.5 px-4 py-2.5 text-slate-500 font-bold rounded-xl w-full text-xs transition-all hover:text-slate-900">
+                <button type="button" id="tab-docente" onclick="window.cambiarTabLogin('docente')" class="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 text-slate-500 font-bold rounded-xl w-full text-xs transition-all hover:text-slate-900">
                     <i data-lucide="shield-check" class="w-4 h-4"></i><span>Administrador</span>
                 </button>
             </div>
@@ -58,7 +61,7 @@
             <form id="form-estudiante" onsubmit="window.loginEstudiante(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Grado escolar</label>
-                    <select id="grado" class="w-full p-3.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-semibold cursor-pointer" required>
+                    <select id="grado" class="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-semibold cursor-pointer" required>
                         <option value="">Selecciona tu grado</option>
                         <option value="6-1">Sexto 1</option><option value="6-2">Sexto 2</option>
                         <option value="7">Séptimo</option><option value="8-1">Octavo 1</option>
@@ -68,13 +71,13 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Código de Estudiante</label>
-                    <input type="text" id="codigo-estudiante" placeholder="Ej: 12254 (o 'ensayo')" class="w-full p-3.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-semibold" required>
+                    <input type="text" id="codigo-estudiante" placeholder="Ej: 12254 (o 'ensayo')" class="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-semibold" required>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Contraseña</label>
-                    <input type="password" id="pass-estudiante" placeholder="Ej: 12254Z" class="w-full p-3.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-semibold">
+                    <input type="password" id="pass-estudiante" placeholder="Ej: 12254Z" class="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-semibold">
                 </div>
-                <button type="submit" id="btn-submit-estudiante" class="w-full histudy-btn py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md">
+                <button type="submit" id="btn-submit-estudiante" class="w-full histudy-btn py-3 sm:py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-transform">
                     <span>Ingresar a mis clases</span><i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
             </form>
@@ -83,9 +86,9 @@
             <form id="form-docente" onsubmit="window.loginDocente(event)" class="hidden space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Contraseña Administrador</label>
-                    <input type="password" id="pass-docente" placeholder="Contraseña de acceso" class="w-full p-3.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-semibold" required>
+                    <input type="password" id="pass-docente" placeholder="Contraseña de acceso" class="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-semibold" required>
                 </div>
-                <button type="submit" id="btn-submit-docente" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md">
+                <button type="submit" id="btn-submit-docente" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 sm:py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md active:scale-95">
                     <span>Ingresar al Dashboard</span><i data-lucide="layout-dashboard" class="w-4 h-4"></i>
                 </button>
             </form>
@@ -93,8 +96,26 @@
     </div>
 
     <!-- PANEL DOCENTE (ADMIN) -->
-    <div id="panel-docente" class="hidden flex-grow flex h-screen overflow-hidden">
-        <aside class="w-72 sidebar-bg text-slate-300 flex flex-col h-full shrink-0 shadow-2xl z-10 border-r border-indigo-950">
+    <div id="panel-docente" class="hidden flex-grow flex flex-col md:flex-row min-h-screen relative overflow-x-hidden">
+        
+        <!-- BARRA SUPERIOR MÓVIL (ADMIN) -->
+        <header class="md:hidden flex items-center justify-between p-4 bg-slate-900 text-white border-b border-indigo-950 sticky top-0 z-40">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 bg-gradient-to-tr from-indigo-500 to-fuchsia-500 rounded-lg flex items-center justify-center text-white">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                </div>
+                <h3 class="font-black text-sm text-white leading-none">Café<span class="text-indigo-400">Lab</span></h3>
+            </div>
+            <button type="button" onclick="window.toggleSidebarDocente()" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white focus:outline-none">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+        </header>
+
+        <!-- BACKDROP MÓVIL -->
+        <div id="sidebar-backdrop" onclick="window.toggleSidebarDocente(false)" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 md:hidden transition-opacity"></div>
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar-docente" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:static w-72 sidebar-bg text-slate-300 flex flex-col h-full shrink-0 shadow-2xl z-50 md:z-10 border-r border-indigo-950 transition-transform duration-300 ease-in-out">
             <div class="p-5 flex items-center justify-between border-b border-white/10">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 bg-gradient-to-tr from-indigo-500 to-fuchsia-500 rounded-xl flex items-center justify-center text-white shadow-md">
@@ -105,17 +126,19 @@
                         <span class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">Admin Suite</span>
                     </div>
                 </div>
-                <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">Admin</span>
+                <button type="button" onclick="window.toggleSidebarDocente(false)" class="md:hidden text-slate-400 hover:text-white p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
             </div>
             
             <div class="p-3.5 flex-grow overflow-y-auto space-y-1">
-                <button id="nav-dashboard" onclick="window.renderDashboardDocente(window.filtroGradoActual)" class="nav-btn w-full text-left bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-2.5 text-xs shadow-md">
+                <button id="nav-dashboard" onclick="window.renderDashboardDocente(window.filtroGradoActual); window.toggleSidebarDocente(false);" class="nav-btn w-full text-left bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3.5 py-2.5 rounded-xl font-bold flex items-center gap-2.5 text-xs shadow-md">
                     <i data-lucide="bar-chart-3" class="w-4 h-4"></i><span>Dashboard</span>
                 </button>
-                <button id="nav-actividad" onclick="window.mostrarVistaDocente('vista-hub-actividades')" class="nav-btn w-full text-left hover:bg-white/5 px-3.5 py-2.5 rounded-xl font-semibold flex items-center gap-2.5 text-xs text-slate-300 hover:text-white">
+                <button id="nav-actividad" onclick="window.mostrarVistaDocente('vista-hub-actividades'); window.toggleSidebarDocente(false);" class="nav-btn w-full text-left hover:bg-white/5 px-3.5 py-2.5 rounded-xl font-semibold flex items-center gap-2.5 text-xs text-slate-300 hover:text-white">
                     <i data-lucide="layers" class="w-4 h-4"></i><span>Gestionar Actividades</span>
                 </button>
-                <button id="nav-estudiantes" onclick="window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes');" class="nav-btn w-full text-left hover:bg-white/5 px-3.5 py-2.5 rounded-xl font-semibold flex items-center gap-2.5 text-xs text-slate-300 hover:text-white">
+                <button id="nav-estudiantes" onclick="window.renderEstudiantesLocales(); window.mostrarVistaDocente('vista-estudiantes'); window.toggleSidebarDocente(false);" class="nav-btn w-full text-left hover:bg-white/5 px-3.5 py-2.5 rounded-xl font-semibold flex items-center gap-2.5 text-xs text-slate-300 hover:text-white">
                     <i data-lucide="users" class="w-4 h-4"></i><span>Gestión estudiantes/docentes</span>
                 </button>
 
@@ -139,67 +162,72 @@
             </div>
         </aside>
 
-        <main class="flex-1 p-6 sm:p-8 overflow-y-auto h-full">
+        <!-- MAIN DOCENTE -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto w-full">
             <!-- VISTA: DASHBOARD -->
             <div id="vista-dashboard" class="view-docente block max-w-[1300px] mx-auto">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6">
                     <div>
                         <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full badge-gradient text-[11px] font-bold mb-1.5">
                             <i data-lucide="activity" class="w-3 h-3"></i> Métricas Académicas
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Dashboard Analítico</h2>
+                        <h2 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">Dashboard Analítico</h2>
                     </div>
-                    <button type="button" onclick="window.generarReporteGlobal()" class="histudy-btn px-4 py-2.5 rounded-xl text-xs flex items-center gap-2">
+                    <button type="button" onclick="window.generarReporteGlobal()" class="histudy-btn w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
                         <i data-lucide="file-spreadsheet" class="w-4 h-4"></i><span>Ver Reporte Global HTML</span>
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-                    <div class="glass-card p-5 relative overflow-hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 mb-6">
+                    <div class="glass-card p-4 sm:p-5 relative overflow-hidden">
                         <div class="absolute left-0 top-0 w-1.5 h-full bg-indigo-600"></div>
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block ml-1">Total de Actividades</span>
-                        <p class="text-3xl font-black text-slate-900 ml-1 mt-1" id="kpi-total-actividades">0</p>
+                        <p class="text-2xl sm:text-3xl font-black text-slate-900 ml-1 mt-1" id="kpi-total-actividades">0</p>
                     </div>
-                    <div class="glass-card p-5 relative overflow-hidden">
+                    <div class="glass-card p-4 sm:p-5 relative overflow-hidden">
                         <div class="absolute left-0 top-0 w-1.5 h-full bg-fuchsia-600"></div>
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block ml-1">Grupos Activos</span>
-                        <p class="text-3xl font-black text-slate-900 ml-1 mt-1" id="kpi-grupos">8</p>
+                        <p class="text-2xl sm:text-3xl font-black text-slate-900 ml-1 mt-1" id="kpi-grupos">8</p>
                     </div>
-                    <div class="glass-card p-5 relative overflow-hidden">
+                    <div class="glass-card p-4 sm:p-5 relative overflow-hidden sm:col-span-2 lg:col-span-1">
                         <div class="absolute left-0 top-0 w-1.5 h-full bg-teal-600"></div>
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block ml-1">Cumplimiento Global</span>
-                        <p class="text-3xl font-black text-teal-600 ml-1 mt-1" id="kpi-cumplimiento">0%</p>
+                        <p class="text-2xl sm:text-3xl font-black text-teal-600 ml-1 mt-1" id="kpi-cumplimiento">0%</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-                    <div class="glass-card p-5">
+                    <div class="glass-card p-4 sm:p-5">
                         <h3 class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5 mb-3 border-b border-slate-100 pb-2">
                             <i data-lucide="award" class="w-4 h-4 text-indigo-600"></i><span>Promedio Académico por Grado</span>
                         </h3>
-                        <canvas id="chartPromedios" height="130"></canvas>
+                        <div class="w-full relative min-h-[160px]">
+                            <canvas id="chartPromedios" height="150"></canvas>
+                        </div>
                     </div>
-                    <div class="glass-card p-5">
+                    <div class="glass-card p-4 sm:p-5">
                         <h3 class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5 mb-3 border-b border-slate-100 pb-2">
                             <i data-lucide="trending-up" class="w-4 h-4 text-fuchsia-600"></i><span>Nivel de Participación (%)</span>
                         </h3>
-                        <canvas id="chartParticipacion" height="130"></canvas>
+                        <div class="w-full relative min-h-[160px]">
+                            <canvas id="chartParticipacion" height="150"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <h3 class="text-lg font-black text-slate-900 mb-3 flex items-center gap-2" id="titulo-tabla-actividades">
-                    <i data-lucide="clapperboard" class="w-5 h-5 text-indigo-600"></i><span>Gestión de Actividades Creadas</span>
+                <h3 class="text-base sm:text-lg font-black text-slate-900 mb-3 flex items-center gap-2" id="titulo-tabla-actividades">
+                    <i data-lucide="clapperboard" class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600"></i><span>Gestión de Actividades Creadas</span>
                 </h3>
                 <div class="glass-card overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs text-left">
+                    <div class="overflow-x-auto table-container">
+                        <table class="w-full text-xs text-left min-w-[600px]">
                             <thead class="text-[10px] text-slate-400 uppercase font-black bg-slate-50/70 border-b border-slate-100">
                                 <tr>
-                                    <th class="px-5 py-3">Grados / Destinos</th>
-                                    <th class="px-5 py-3">Título</th>
-                                    <th class="px-5 py-3 text-center">Laboratorio</th>
-                                    <th class="px-5 py-3 text-center">Estado</th>
-                                    <th class="px-5 py-3 text-right">Acciones</th>
+                                    <th class="px-4 sm:px-5 py-3">Grados / Destinos</th>
+                                    <th class="px-4 sm:px-5 py-3">Título</th>
+                                    <th class="px-4 sm:px-5 py-3 text-center">Laboratorio</th>
+                                    <th class="px-4 sm:px-5 py-3 text-center">Estado</th>
+                                    <th class="px-4 sm:px-5 py-3 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-actividades-creadas" class="divide-y divide-slate-100"></tbody>
@@ -214,20 +242,20 @@
                     <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full badge-gradient text-[11px] font-bold mb-1.5">
                         <i data-lucide="layers" class="w-3 h-3"></i> Módulos Pedagógicos
                     </div>
-                    <h2 class="text-2xl sm:text-3xl font-black text-slate-900">Gestionar Actividades</h2>
+                    <h2 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900">Gestionar Actividades</h2>
                     <p class="text-xs text-slate-500 font-medium">Selecciona el tipo de experiencia interactiva para configurar</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <!-- Videos Interactivos (ACTIVO) -->
-                    <div onclick="window.prepararNuevaActividad()" class="glass-card p-6 border-2 border-indigo-200 hover:border-indigo-600 cursor-pointer transition-all hover:-translate-y-1 group">
+                    <div onclick="window.prepararNuevaActividad()" class="glass-card p-5 sm:p-6 border-2 border-indigo-200 hover:border-indigo-600 cursor-pointer transition-all hover:-translate-y-1 group">
                         <div class="flex items-start justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-md">
-                                <i data-lucide="play-square" class="w-6 h-6"></i>
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-md">
+                                <i data-lucide="play-square" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                             </div>
                             <span class="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">Activo</span>
                         </div>
-                        <h3 class="text-base font-extrabold text-slate-900 mb-1.5 group-hover:text-indigo-600">Videos Interactivos</h3>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 mb-1.5 group-hover:text-indigo-600">Videos Interactivos</h3>
                         <p class="text-xs text-slate-500 leading-relaxed mb-4">Videos con pausas obligatorias, preguntas anti-adelanto, laboratorio y reflexiones evaluadas.</p>
                         <div class="flex items-center gap-1.5 text-xs font-bold text-indigo-600">
                             <span>Configurar actividades en video</span><i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
@@ -235,38 +263,38 @@
                     </div>
 
                     <!-- Quizzes (FUTURO) -->
-                    <div class="glass-card p-6 border border-slate-200 bg-white/70">
+                    <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
                         <div class="flex items-start justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-fuchsia-500 to-pink-600 text-white flex items-center justify-center opacity-70">
-                                <i data-lucide="help-circle" class="w-6 h-6"></i>
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-fuchsia-500 to-pink-600 text-white flex items-center justify-center opacity-70">
+                                <i data-lucide="help-circle" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                             </div>
                             <span class="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">Próximamente</span>
                         </div>
-                        <h3 class="text-base font-extrabold text-slate-800 mb-1.5">Evaluaciones y Quizzes</h3>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-800 mb-1.5">Evaluaciones y Quizzes</h3>
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">Pruebas tipo Saber con tiempo límite y banco de preguntas automatizado.</p>
                     </div>
 
                     <!-- Lectura (FUTURO) -->
-                    <div class="glass-card p-6 border border-slate-200 bg-white/70">
+                    <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
                         <div class="flex items-start justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center opacity-70">
-                                <i data-lucide="book-open-check" class="w-6 h-6"></i>
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center opacity-70">
+                                <i data-lucide="book-open-check" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                             </div>
                             <span class="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">Próximamente</span>
                         </div>
-                        <h3 class="text-base font-extrabold text-slate-800 mb-1.5">Lectura Interactiva y Fluidez</h3>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-800 mb-1.5">Lectura Interactiva y Fluidez</h3>
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">Entrenador de velocidad y comprensión lectora con textos científicos de café.</p>
                     </div>
 
                     <!-- Prácticas (FUTURO) -->
-                    <div class="glass-card p-6 border border-slate-200 bg-white/70">
+                    <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
                         <div class="flex items-start justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center opacity-70">
-                                <i data-lucide="sprout" class="w-6 h-6"></i>
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center opacity-70">
+                                <i data-lucide="sprout" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                             </div>
                             <span class="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">Próximamente</span>
                         </div>
-                        <h3 class="text-base font-extrabold text-slate-800 mb-1.5">Talleres y Prácticas de Campo</h3>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-800 mb-1.5">Talleres y Prácticas de Campo</h3>
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">Fichas de recolección en campo, protocolos de fermentación y catación SCA.</p>
                     </div>
                 </div>
@@ -274,24 +302,48 @@
 
             <!-- VISTA: FORMULARIO ACTIVIDAD VIDEO -->
             <div id="vista-actividad" class="view-docente hidden max-w-4xl mx-auto">
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                     <button type="button" onclick="window.mostrarVistaDocente('vista-hub-actividades')" class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition-all">
                         <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Volver a Módulos</span>
                     </button>
                     <span class="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">Módulo: Videos Interactivos</span>
                 </div>
 
-                <div class="glass-card p-8">
-                    <h2 class="text-xl font-black text-slate-900 mb-1" id="titulo-formulario-actividad">Crear Nueva Actividad</h2>
+                <!-- IMPORTACIÓN CSV / GEMS -->
+                <div class="mb-5 p-4 rounded-xl border border-dashed border-indigo-300 bg-indigo-50/50 flex flex-col md:flex-row items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-900">Importar Actividad desde Gems</h4>
+                            <p class="text-[10px] text-slate-500">Carga automática de video, variables de lab y preguntas interactivas</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <button type="button" onclick="window.abrirModalPegarCSV()" class="flex-1 md:flex-none text-indigo-700 bg-white hover:bg-slate-50 border border-indigo-200 px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all">
+                            <i data-lucide="clipboard-paste" class="w-3.5 h-3.5"></i>
+                            <span>Pegar CSV</span>
+                        </button>
+                        <label class="flex-1 md:flex-none histudy-btn px-3.5 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                            <span>Subir .csv</span>
+                            <input type="file" id="input-subir-csv" accept=".csv" class="hidden" onchange="window.cargarActividadDesdeCSV(event)">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 sm:p-8">
+                    <h2 class="text-lg sm:text-xl font-black text-slate-900 mb-1" id="titulo-formulario-actividad">Crear Nueva Actividad</h2>
                     <p class="text-xs text-slate-500 mb-5">Configura el video con validaciones intermedias y grados destino</p>
                     
                     <form id="form-crear-actividad" onsubmit="window.guardarActividad(event)" class="space-y-4">
                         <div>
-                            <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
                                 <label class="block text-xs font-bold text-slate-600 uppercase">Grados Destino y Categorías</label>
-                                <button type="button" onclick="window.toggleTodosGradosDestino()" class="text-xs text-indigo-600 font-bold hover:underline">Marcar / Desmarcar Todos</button>
+                                <button type="button" onclick="window.toggleTodosGradosDestino()" class="text-xs text-indigo-600 font-bold hover:underline text-left sm:text-right">Marcar / Desmarcar Todos</button>
                             </div>
-                            <div id="contenedor-grados-destino" class="grid grid-cols-2 sm:grid-cols-5 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200"></div>
+                            <div id="contenedor-grados-destino" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200"></div>
                         </div>
 
                         <div>
@@ -314,10 +366,10 @@
                         <div class="bg-indigo-50/50 border border-indigo-100 p-4 rounded-xl flex flex-col gap-3">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center"><i data-lucide="test-tube-2" class="w-4 h-4"></i></div>
+                                    <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0"><i data-lucide="test-tube-2" class="w-4 h-4"></i></div>
                                     <div><h4 class="text-xs font-bold text-slate-900">Requerir Registro de Laboratorio</h4><p class="text-[10px] text-slate-500">Solicita variables físicas medidas en la práctica</p></div>
                                 </div>
-                                <div class="relative inline-block w-11 align-middle select-none">
+                                <div class="relative inline-block w-11 align-middle select-none shrink-0">
                                     <input type="checkbox" id="toggle-laboratorio" onchange="document.getElementById('lab-fields-config').classList.toggle('hidden', !this.checked)" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
                                     <label for="toggle-laboratorio" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-300 cursor-pointer"></label>
                                 </div>
@@ -345,12 +397,12 @@
 
             <!-- VISTA: REPORTES -->
             <div id="vista-reportes" class="view-docente hidden max-w-[1300px] mx-auto">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-5">
                     <div>
-                        <h2 class="text-2xl font-black text-slate-900 tracking-tight" id="titulo-vista-reporte">Reporte de Calificaciones</h2>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight" id="titulo-vista-reporte">Reporte de Calificaciones</h2>
                         <p class="text-xs text-slate-500 font-medium">Inspección de evidencias y administración de intentos</p>
                     </div>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                         <button type="button" id="btn-reiniciar-grupo" onclick="window.reiniciarGrupoActual()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1">
                             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i><span id="btn-reiniciar-grupo-texto">Reiniciar Grupo</span>
                         </button>
@@ -360,8 +412,8 @@
                     </div>
                 </div>
 
-                <div id="filtros-reporte-global" class="hidden mb-4 flex gap-3">
-                    <select id="filtro-rep-grado" onchange="window.actualizarFiltrosReporte()" class="p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-bold text-slate-700">
+                <div id="filtros-reporte-global" class="hidden mb-4 flex flex-col sm:flex-row gap-3">
+                    <select id="filtro-rep-grado" onchange="window.actualizarFiltrosReporte()" class="w-full sm:w-auto p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-bold text-slate-700">
                         <option value="Todos">Todos los Destinos</option>
                         <option value="Docente">Docente</option>
                         <option value="6-1">Sexto 1</option><option value="6-2">Sexto 2</option>
@@ -369,25 +421,25 @@
                         <option value="8-2">Octavo 2</option><option value="9">Noveno</option>
                         <option value="10">Décimo</option><option value="11">Once</option>
                     </select>
-                    <select id="filtro-rep-actividad" onchange="window.actualizarFiltrosReporte()" class="p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-bold text-slate-700">
+                    <select id="filtro-rep-actividad" onchange="window.actualizarFiltrosReporte()" class="w-full sm:w-auto p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-bold text-slate-700">
                         <option value="Todas">Todas las Actividades</option>
                     </select>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5" id="kpis-reporte"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-5" id="kpis-reporte"></div>
                 <div class="glass-card p-4 mb-5" id="contenedor-grafico-reporte" style="display:none; height: 230px;"><canvas id="chartReporte"></canvas></div>
 
                 <div class="glass-card overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs text-left">
+                    <div class="overflow-x-auto table-container">
+                        <table class="w-full text-xs text-left min-w-[650px]">
                             <thead class="text-[10px] text-slate-400 uppercase font-black bg-slate-50/70 border-b border-slate-100">
                                 <tr>
-                                    <th class="px-5 py-3">Grado / Rol</th>
-                                    <th class="px-5 py-3">Integrante</th>
-                                    <th class="px-5 py-3">Actividad</th>
-                                    <th class="px-5 py-3 text-center">Evidencias</th>
-                                    <th class="px-5 py-3 text-center">Nota</th>
-                                    <th class="px-5 py-3 text-right">Acciones</th>
+                                    <th class="px-4 sm:px-5 py-3">Grado / Rol</th>
+                                    <th class="px-4 sm:px-5 py-3">Integrante</th>
+                                    <th class="px-4 sm:px-5 py-3">Actividad</th>
+                                    <th class="px-4 sm:px-5 py-3 text-center">Evidencias</th>
+                                    <th class="px-4 sm:px-5 py-3 text-center">Nota</th>
+                                    <th class="px-4 sm:px-5 py-3 text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-datos-reporte" class="divide-y divide-slate-100"></tbody>
@@ -399,11 +451,11 @@
             <!-- VISTA: GESTIÓN INTEGRANTES -->
             <div id="vista-estudiantes" class="view-docente hidden max-w-[1300px] mx-auto">
                 <div class="mb-5">
-                    <h2 class="text-2xl font-black text-slate-900">Gestión de estudiantes y docentes</h2>
+                    <h2 class="text-xl sm:text-2xl font-black text-slate-900">Gestión de estudiantes y docentes</h2>
                     <p class="text-xs text-slate-500 font-medium">Control de accesos y credenciales sincronizadas</p>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                    <div class="col-span-1 glass-card p-5 h-fit">
+                    <div class="col-span-1 glass-card p-4 sm:p-5 h-fit">
                         <h3 class="text-sm font-extrabold text-slate-900 mb-3 border-b pb-2 flex items-center gap-1.5">
                             <i data-lucide="user-plus" class="w-4 h-4 text-indigo-600"></i><span>Añadir Integrante</span>
                         </h3>
@@ -429,20 +481,20 @@
                             <button type="submit" class="w-full histudy-btn py-2.5 rounded-xl text-xs uppercase">Guardar en Base de Datos</button>
                         </form>
                     </div>
-                    <div class="col-span-2 glass-card p-5">
+                    <div class="col-span-1 lg:col-span-2 glass-card p-4 sm:p-5">
                         <h3 class="text-sm font-extrabold text-slate-900 mb-3 border-b pb-2 flex items-center justify-between">
                             <span>Directorio Institucional</span>
                             <span class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-bold">Cloud Sync</span>
                         </h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs text-left">
+                        <div class="overflow-x-auto table-container">
+                            <table class="w-full text-xs text-left min-w-[480px]">
                                 <thead class="text-[10px] text-slate-400 uppercase font-black bg-slate-50/70 border-b border-slate-100">
                                     <tr>
-                                        <th class="px-4 py-2.5">Rol / Grado</th>
-                                        <th class="px-4 py-2.5">Código</th>
-                                        <th class="px-4 py-2.5">Nombre</th>
-                                        <th class="px-4 py-2.5 text-center">Clave</th>
-                                        <th class="px-4 py-2.5 text-right">Borrar</th>
+                                        <th class="px-3 sm:px-4 py-2.5">Rol / Grado</th>
+                                        <th class="px-3 sm:px-4 py-2.5">Código</th>
+                                        <th class="px-3 sm:px-4 py-2.5">Nombre</th>
+                                        <th class="px-3 sm:px-4 py-2.5 text-center">Clave</th>
+                                        <th class="px-3 sm:px-4 py-2.5 text-right">Borrar</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-estudiantes-locales" class="divide-y divide-slate-100"></tbody>
@@ -455,35 +507,35 @@
     </div>
 
     <!-- PANEL ESTUDIANTE -->
-    <div id="panel-estudiante" class="hidden flex-grow flex-col items-center p-6 min-h-screen">
-        <div id="vista-bienvenida-estudiante" class="max-w-5xl w-full flex flex-col gap-5 mt-2">
-            <div class="glass-card p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div id="panel-estudiante" class="hidden flex-grow flex-col items-center p-3 sm:p-6 min-h-screen">
+        <div id="vista-bienvenida-estudiante" class="max-w-5xl w-full flex flex-col gap-4 sm:gap-5 mt-1 sm:mt-2">
+            <div class="glass-card p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center shadow-md">
-                        <i data-lucide="sparkles" class="w-6 h-6"></i>
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center shadow-md shrink-0">
+                        <i data-lucide="sparkles" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-black text-slate-900">Hola, <span id="nombre-estudiante-display" class="text-gradient">Estudiante</span></h2>
-                        <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mt-1">
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 leading-tight">Hola, <span id="nombre-estudiante-display" class="text-gradient">Estudiante</span></h2>
+                        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-semibold text-slate-500 mt-1">
                             <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-bold">Grado / Rol: <strong id="grado-estudiante-display"></strong></span>
                             <span class="bg-slate-100 px-2 py-0.5 rounded-full">Cód: <strong id="codigo-estudiante-display"></strong></span>
                         </div>
                     </div>
                 </div>
-                <button type="button" onclick="window.cerrarSesion()" class="text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1.5 border border-rose-200 bg-rose-50 px-3.5 py-2 rounded-xl text-xs">
+                <button type="button" onclick="window.cerrarSesion()" class="w-full sm:w-auto justify-center text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1.5 border border-rose-200 bg-rose-50 px-3.5 py-2 rounded-xl text-xs transition-colors">
                     <i data-lucide="log-out" class="w-3.5 h-3.5"></i><span>Cerrar Sesión</span>
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="glass-card p-6 border-t-4 border-t-indigo-600">
-                    <h3 class="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2 border-b pb-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                <div class="glass-card p-4 sm:p-6 border-t-4 border-t-indigo-600">
+                    <h3 class="text-sm font-extrabold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2 border-b pb-2">
                         <i data-lucide="hourglass" class="w-4 h-4 text-indigo-600"></i><span>Actividades Pendientes</span>
                     </h3>
                     <div id="lista-pendientes" class="flex flex-col gap-3"></div>
                 </div>
-                <div class="glass-card p-6 border-t-4 border-t-teal-600">
-                    <h3 class="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2 border-b pb-2">
+                <div class="glass-card p-4 sm:p-6 border-t-4 border-t-teal-600">
+                    <h3 class="text-sm font-extrabold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2 border-b pb-2">
                         <i data-lucide="check-check" class="w-4 h-4 text-teal-600"></i><span>Mis Calificaciones</span>
                     </h3>
                     <div id="lista-realizadas" class="flex flex-col gap-3"></div>
@@ -491,24 +543,27 @@
             </div>
         </div>
 
-        <div id="vista-reproductor" class="hidden w-full max-w-5xl glass-card p-6 flex-col h-[85vh] mt-2">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-black text-slate-900 flex items-center gap-2" id="titulo-reproductor">
-                    <i data-lucide="play" class="w-5 h-5 text-indigo-600"></i><span>Actividad Interactiva</span>
+        <!-- REPRODUCTOR INTERACTIVO -->
+        <div id="vista-reproductor" class="hidden w-full max-w-5xl glass-card p-3 sm:p-6 flex-col min-h-[75vh] md:h-[85vh] mt-1 sm:mt-2">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 sm:mb-4">
+                <h2 class="text-base sm:text-xl font-black text-slate-900 flex items-center gap-2 line-clamp-1" id="titulo-reproductor">
+                    <i data-lucide="play" class="w-5 h-5 text-indigo-600 shrink-0"></i><span>Actividad Interactiva</span>
                 </h2>
-                <div class="text-xs font-black badge-gradient px-3 py-1 rounded-full">
+                <div class="text-xs font-black badge-gradient px-3 py-1 rounded-full self-start sm:self-auto">
                     Progreso: <span id="progreso-text">0%</span>
                 </div>
             </div>
             
-            <div class="relative w-full flex-grow bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center">
+            <div class="relative w-full flex-grow bg-slate-950 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center aspect-video md:aspect-auto">
                 <div id="youtube-player" class="w-full h-full absolute inset-0"></div>
-                <div id="question-overlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 z-50 text-white">
-                    <div class="glass-card p-8 rounded-2xl max-w-xl w-full text-center shadow-2xl text-slate-900" id="question-box"></div>
+                
+                <!-- OVERLAY PREGUNTAS -->
+                <div id="question-overlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-6 z-50 text-white overflow-y-auto">
+                    <div class="glass-card p-5 sm:p-8 rounded-2xl max-w-xl w-full text-center shadow-2xl text-slate-900 my-auto" id="question-box"></div>
                 </div>
             </div>
-            <div class="mt-4 flex justify-center">
-                <button type="button" onclick="window.volverDashboardEstudiante()" class="text-slate-700 border border-slate-200 px-5 py-2.5 rounded-xl bg-white text-xs font-bold flex items-center gap-2 shadow-sm">
+            <div class="mt-3 sm:mt-4 flex justify-center">
+                <button type="button" onclick="window.volverDashboardEstudiante()" class="w-full sm:w-auto justify-center text-slate-700 border border-slate-200 px-4 sm:px-5 py-2.5 rounded-xl bg-white text-xs font-bold flex items-center gap-2 shadow-sm">
                     <i data-lucide="pause-circle" class="w-4 h-4"></i><span>Pausar y regresar al Dashboard</span>
                 </button>
             </div>
@@ -516,12 +571,12 @@
     </div>
 
     <!-- MODAL FINALIZACIÓN -->
-    <div id="final-overlay" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center p-6 z-50 overflow-y-auto">
-        <div class="glass-card p-8 rounded-2xl max-w-xl w-full text-center shadow-2xl text-slate-900 my-auto">
-            <h3 class="text-xl font-black mb-1 text-slate-900">¡Video Completado!</h3>
+    <div id="final-overlay" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-6 z-50 overflow-y-auto">
+        <div class="glass-card p-5 sm:p-8 rounded-2xl max-w-xl w-full text-center shadow-2xl text-slate-900 my-auto">
+            <h3 class="text-lg sm:text-xl font-black mb-1 text-slate-900">¡Video Completado!</h3>
             <p class="text-slate-500 mb-4 text-xs font-semibold">Completa la siguiente información para registrar tu entrega</p>
             
-            <div id="estudiante-lab-section" class="hidden text-left mb-4 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+            <div id="estudiante-lab-section" class="hidden text-left mb-4 bg-indigo-50/50 p-3 sm:p-4 rounded-xl border border-indigo-100">
                 <h4 class="font-extrabold text-xs uppercase text-indigo-950 mb-2">Variables del Experimento</h4>
                 <div id="estudiante-lab-inputs" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
             </div>
@@ -538,21 +593,21 @@
     </div>
 
     <!-- MODAL VISOR DETALLES -->
-    <div id="view-detalle-overlay" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center p-6 z-50">
-        <div class="glass-card p-6 sm:p-8 rounded-2xl max-w-2xl w-full shadow-2xl text-slate-900 max-h-[90vh] overflow-y-auto">
+    <div id="view-detalle-overlay" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-6 z-50">
+        <div class="glass-card p-5 sm:p-8 rounded-2xl max-w-2xl w-full shadow-2xl text-slate-900 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 class="text-base font-black text-slate-900">Detalle de la Entrega y Evaluación</h3>
-                <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-slate-400 hover:text-rose-600 font-bold"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <h3 class="text-sm sm:text-base font-black text-slate-900">Detalle de la Entrega y Evaluación</h3>
+                <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-slate-400 hover:text-rose-600 font-bold p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             
-            <div id="view-detalle-resumen" class="grid grid-cols-2 gap-3 mb-4"></div>
+            <div id="view-detalle-resumen" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4"></div>
             <div id="view-detalle-preguntas-container" class="mb-4 hidden">
                 <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-2">Preguntas Respondidas y Retroalimentación</h4>
                 <div id="view-detalle-preguntas-list" class="space-y-3"></div>
             </div>
             <div id="view-detalle-lab-container" class="mb-4 hidden">
                 <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-2">Datos de Laboratorio</h4>
-                <div id="view-detalle-lab-grid" class="grid grid-cols-2 gap-2.5"></div>
+                <div id="view-detalle-lab-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
             </div>
             <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 mb-4">
                 <span class="block text-xs font-extrabold text-indigo-950 uppercase mb-1">Aprendizajes</span>
@@ -562,7 +617,25 @@
         </div>
     </div>
 
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+    <!-- MODAL PEGAR CSV DIRECTO -->
+    <div id="modal-pegar-csv" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center p-4 z-50">
+        <div class="glass-card p-5 sm:p-6 rounded-2xl max-w-xl w-full shadow-2xl text-slate-900 my-auto">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                    <i data-lucide="clipboard-list" class="w-4 h-4 text-indigo-600"></i>
+                    <span>Pegar contenido CSV generado por el Gem</span>
+                </h3>
+                <button type="button" onclick="document.getElementById('modal-pegar-csv').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 font-bold p-1">✕</button>
+            </div>
+            <textarea id="texto-pegar-csv" rows="7" placeholder="Pega aquí el bloque de código csv que te dio el Gem..." class="w-full p-3 font-mono text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 mb-3"></textarea>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="document.getElementById('modal-pegar-csv').classList.add('hidden')" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Cancelar</button>
+                <button type="button" onclick="window.confirmarPegadoCSV()" class="histudy-btn px-4 py-2 rounded-xl text-xs font-bold">Importar Actividad</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-4 right-4 left-4 sm:left-auto z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwU-4PYRnAFAo7TrNau5QKyXOOntvlzbvIF2IcotVslMjiZI7qloelbuPqwU83NyBnQ/exec';
@@ -585,6 +658,23 @@
             if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         };
 
+        window.toggleSidebarDocente = function(forceState) {
+            const sidebar = document.getElementById('sidebar-docente');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if(!sidebar || !backdrop) return;
+            
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            const targetState = (typeof forceState === 'boolean') ? forceState : !isOpen;
+
+            if(targetState) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        };
+
         window.escapeHTML = function(str) {
             if (str === null || str === undefined) return '';
             return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
@@ -596,7 +686,7 @@
             const toast = document.createElement('div');
             const color = tipo === 'success' ? 'bg-emerald-600 text-white' : (tipo === 'error' ? 'bg-rose-600 text-white' : 'bg-amber-600 text-white');
             const iconName = tipo === 'success' ? 'check-circle' : (tipo === 'error' ? 'alert-triangle' : 'info');
-            toast.className = `${color} px-4 py-2.5 rounded-xl shadow-xl transform transition-all duration-300 opacity-0 translate-y-4 font-bold text-xs flex items-center gap-2 z-50 border border-white/20`;
+            toast.className = `${color} px-4 py-2.5 rounded-xl shadow-xl transform transition-all duration-300 opacity-0 translate-y-4 font-bold text-xs flex items-center gap-2 z-50 border border-white/20 pointer-events-auto max-w-sm sm:max-w-md`;
             toast.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 shrink-0"></i><span>${window.escapeHTML(mensaje)}</span>`;
             container.appendChild(toast);
             window.renderLucide();
@@ -613,13 +703,13 @@
             if (tab === 'estudiante') {
                 formEst.classList.remove('hidden');
                 formDoc.classList.add('hidden');
-                tabEst.className = 'flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white text-indigo-700 font-bold rounded-xl shadow-sm w-full text-xs transition-all';
-                tabDoc.className = 'flex items-center justify-center gap-1.5 px-4 py-2.5 text-slate-500 font-bold rounded-xl w-full text-xs transition-all hover:text-slate-900';
+                tabEst.className = 'flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-indigo-700 font-bold rounded-xl shadow-sm w-full text-xs transition-all';
+                tabDoc.className = 'flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 text-slate-500 font-bold rounded-xl w-full text-xs transition-all hover:text-slate-900';
             } else {
                 formDoc.classList.remove('hidden');
                 formEst.classList.add('hidden');
-                tabDoc.className = 'flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white text-slate-900 font-bold rounded-xl shadow-sm w-full text-xs transition-all';
-                tabEst.className = 'flex items-center justify-center gap-1.5 px-4 py-2.5 text-slate-500 font-bold rounded-xl w-full text-xs transition-all hover:text-indigo-700';
+                tabDoc.className = 'flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-slate-900 font-bold rounded-xl shadow-sm w-full text-xs transition-all';
+                tabEst.className = 'flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 text-slate-500 font-bold rounded-xl w-full text-xs transition-all hover:text-indigo-700';
             }
             window.renderLucide();
         };
@@ -699,7 +789,7 @@
                         : 'text-slate-300 hover:bg-white/5 hover:text-white';
                     const seguroGrado = window.escapeHTML(grado);
                     listaGrupos.innerHTML += `
-                        <li onclick="window.renderDashboardDocente('${seguroGrado}')" class="px-3 py-2 cursor-pointer flex justify-between items-center rounded-xl transition-all ${isActive}">
+                        <li onclick="window.renderDashboardDocente('${seguroGrado}'); window.toggleSidebarDocente(false);" class="px-3 py-2 cursor-pointer flex justify-between items-center rounded-xl transition-all ${isActive}">
                             <span class="text-xs font-bold flex items-center gap-1.5">
                                 <span class="w-1.5 h-1.5 rounded-full ${window.filtroGradoActual === grado ? 'bg-white' : 'bg-indigo-400'}"></span>
                                 Grado ${seguroGrado}
@@ -731,7 +821,7 @@
                     window.myChart1 = new Chart(ctx1.getContext('2d'), { 
                         type: 'bar', 
                         data: { labels: gradosLabels, datasets: [{ label: 'Promedio Académico', data: promediosData, backgroundColor: '#6366F1', borderRadius: 6 }] }, 
-                        options: { scales: { y: { beginAtZero: true, max: 5 } } } 
+                        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } } } 
                     }); 
                 }
 
@@ -741,7 +831,7 @@
                     window.myChart2 = new Chart(ctx2.getContext('2d'), { 
                         type: 'line', 
                         data: { labels: gradosLabels, datasets: [{ label: '% Participación', data: participacionData, borderColor: '#C026D3', backgroundColor: 'rgba(192, 38, 211, 0.1)', fill: true, tension: 0.3 }] }, 
-                        options: { scales: { y: { beginAtZero: true, max: 100 } } } 
+                        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } } 
                     }); 
                 }
             }
@@ -763,11 +853,11 @@
 
                     tabla.innerHTML += `
                         <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-5 py-3 font-extrabold text-slate-900">${window.escapeHTML(act.grados.join(', '))}</td>
-                            <td class="px-5 py-3 font-bold text-slate-800">${window.escapeHTML(act.titulo)}</td>
-                            <td class="px-5 py-3 text-center">${labelLab}</td>
-                            <td class="px-5 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${badge}">${window.escapeHTML(act.estado)}</span></td>
-                            <td class="px-5 py-3 text-right space-x-1 whitespace-nowrap">
+                            <td class="px-4 sm:px-5 py-3 font-extrabold text-slate-900">${window.escapeHTML(act.grados.join(', '))}</td>
+                            <td class="px-4 sm:px-5 py-3 font-bold text-slate-800">${window.escapeHTML(act.titulo)}</td>
+                            <td class="px-4 sm:px-5 py-3 text-center">${labelLab}</td>
+                            <td class="px-4 sm:px-5 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${badge}">${window.escapeHTML(act.estado)}</span></td>
+                            <td class="px-4 sm:px-5 py-3 text-right space-x-1 whitespace-nowrap">
                                 <button type="button" onclick="window.toggleEstadoActividad('${seguroId}')" class="text-[11px] font-bold text-slate-600 border border-slate-200 bg-white px-2.5 py-1 rounded-lg hover:bg-slate-50">${btnEstado}</button>
                                 <button type="button" onclick="window.editarActividad('${seguroId}')" class="text-[11px] font-bold text-indigo-700 border border-indigo-200 bg-indigo-50 px-2.5 py-1 rounded-lg hover:bg-indigo-100">Editar</button>
                                 <button type="button" onclick="window.eliminarActividad('${seguroId}')" class="text-[11px] font-bold text-rose-600 border border-rose-200 bg-rose-50 px-2 py-1 rounded-lg hover:bg-rose-100">🗑️</button>
@@ -873,7 +963,7 @@
             const contPreguntas = document.getElementById('contenedor-preguntas');
             if(!contPreguntas) return;
             const div = document.createElement('div');
-            div.className = "p-4 border border-slate-200 rounded-xl bg-slate-50 relative mt-2";
+            div.className = "p-3 sm:p-4 border border-slate-200 rounded-xl bg-slate-50 relative mt-2";
             
             const opt1 = window.escapeHTML(oArr[0] || ''); const opt2 = window.escapeHTML(oArr[1] || '');
             const opt3 = window.escapeHTML(oArr[2] || ''); const opt4 = window.escapeHTML(oArr[3] || '');
@@ -881,21 +971,21 @@
 
             div.innerHTML = `
                 <button type="button" class="absolute top-2 right-2 text-rose-600 font-bold p-1 text-xs" onclick="this.parentElement.remove()">✕ Quitar</button>
-                <div class="grid grid-cols-4 gap-2 mb-2 mt-1">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-2 mt-4 sm:mt-1">
                     <div class="col-span-1">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Segundo</label>
                         <input type="number" value="${window.escapeHTML(t)}" class="q-time w-full p-2 border border-slate-200 rounded-lg bg-white text-xs font-semibold" required>
                     </div>
-                    <div class="col-span-3">
+                    <div class="col-span-1 sm:col-span-3">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Pregunta</label>
                         <input type="text" value="${window.escapeHTML(p)}" class="q-text w-full p-2 border border-slate-200 rounded-lg bg-white text-xs font-semibold" required>
                     </div>
-                    <div class="col-span-4">
+                    <div class="col-span-1 sm:col-span-4">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Retroalimentación pedagógica</label>
                         <input type="text" placeholder="Ej: Recuerda la temperatura óptima..." value="${window.escapeHTML(f)}" class="q-feedback w-full p-2 border border-slate-200 rounded-lg bg-white text-xs">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-2 mb-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                     <input type="text" placeholder="Opción 1" value="${opt1}" class="q-opt1 p-2 border border-slate-200 rounded-lg bg-white text-xs" required>
                     <input type="text" placeholder="Opción 2" value="${opt2}" class="q-opt2 p-2 border border-slate-200 rounded-lg bg-white text-xs" required>
                     <input type="text" placeholder="Opción 3" value="${opt3}" class="q-opt3 p-2 border border-slate-200 rounded-lg bg-white text-xs">
@@ -1033,6 +1123,124 @@
             }
         };
 
+        /* FUNCIONALIDADES DE CARGA Y PARSEO CSV / GEMS */
+        window.abrirModalPegarCSV = function() {
+            const modal = document.getElementById('modal-pegar-csv');
+            const txtArea = document.getElementById('texto-pegar-csv');
+            if (txtArea) txtArea.value = '';
+            if (modal) modal.classList.remove('hidden');
+            window.renderLucide();
+        };
+
+        window.confirmarPegadoCSV = function() {
+            const txt = document.getElementById('texto-pegar-csv').value.trim();
+            if (!txt) {
+                window.mostrarToast("Por favor pega el contenido CSV", "warning");
+                return;
+            }
+            document.getElementById('modal-pegar-csv').classList.add('hidden');
+            window.procesarTextoCSV(txt);
+        };
+
+        window.cargarActividadDesdeCSV = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                window.procesarTextoCSV(text);
+                event.target.value = '';
+            };
+            reader.readAsText(file, "UTF-8");
+        };
+
+        window.procesarTextoCSV = function(csvText) {
+            let limpio = csvText.trim();
+            if (limpio.startsWith('```csv')) limpio = limpio.replace(/^```csv\s*/, '');
+            if (limpio.startsWith('```')) limpio = limpio.replace(/^```\s*/, '');
+            if (limpio.endsWith('```')) limpio = limpio.replace(/\s*```$/, '');
+            limpio = limpio.trim();
+
+            const parseCSV = (str) => {
+                const arr = [];
+                let quote = false;
+                let col = 0, row = 0;
+                for (let c = 0; c < str.length; c++) {
+                    let cc = str[c], nc = str[c+1];
+                    arr[row] = arr[row] || [];
+                    arr[row][col] = arr[row][col] || '';
+
+                    if (cc === '"' && quote && nc === '"') { arr[row][col] += '"'; ++c; continue; }
+                    if (cc === '"') { quote = !quote; continue; }
+                    if (cc === ',' && !quote) { ++col; continue; }
+                    if (cc === '\r' && nc === '\n' && !quote) { ++row; col = 0; ++c; continue; }
+                    if (cc === '\n' && !quote) { ++row; col = 0; continue; }
+                    if (cc === '\r' && !quote) { ++row; col = 0; continue; }
+                    arr[row][col] += cc;
+                }
+                return arr.filter(r => r.some(cell => cell && cell.trim().length > 0));
+            };
+
+            const filas = parseCSV(limpio);
+            if (filas.length < 2) {
+                window.mostrarToast("El formato no contiene suficientes filas de datos", "error");
+                return;
+            }
+
+            const headers = filas[0].map(h => h.trim().toLowerCase());
+            const getVal = (row, key) => {
+                const idx = headers.indexOf(key.toLowerCase());
+                return idx !== -1 && row[idx] ? row[idx].trim() : '';
+            };
+
+            const primera = filas[1];
+            
+            document.getElementById('titulo-clase').value = getVal(primera, 'titulo');
+            document.getElementById('url-video').value = getVal(primera, 'youtube_url');
+            document.getElementById('objetivo-actividad').value = getVal(primera, 'objetivo');
+            document.getElementById('descripcion-actividad').value = getVal(primera, 'descripcion');
+
+            const rawGrados = getVal(primera, 'grados').split(';').map(g => g.trim()).filter(Boolean);
+            window.renderSelectoresGradosDestino(rawGrados);
+
+            const reqLab = getVal(primera, 'requiere_lab').toUpperCase() === 'SI';
+            const checkLab = document.getElementById('toggle-laboratorio');
+            checkLab.checked = reqLab;
+            document.getElementById('lab-fields-config').classList.toggle('hidden', !reqLab);
+            
+            const contLab = document.getElementById('contenedor-campos-lab');
+            contLab.innerHTML = '';
+            if (reqLab) {
+                const campos = getVal(primera, 'campos_lab').split(';').map(c => c.trim()).filter(Boolean);
+                campos.forEach(c => window.agregarCampoLabConfig(c));
+            }
+
+            const contPreguntas = document.getElementById('contenedor-preguntas');
+            contPreguntas.innerHTML = '';
+
+            let pregCount = 0;
+            for (let i = 1; i < filas.length; i++) {
+                const r = filas[i];
+                const seg = parseInt(getVal(r, 'segundo')) || 0;
+                const texto = getVal(r, 'pregunta');
+                const feedback = getVal(r, 'feedback');
+                const opc1 = getVal(r, 'opcion1');
+                const opc2 = getVal(r, 'opcion2');
+                const opc3 = getVal(r, 'opcion3');
+                const opc4 = getVal(r, 'opcion4');
+                const correcta = getVal(r, 'correcta') || '1';
+
+                if (texto) {
+                    window.crearBloquePregunta(seg, texto, [opc1, opc2, opc3, opc4], correcta, feedback);
+                    pregCount++;
+                }
+            }
+
+            window.mostrarToast(`Actividad y ${pregCount} preguntas cargadas correctamente`, "success");
+            window.renderLucide();
+        };
+
         window.loginDocente = async function(e) {
             e.preventDefault();
             const btnSubmit = document.getElementById('btn-submit-docente');
@@ -1107,15 +1315,15 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-2 font-black">${badgeRol}</td>
-                        <td class="px-4 py-2 font-bold text-indigo-600">${window.escapeHTML(est.codigo)}</td>
-                        <td class="px-4 py-2 font-semibold text-slate-800">${window.escapeHTML(est.nombre)}</td>
-                        <td class="px-4 py-2 text-center text-slate-500 font-mono text-xs">
+                        <td class="px-3 sm:px-4 py-2 font-black">${badgeRol}</td>
+                        <td class="px-3 sm:px-4 py-2 font-bold text-indigo-600">${window.escapeHTML(est.codigo)}</td>
+                        <td class="px-3 sm:px-4 py-2 font-semibold text-slate-800">${window.escapeHTML(est.nombre)}</td>
+                        <td class="px-3 sm:px-4 py-2 text-center text-slate-500 font-mono text-xs">
                             <span id="${idPas}-txt" class="hidden">${window.escapeHTML(est.pass)}</span>
                             <span id="${idPas}-dots">••••••••</span>
                             <button type="button" onclick="document.getElementById('${idPas}-txt').classList.toggle('hidden'); document.getElementById('${idPas}-dots').classList.toggle('hidden');" class="ml-1 text-[11px] bg-slate-100 px-1.5 py-0.5 rounded">👁</button>
                         </td>
-                        <td class="px-4 py-2 text-right">
+                        <td class="px-3 sm:px-4 py-2 text-right">
                             <button type="button" onclick="window.eliminarUsuarioDirectorio('${window.escapeHTML(est.grado)}', '${window.escapeHTML(est.codigo)}', '${window.escapeHTML(est.nombre)}')" class="text-rose-500 hover:text-rose-700 p-1">🗑️</button>
                         </td>
                     </tr>
@@ -1203,12 +1411,12 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-5 py-2.5 font-black">${window.escapeHTML(d.grado)}</td>
-                        <td class="px-5 py-2.5 font-bold text-slate-800">${window.escapeHTML(d.nombreEst)}</td>
-                        <td class="px-5 py-2.5 text-slate-600">${window.escapeHTML(d.nombreAct)}</td>
-                        <td class="px-5 py-2.5 text-center">${labBtn}</td>
-                        <td class="px-5 py-2.5 text-center font-black ${color}">${d.nota.toFixed(1)}</td>
-                        <td class="px-5 py-2.5 text-right">
+                        <td class="px-4 sm:px-5 py-2.5 font-black">${window.escapeHTML(d.grado)}</td>
+                        <td class="px-4 sm:px-5 py-2.5 font-bold text-slate-800">${window.escapeHTML(d.nombreEst)}</td>
+                        <td class="px-4 sm:px-5 py-2.5 text-slate-600">${window.escapeHTML(d.nombreAct)}</td>
+                        <td class="px-4 sm:px-5 py-2.5 text-center">${labBtn}</td>
+                        <td class="px-4 sm:px-5 py-2.5 text-center font-black ${color}">${d.nota.toFixed(1)}</td>
+                        <td class="px-4 sm:px-5 py-2.5 text-right">
                             <button type="button" onclick="window.reiniciarActividadEstudiante('${window.escapeHTML(d.estId)}', '${window.escapeHTML(d.actId)}', '${window.escapeHTML(d.nombreEst)}')" class="text-xs bg-amber-50 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg">Reiniciar</button>
                         </td>
                     </tr>
@@ -1241,7 +1449,7 @@
                 datos.forEach(d => { if(!map[d.nombreAct]) map[d.nombreAct] = {s:0, c:0}; map[d.nombreAct].s += d.nota; map[d.nombreAct].c++; });
                 labels = Object.keys(map); data = labels.map(a => (map[a].s / map[a].c).toFixed(1));
             }
-            window.chartRepGlobal = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Promedio', data: data, backgroundColor: '#6366F1', borderRadius: 6 }] }, options: { scales: { y: { beginAtZero: true, max: 5 } }, maintainAspectRatio: false } });
+            window.chartRepGlobal = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Promedio', data: data, backgroundColor: '#6366F1', borderRadius: 6 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, max: 5 } }, maintainAspectRatio: false } });
         }
 
         window.generarReporteActividad = function(idActividad) {
@@ -1304,12 +1512,12 @@
 
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-5 py-2.5 font-black">${window.escapeHTML(n.grado)}</td>
-                            <td class="px-5 py-2.5 font-bold text-slate-800">${window.escapeHTML(n.nombre)}</td>
-                            <td class="px-5 py-2.5 text-slate-600">${window.escapeHTML(act?.titulo || idActividad)}</td>
-                            <td class="px-5 py-2.5 text-center">${labBtn}</td>
-                            <td class="px-5 py-2.5 text-center font-black ${color}">${n.valStr}</td>
-                            <td class="px-5 py-2.5 text-right">
+                            <td class="px-4 sm:px-5 py-2.5 font-black">${window.escapeHTML(n.grado)}</td>
+                            <td class="px-4 sm:px-5 py-2.5 font-bold text-slate-800">${window.escapeHTML(n.nombre)}</td>
+                            <td class="px-4 sm:px-5 py-2.5 text-slate-600">${window.escapeHTML(act?.titulo || idActividad)}</td>
+                            <td class="px-4 sm:px-5 py-2.5 text-center">${labBtn}</td>
+                            <td class="px-4 sm:px-5 py-2.5 text-center font-black ${color}">${n.valStr}</td>
+                            <td class="px-4 sm:px-5 py-2.5 text-right">
                                 <button type="button" onclick="window.reiniciarActividadEstudiante('${window.escapeHTML(n.estId)}', '${window.escapeHTML(idActividad)}', '${window.escapeHTML(n.nombre)}')" class="text-xs bg-amber-50 text-amber-800 border border-amber-300 font-bold px-2 py-1 rounded-lg">Reiniciar</button>
                             </td>
                         </tr>
@@ -1419,6 +1627,32 @@
             }).catch(()=>{}); 
         };
 
+        window.volverDashboardEstudiante = function() {
+            if(player && typeof player.pauseVideo === 'function') {
+                try { player.pauseVideo(); } catch(e) {}
+            }
+            if(intervaloVideo) clearInterval(intervaloVideo);
+            
+            document.getElementById('vista-reproductor').classList.add('hidden');
+            document.getElementById('vista-reproductor').classList.remove('flex');
+            document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden');
+            window.construirDashboardEstudiante(gradoEstudianteActual);
+        };
+
+        window.cerrarSesion = function() {
+            if(player && typeof player.pauseVideo === 'function') {
+                try { player.pauseVideo(); } catch(e) {}
+            }
+            if(intervaloVideo) clearInterval(intervaloVideo);
+
+            document.getElementById('panel-docente').classList.add('hidden');
+            document.getElementById('panel-docente').classList.remove('flex');
+            document.getElementById('panel-estudiante').classList.add('hidden');
+            document.getElementById('panel-estudiante').classList.remove('flex');
+            document.getElementById('login-panel').classList.remove('hidden');
+            window.toggleSidebarDocente(false);
+        };
+
         window.construirDashboardEstudiante = function(grado) {
             const listaP = document.getElementById('lista-pendientes'), listaR = document.getElementById('lista-realizadas');
             if(!listaP || !listaR) return;
@@ -1445,7 +1679,7 @@
                         const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
 
                         listaR.innerHTML += `
-                            <div class="p-4 bg-white rounded-xl flex justify-between items-center border border-slate-200 shadow-sm">
+                            <div class="p-3.5 sm:p-4 bg-white rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border border-slate-200 shadow-sm">
                                 <div>
                                     <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${seguroTitulo}</h4>
                                     <div class="flex items-center gap-2 mt-1 text-[11px] font-bold">
@@ -1453,7 +1687,7 @@
                                         <span class="text-slate-400 font-medium">${window.escapeHTML(entregaObj.fecha || '')}</span>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2 self-end sm:self-center">
                                     <button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-indigo-50 text-indigo-700 font-bold px-3 py-1.5 rounded-lg border border-indigo-200">Ver Detalle</button>
                                     <div class="px-3 py-1 rounded-lg border-2 font-black text-sm ${notaBoxColor}">${val}</div>
                                 </div>
@@ -1462,13 +1696,13 @@
                     } else if (act.estado === 'Activa') { 
                         pCount++;
                         listaP.innerHTML += `
-                            <div class="p-4 bg-white rounded-xl border border-slate-200 flex justify-between items-center shadow-sm relative overflow-hidden">
+                            <div class="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm relative overflow-hidden">
                                 <div class="absolute left-0 top-0 w-1 h-full bg-indigo-600"></div>
                                 <div class="pl-2">
                                     <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${seguroTitulo}</h4>
                                     <span class="text-[11px] text-slate-400">📅 ${fechaCreacionAct}</span>
                                 </div>
-                                <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="histudy-btn px-4 py-2 rounded-lg text-xs">Iniciar</button>
+                                <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="histudy-btn px-4 py-2 rounded-lg text-xs w-full sm:w-auto">Iniciar</button>
                             </div>
                         `;
                     }
@@ -1520,7 +1754,7 @@
                     player.pauseVideo(); clearInterval(intervaloVideo);
                     const qBox = document.getElementById('question-box');
                     qBox.innerHTML = `
-                        <h3 class="text-base sm:text-lg mb-4 font-extrabold text-slate-900">${window.escapeHTML(pregunta.texto)}</h3>
+                        <h3 class="text-sm sm:text-base md:text-lg mb-4 font-extrabold text-slate-900">${window.escapeHTML(pregunta.texto)}</h3>
                         <div id="q-options" class="grid grid-cols-1 gap-2 mb-2"></div>
                     `;
                     const contO = document.getElementById('q-options');
@@ -1542,8 +1776,8 @@
                             
                             const boxColor = esCorrecta ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-rose-50 border-rose-300 text-rose-800';
                             qBox.innerHTML = `
-                                <div class="p-4 rounded-xl border ${boxColor} mb-4">
-                                    <h4 class="text-sm font-black mb-1">${esCorrecta ? '¡Respuesta Correcta! ✅' : 'Respuesta Incorrecta ❌'}</h4>
+                                <div class="p-3 sm:p-4 rounded-xl border ${boxColor} mb-4">
+                                    <h4 class="text-xs sm:text-sm font-black mb-1">${esCorrecta ? '¡Respuesta Correcta! ✅' : 'Respuesta Incorrecta ❌'}</h4>
                                     <p class="text-xs">${window.escapeHTML(pregunta.feedback || (esCorrecta ? '¡Muy bien!' : 'Presta atención al video.'))}</p>
                                 </div>
                                 <button type="button" id="btn-continuar-video" class="w-full histudy-btn py-2.5 rounded-xl text-xs uppercase">Continuar Clase ▶</button>
@@ -1628,7 +1862,7 @@
             document.getElementById('view-detalle-resumen').innerHTML = `
                 <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
                     <span class="block text-[10px] font-bold text-slate-500 uppercase">Nota Final</span>
-                    <span class="text-2xl font-black ${notaColor}">${window.escapeHTML(data.nota != null ? data.nota : '--')} / 5.0</span>
+                    <span class="text-xl sm:text-2xl font-black ${notaColor}">${window.escapeHTML(data.nota != null ? data.nota : '--')} / 5.0</span>
                 </div>
                 <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
                     <span class="block text-[10px] font-bold text-slate-500 uppercase">Fecha Entrega</span>
