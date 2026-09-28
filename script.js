@@ -18,7 +18,7 @@ window.filtroGradoActual = null;
 window.reporteActividadActualId = null;
 window.datosReporteGlobal = [];
 
-/* VARIABLES MOTOR DE LECTURA POR RENGLÓN */
+/* VARIABLES MOTOR DE LECTURA POR RENGLÓN Y PARADAS SELECTIVAS */
 let lineasLecturaArray = [];
 let palabrasLecturaArray = [];
 let indiceLineaLector = 0;
@@ -154,7 +154,6 @@ window.toggleTodosGradosDestinoLectura = function() {
     window.actualizarSelectClasesLectura();
 };
 
-/* GESTIÓN DE CLASES EN FORMULARIOS DOCENTE */
 window.actualizarSelectClasesFormulario = function(claseSeleccionada = '') {
     const select = document.getElementById('select-clase-existente');
     const inputNueva = document.getElementById('input-nueva-clase');
@@ -195,7 +194,6 @@ window.gestionarCambioClase = function() {
     const select = document.getElementById('select-clase-existente');
     const inputNueva = document.getElementById('input-nueva-clase');
     if (!select || !inputNueva) return;
-
     if (select.value === '__NUEVA__') {
         inputNueva.classList.remove('hidden');
         inputNueva.value = '';
@@ -206,7 +204,6 @@ window.gestionarCambioClase = function() {
     }
 };
 
-/* GESTIÓN DE CLASES FORMULARIO LECTURA */
 window.actualizarSelectClasesLectura = function(claseSeleccionada = '') {
     const select = document.getElementById('select-clase-existente-lec');
     const inputNueva = document.getElementById('input-nueva-clase-lec');
@@ -253,7 +250,6 @@ window.gestionarCambioClaseLectura = function() {
     }
 };
 
-/* DASHBOARD DOCENTE */
 window.renderDashboardDocente = function(filtroGrado = null) {
     window.filtroGradoActual = filtroGrado; 
     window.mostrarVistaDocente('vista-dashboard');
@@ -452,7 +448,7 @@ window.editarActividad = function(idActividad) {
         const contP = document.getElementById('contenedor-preguntas-lectura');
         contP.innerHTML = '';
         if(act.preguntas) {
-            act.preguntas.forEach(p => window.crearBloquePreguntaLecturaDocente(p.texto, p.opciones, p.correcta, p.feedback));
+            act.preguntas.forEach(p => window.crearBloquePreguntaLecturaDocente(p.texto, p.opciones, p.correcta, p.feedback, p.parrafoPausa || 0));
         }
         window.mostrarVistaDocente('vista-actividad-lectura');
         return;
@@ -674,7 +670,7 @@ window.guardarActividad = async function(e) {
     }
 };
 
-/* GESTIÓN DOCENTE: LECTURA Y FLUIDEZ */
+/* GESTIÓN DOCENTE: LECTURA Y FLUIDEZ CON PARADA SELECTIVA */
 window.prepararNuevaActividadLectura = function() {
     idActividadEditando = null;
     const form = document.getElementById('form-crear-lectura');
@@ -720,7 +716,7 @@ window.agregarFilaGlosarioDocente = function(term='', def='') {
     cont.appendChild(div);
 };
 
-window.crearBloquePreguntaLecturaDocente = function(texto='', opts=[], corr='1', fdbk='') {
+window.crearBloquePreguntaLecturaDocente = function(texto='', opts=[], corr='1', fdbk='', parrafoPausa=0) {
     const cont = document.getElementById('contenedor-preguntas-lectura');
     if (!cont) return;
     const div = document.createElement('div');
@@ -731,14 +727,34 @@ window.crearBloquePreguntaLecturaDocente = function(texto='', opts=[], corr='1',
     const opt3 = window.escapeHTML(opts[2] || '');
     const opt4 = window.escapeHTML(opts[3] || '');
     const cStr = String(corr);
+    const pPausaNum = parseInt(parrafoPausa) || 0;
 
     div.innerHTML = `
         <button type="button" class="absolute top-2 right-2 text-rose-600 font-bold p-1 text-xs" onclick="this.parentElement.remove()">✕ Quitar</button>
-        <div class="mb-2 mt-4 sm:mt-1 space-y-1">
-            <label class="block text-[10px] font-bold text-slate-500 uppercase">Pregunta Tipo Saber</label>
-            <input type="text" value="${window.escapeHTML(texto)}" class="q-lec-text w-full p-2 border border-slate-200 rounded-lg bg-white text-xs font-semibold" required>
-            <input type="text" placeholder="Retroalimentación formativa..." value="${window.escapeHTML(fdbk)}" class="q-lec-feedback w-full p-2 border border-slate-200 rounded-lg bg-white text-xs">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-2 mt-4 sm:mt-1">
+            <div class="col-span-1">
+                <label class="block text-[10px] font-bold text-emerald-800 uppercase mb-0.5">Momento de Parada</label>
+                <select class="q-lec-parrafo-pausa w-full p-2 border border-slate-200 rounded-lg bg-white text-xs font-bold text-emerald-800">
+                    <option value="0" ${pPausaNum === 0 ? 'selected' : ''}>Al finalizar lectura</option>
+                    <option value="1" ${pPausaNum === 1 ? 'selected' : ''}>Pausa: Fin Párrafo 1</option>
+                    <option value="2" ${pPausaNum === 2 ? 'selected' : ''}>Pausa: Fin Párrafo 2</option>
+                    <option value="3" ${pPausaNum === 3 ? 'selected' : ''}>Pausa: Fin Párrafo 3</option>
+                    <option value="4" ${pPausaNum === 4 ? 'selected' : ''}>Pausa: Fin Párrafo 4</option>
+                    <option value="5" ${pPausaNum === 5 ? 'selected' : ''}>Pausa: Fin Párrafo 5</option>
+                    <option value="6" ${pPausaNum === 6 ? 'selected' : ''}>Pausa: Fin Párrafo 6</option>
+                </select>
+            </div>
+            <div class="col-span-1 sm:col-span-3">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Pregunta Tipo Saber</label>
+                <input type="text" value="${window.escapeHTML(texto)}" class="q-lec-text w-full p-2 border border-slate-200 rounded-lg bg-white text-xs font-semibold" required>
+            </div>
+            <div class="col-span-1 sm:col-span-4">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Retroalimentación Formativa</label>
+                <input type="text" placeholder="Retroalimentación al estudiante..." value="${window.escapeHTML(fdbk)}" class="q-lec-feedback w-full p-2 border border-slate-200 rounded-lg bg-white text-xs">
+            </div>
         </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
             <input type="text" placeholder="Opción 1" value="${opt1}" class="q-lec-opt1 p-2 border border-slate-200 rounded-lg bg-white text-xs" required>
             <input type="text" placeholder="Opción 2" value="${opt2}" class="q-lec-opt2 p-2 border border-slate-200 rounded-lg bg-white text-xs" required>
@@ -801,10 +817,18 @@ window.guardarActividadLectura = async function(e) {
             const o3 = row.querySelector('.q-lec-opt3').value.trim();
             const o4 = row.querySelector('.q-lec-opt4').value.trim();
             const corr = parseInt(row.querySelector('.q-lec-correct').value) || 1;
+            const parPausa = parseInt(row.querySelector('.q-lec-parrafo-pausa').value) || 0;
             
             const opciones = [o1, o2, o3, o4].filter(Boolean);
             if (txt && opciones.length >= 2) {
-                preguntas.push({ texto: txt, opciones, correcta: corr, feedback: fdbk });
+                preguntas.push({
+                    texto: txt,
+                    opciones,
+                    correcta: corr,
+                    feedback: fdbk,
+                    parrafoPausa: parPausa,
+                    respondida: false
+                });
             }
         });
 
@@ -851,7 +875,7 @@ window.guardarActividadLectura = async function(e) {
     }
 };
 
-/* MODAL Y PARSER CSV (VIDEOS Y LECTURAS) */
+/* MODAL Y PARSER CSV CON COLUMNA DE PARADA DE PÁRRAFO */
 window.abrirModalPegarCSV = function() {
     const modal = document.getElementById('modal-pegar-csv');
     const txtArea = document.getElementById('texto-pegar-csv');
@@ -940,6 +964,7 @@ window.procesarTextoCSV = function(csvText) {
         for (let i = 1; i < filas.length; i++) {
             const pTexto = getVal(filas[i], 'pregunta');
             if (pTexto) {
+                const parPausa = parseInt(getVal(filas[i], 'parrafo_pausa') || getVal(filas[i], 'parrafo') || 0);
                 preguntas.push({
                     texto: pTexto,
                     opciones: [
@@ -949,7 +974,9 @@ window.procesarTextoCSV = function(csvText) {
                         getVal(filas[i], 'opcion4')
                     ].filter(Boolean),
                     correcta: parseInt(getVal(filas[i], 'correcta')) || 1,
-                    feedback: getVal(filas[i], 'feedback') || ''
+                    feedback: getVal(filas[i], 'feedback') || '',
+                    parrafoPausa: parPausa,
+                    respondida: false
                 });
             }
         }
@@ -1059,7 +1086,6 @@ window.loginDocente = async function(e) {
         window.mostrarToast("Bienvenido al Dashboard Administrador", "success");
     };
 
-    // Acceso inmediato por clave maestra offline / respaldo
     if (password === "AdminCafeLab") {
         abrirPanelAdmin();
         if (btnSubmit) btnSubmit.disabled = false;
@@ -1887,10 +1913,14 @@ window.finalizarActividad = async function() {
     fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) }).catch(()=>{});
 };
 
-/* MOTOR DEL LECTOR INMERSIVO POR RENGLÓN COMPLETO */
+/* MOTOR DEL LECTOR INMERSIVO POR RENGLÓN COMPLETO CON PARADAS SELECTIVAS */
 window.iniciarLectorInmersivo = function(actividad) {
     actividadActual = JSON.parse(JSON.stringify(actividad));
     
+    if (actividadActual.preguntas) {
+        actividadActual.preguntas.forEach(p => p.respondida = false);
+    }
+
     const notaGuardada = localStorage.getItem(`nota_${estudianteIdActual}_${actividad.id}`);
     let intentoNum = 1;
     if (notaGuardada) {
@@ -1922,14 +1952,14 @@ window.iniciarLectorInmersivo = function(actividad) {
     const parrafos = (actividad.lectura?.texto || '').split(/\n\s*\n/);
     let idLineaGlobal = 0;
 
-    parrafos.forEach(parrafoTexto => {
+    parrafos.forEach((parrafoTexto, numParrafo) => {
         const pElem = document.createElement('div');
         pElem.className = "mb-6 space-y-1.5";
+        pElem.setAttribute('data-parrafo', numParrafo + 1);
 
-        // Segmentar el párrafo en renglones u oraciones coherentes por signos de puntuación
         const segmentos = parrafoTexto.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [parrafoTexto];
 
-        segmentos.forEach(seg => {
+        segmentos.forEach((seg, idxSeg) => {
             const textoSegmento = seg.trim();
             if (!textoSegmento) return;
 
@@ -1957,9 +1987,13 @@ window.iniciarLectorInmersivo = function(actividad) {
             });
 
             pElem.appendChild(lineaElem);
+            const esFinDeParrafo = (idxSeg === segmentos.length - 1);
+
             lineasLecturaArray.push({
                 elem: lineaElem,
-                conteoPalabras: palabras.length
+                conteoPalabras: palabras.length,
+                parrafo: numParrafo + 1,
+                esFinDeParrafo: esFinDeParrafo
             });
             idLineaGlobal++;
         });
@@ -2013,15 +2047,29 @@ window.reanudarRitmoLectura = function() {
 
             const duracionMs = Math.max((lineaActual.conteoPalabras / wpm) * 60 * 1000, 1200);
 
-            indiceLineaLector++;
-            const porc = Math.round((indiceLineaLector / lineasLecturaArray.length) * 100);
-            document.getElementById('inmersivo-progreso').innerText = `${porc}%`;
+            timeoutLineaPacer = setTimeout(() => {
+                // Solo si la línea es el fin de un párrafo, comprobar si hay una pregunta asignada a ESE párrafo específico
+                if (lineaActual.esFinDeParrafo) {
+                    const pregPausa = actividadActual.preguntas?.find(p => !p.respondida && parseInt(p.parrafoPausa || 0) === lineaActual.parrafo);
+                    
+                    if (pregPausa) {
+                        window.pausarRitmoLectura();
+                        window.mostrarPreguntaIntermediaLectura(pregPausa);
+                        return; // Se detiene hasta que el estudiante conteste
+                    }
+                }
+                
+                indiceLineaLector++;
+                const porc = Math.round((indiceLineaLector / lineasLecturaArray.length) * 100);
+                document.getElementById('inmersivo-progreso').innerText = `${porc}%`;
+                avanzarRenglon();
+            }, duracionMs);
 
-            timeoutLineaPacer = setTimeout(avanzarRenglon, duracionMs);
         } else {
+            // Fin de la lectura completa
             window.pausarRitmoLectura();
             document.getElementById('btn-inmersivo-evaluar').classList.remove('hidden');
-            window.mostrarToast("🎉 ¡Lectura finalizada! Pasa a la evaluación.", "success");
+            window.mostrarToast("🎉 ¡Lectura finalizada! Realiza tu síntesis y preguntas finales.", "success");
         }
     };
 
@@ -2038,6 +2086,66 @@ window.pausarRitmoLectura = function() {
         btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>Continuar</span>`;
         window.renderLucide();
     }
+};
+
+/* MOSTRAR PREGUNTA INTERMEDIA EN EL PÁRRAFO ASIGNADO */
+window.mostrarPreguntaIntermediaLectura = function(pregunta) {
+    const overlay = document.getElementById('overlay-pregunta-intermedia');
+    const caja = document.getElementById('caja-pregunta-intermedia-activa');
+    if (!overlay || !caja) return;
+
+    caja.innerHTML = `
+        <span class="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full mb-2 inline-block">Comprobación: Párrafo ${pregunta.parrafoPausa}</span>
+        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 mb-4 leading-snug">${window.escapeHTML(pregunta.texto)}</h3>
+        <div id="opts-intermedia" class="space-y-2 mb-3"></div>
+    `;
+
+    const contO = caja.querySelector('#opts-intermedia');
+    pregunta.opciones.forEach((opcion, i) => {
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = "w-full bg-slate-50 hover:bg-indigo-600 hover:text-white text-slate-800 font-bold py-2.5 px-4 rounded-xl text-left text-xs border border-slate-200 transition-all shadow-xs";
+        btn.innerText = opcion;
+        btn.onclick = () => {
+            const esCorrecta = (i + 1) === parseInt(pregunta.correcta);
+            pregunta.respondida = true;
+            intentoActual.resueltas++;
+            if (esCorrecta) intentoActual.correctas++;
+
+            const optCorrectaTexto = pregunta.opciones[parseInt(pregunta.correcta) - 1] || '';
+            intentoActual.respuestas.push({
+                textoPregunta: pregunta.texto,
+                opcionSeleccionada: opcion,
+                opcionCorrecta: optCorrectaTexto,
+                esCorrecta: esCorrecta,
+                feedback: pregunta.feedback || ""
+            });
+
+            const boxColor = esCorrecta ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-rose-50 border-rose-300 text-rose-800';
+            const feedbackMsg = esCorrecta
+                ? (pregunta.feedback || '¡Correcto! Has interpretado muy bien el párrafo.')
+                : 'Respuesta incorrecta. Recuerda analizar los conceptos con atención antes de responder.';
+
+            caja.innerHTML = `
+                <div class="p-4 rounded-xl border ${boxColor} mb-4 text-center">
+                    <h4 class="text-sm font-black mb-1">${esCorrecta ? '¡Respuesta Correcta! ✅' : 'Respuesta Incorrecta ❌'}</h4>
+                    <p class="text-xs leading-relaxed">${window.escapeHTML(feedbackMsg)}</p>
+                </div>
+                <button type="button" id="btn-reanudar-lectura-modal" class="w-full histudy-btn py-2.5 rounded-xl text-xs uppercase font-bold tracking-wider">
+                    Continuar Lectura ▶
+                </button>
+            `;
+
+            document.getElementById('btn-reanudar-lectura-modal').onclick = () => {
+                overlay.classList.add('hidden');
+                indiceLineaLector++;
+                window.reanudarRitmoLectura();
+            };
+        };
+        contO.appendChild(btn);
+    });
+
+    overlay.classList.remove('hidden');
 };
 
 window.salirModoLecturaInmersiva = function() {
@@ -2079,7 +2187,7 @@ window.cambiarTamanoTexto = function(delta) {
     if (contenedor) contenedor.style.fontSize = `${tamanoFuenteLectura}px`;
 };
 
-/* EVALUACIÓN DE COMPRENSIÓN LECTORA */
+/* EVALUACIÓN FINAL DE COMPRENSIÓN (PREGUNTAS RESTANTES Y SÍNTESIS) */
 window.pasarAEvaluacionLectura = function() {
     window.pausarRitmoLectura();
     const totalPalabras = palabrasLecturaArray.length;
@@ -2090,24 +2198,30 @@ window.pasarAEvaluacionLectura = function() {
     const cajaP = document.getElementById('caja-preguntas-lectura-estudiante');
     cajaP.innerHTML = '';
 
-    (actividadActual.preguntas || []).forEach((p, idx) => {
-        const div = document.createElement('div');
-        div.className = "bg-white p-3.5 rounded-xl border border-slate-200 text-left";
-        div.innerHTML = `
-            <p class="text-xs sm:text-sm font-bold text-slate-900 mb-2">${idx + 1}. ${window.escapeHTML(p.texto)}</p>
-            <div class="space-y-1.5" id="opts-lec-pregunta-${idx}"></div>
-        `;
-        const oCont = div.querySelector(`#opts-lec-pregunta-${idx}`);
-        p.opciones.forEach((opcion, oIdx) => {
-            oCont.innerHTML += `
-                <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer text-xs font-semibold select-none">
-                    <input type="radio" name="resp_lec_${idx}" value="${oIdx + 1}" class="text-emerald-600 focus:ring-emerald-500">
-                    <span>${window.escapeHTML(opcion)}</span>
-                </label>
+    const preguntasPendientes = (actividadActual.preguntas || []).filter(p => !p.respondida);
+
+    if (preguntasPendientes.length === 0) {
+        cajaP.innerHTML = `<div class="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-bold border border-emerald-200">✅ Ya respondiste todas las preguntas intermedias durante la lectura. Completa tu síntesis para finalizar.</div>`;
+    } else {
+        preguntasPendientes.forEach((p, idx) => {
+            const div = document.createElement('div');
+            div.className = "bg-white p-3.5 rounded-xl border border-slate-200 text-left";
+            div.innerHTML = `
+                <p class="text-xs sm:text-sm font-bold text-slate-900 mb-2">${idx + 1}. ${window.escapeHTML(p.texto)}</p>
+                <div class="space-y-1.5" id="opts-lec-pregunta-${idx}"></div>
             `;
+            const oCont = div.querySelector(`#opts-lec-pregunta-${idx}`);
+            p.opciones.forEach((opcion, oIdx) => {
+                oCont.innerHTML += `
+                    <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer text-xs font-semibold select-none">
+                        <input type="radio" name="resp_lec_${idx}" value="${oIdx + 1}" class="text-emerald-600 focus:ring-emerald-500">
+                        <span>${window.escapeHTML(opcion)}</span>
+                    </label>
+                `;
+            });
+            cajaP.appendChild(div);
         });
-        cajaP.appendChild(div);
-    });
+    }
 
     document.getElementById('estudiante-reflexion-lectura').value = '';
     document.getElementById('modal-evaluacion-lectura').classList.remove('hidden');
@@ -2120,31 +2234,31 @@ window.finalizarEvaluacionLectura = async function() {
         return;
     }
 
-    const preguntas = actividadActual.preguntas || [];
-    let correctas = 0;
-    const respuestasArray = [];
+    const preguntasPendientes = (actividadActual.preguntas || []).filter(p => !p.respondida);
 
-    for (let i = 0; i < preguntas.length; i++) {
+    for (let i = 0; i < preguntasPendientes.length; i++) {
         const sel = document.querySelector(`input[name="resp_lec_${i}"]:checked`);
         if (!sel) {
             window.mostrarToast(`Responde la pregunta #${i + 1}`, "warning");
             return;
         }
         const seleccionadaVal = parseInt(sel.value);
-        const esCorrecta = seleccionadaVal === parseInt(preguntas[i].correcta);
-        if (esCorrecta) correctas++;
+        const esCorrecta = seleccionadaVal === parseInt(preguntasPendientes[i].correcta);
+        preguntasPendientes[i].respondida = true;
+        intentoActual.resueltas++;
+        if (esCorrecta) intentoActual.correctas++;
 
-        respuestasArray.push({
-            textoPregunta: preguntas[i].texto,
-            opcionSeleccionada: preguntas[i].opciones[seleccionadaVal - 1],
-            opcionCorrecta: preguntas[i].opciones[parseInt(preguntas[i].correcta) - 1],
+        intentoActual.respuestas.push({
+            textoPregunta: preguntasPendientes[i].texto,
+            opcionSeleccionada: preguntasPendientes[i].opciones[seleccionadaVal - 1],
+            opcionCorrecta: preguntasPendientes[i].opciones[parseInt(preguntasPendientes[i].correcta) - 1],
             esCorrecta: esCorrecta,
-            feedback: preguntas[i].feedback || ""
+            feedback: preguntasPendientes[i].feedback || ""
         });
     }
 
-    const totalP = preguntas.length > 0 ? preguntas.length : 1;
-    const notaFinal = (((correctas / totalP) * 4) + 1).toFixed(1);
+    const totalP = actividadActual.preguntas && actividadActual.preguntas.length > 0 ? actividadActual.preguntas.length : 1;
+    const notaFinal = (((intentoActual.correctas / totalP) * 4) + 1).toFixed(1);
     const tiempoMinutos = Math.max(segundosTranscurridosLectura / 60, 0.1);
     const wpmReal = Math.round(palabrasLecturaArray.length / tiempoMinutos);
 
@@ -2153,14 +2267,14 @@ window.finalizarEvaluacionLectura = async function() {
         estudianteId: estudianteIdActual,
         actividadId: actividadActual.id,
         versionActividad: actividadActual.version || 1,
-        correctas: correctas,
-        resueltas: preguntas.length,
+        correctas: intentoActual.correctas,
+        resueltas: totalP,
         nota: notaFinal,
         numeroIntento: intentoActual.numeroIntento || 1,
         fecha: new Date().toLocaleString(),
         laboratorio: { "Velocidad": `${wpmReal} WPM`, "Tiempo": `${segundosTranscurridosLectura} seg` },
         reflexion: reflexion,
-        respuestas: respuestasArray,
+        respuestas: intentoActual.respuestas,
         validador: btoa(notaFinal + "_" + estudianteIdActual + "_LecturaCafeLab")
     };
 
