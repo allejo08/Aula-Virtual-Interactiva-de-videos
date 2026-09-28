@@ -2,7 +2,17 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwU-4PYRnAFAo7TrNau5
 const LISTA_GRADOS = ["6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
 const OPCIONES_DESTINO = ["Docente", "6-1", "6-2", "7", "8-1", "8-2", "9", "10", "11"];
 
-let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0, respuestas: [] };
+// Paleta de degradados para distinguir clases visualmente
+const CLASE_GRADIENTES = [
+    { bg: 'from-indigo-600 to-purple-600', border: 'border-indigo-200', text: 'text-indigo-600', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+    { bg: 'from-emerald-600 to-teal-600', border: 'border-emerald-200', text: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    { bg: 'from-amber-500 to-orange-600', border: 'border-amber-200', text: 'text-amber-600', badge: 'bg-amber-50 text-amber-800 border-amber-200' },
+    { bg: 'from-fuchsia-600 to-pink-600', border: 'border-fuchsia-200', text: 'text-fuchsia-600', badge: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200' },
+    { bg: 'from-blue-600 to-cyan-600', border: 'border-blue-200', text: 'text-blue-600', badge: 'bg-blue-50 text-blue-700 border-blue-200' },
+    { bg: 'from-violet-600 to-indigo-600', border: 'border-violet-200', text: 'text-violet-600', badge: 'bg-violet-50 text-violet-700 border-violet-200' }
+];
+
+let player, intervaloVideo, actividadActual = null, intentoActual = { correctas: 0, resueltas: 0, respuestas: [], numeroIntento: 1 };
 let estudianteIdActual = "", nombreEstudianteActual = "", gradoEstudianteActual = "";
 let idActividadEditando = null, maxTiempoVisto = 0; 
 window.filtroGradoActual = null; 
@@ -113,7 +123,7 @@ window.renderSelectoresGradosDestino = function(seleccionados = []) {
         const labelColor = isDocente ? 'text-purple-700 bg-purple-50 border-purple-200' : 'text-slate-800 bg-white border-slate-200';
         cont.innerHTML += `
             <label class="flex items-center gap-1.5 p-2 rounded-lg border ${labelColor} cursor-pointer hover:border-indigo-400 text-xs font-bold select-none">
-                <input type="checkbox" value="${opt}" class="checkbox-grado-destino rounded text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5" ${isChecked ? 'checked' : ''}>
+                <input type="checkbox" value="${opt}" onchange="window.actualizarSelectClasesFormulario()" class="checkbox-grado-destino rounded text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5" ${isChecked ? 'checked' : ''}>
                 <span>${isDocente ? '⭐ Docente' : opt}</span>
             </label>
         `;
@@ -124,6 +134,61 @@ window.toggleTodosGradosDestino = function() {
     const boxes = document.querySelectorAll('.checkbox-grado-destino');
     const algunDesmarcado = Array.from(boxes).some(b => !b.checked);
     boxes.forEach(b => b.checked = algunDesmarcado);
+    window.actualizarSelectClasesFormulario();
+};
+
+/* GESTIÓN DE CLASES EN EL FORMULARIO DOCENTE */
+window.actualizarSelectClasesFormulario = function(claseSeleccionada = '') {
+    const select = document.getElementById('select-clase-existente');
+    const inputNueva = document.getElementById('input-nueva-clase');
+    if(!select || !inputNueva) return;
+
+    const checkedBoxes = document.querySelectorAll('.checkbox-grado-destino:checked');
+    const grados = Array.from(checkedBoxes).map(cb => cb.value);
+
+    const clasesSet = new Set();
+    window.baseActividades.forEach(act => {
+        if (!act.clase || !act.clase.trim()) return;
+        const coincide = act.grados && act.grados.some(g => grados.includes(g) || grados.includes('Todos') || g === 'Todos');
+        if (coincide || grados.length === 0) {
+            clasesSet.add(act.clase.trim());
+        }
+    });
+
+    select.innerHTML = '<option value="__NUEVA__">+ Crear Nueva Clase...</option>';
+    clasesSet.forEach(cl => {
+        const sel = (cl === claseSeleccionada) ? 'selected' : '';
+        select.innerHTML += `<option value="${window.escapeHTML(cl)}" ${sel}>Clase: ${window.escapeHTML(cl)}</option>`;
+    });
+
+    if (claseSeleccionada && clasesSet.has(claseSeleccionada)) {
+        select.value = claseSeleccionada;
+        inputNueva.classList.add('hidden');
+        inputNueva.value = claseSeleccionada;
+    } else if (claseSeleccionada) {
+        select.value = '__NUEVA__';
+        inputNueva.classList.remove('hidden');
+        inputNueva.value = claseSeleccionada;
+    } else {
+        select.value = '__NUEVA__';
+        inputNueva.classList.remove('hidden');
+        inputNueva.value = '';
+    }
+};
+
+window.gestionarCambioClase = function() {
+    const select = document.getElementById('select-clase-existente');
+    const inputNueva = document.getElementById('input-nueva-clase');
+    if (!select || !inputNueva) return;
+
+    if (select.value === '__NUEVA__') {
+        inputNueva.classList.remove('hidden');
+        inputNueva.value = '';
+        inputNueva.focus();
+    } else {
+        inputNueva.classList.add('hidden');
+        inputNueva.value = select.value;
+    }
 };
 
 window.renderDashboardDocente = function(filtroGrado = null) {
@@ -163,7 +228,12 @@ window.renderDashboardDocente = function(filtroGrado = null) {
                 const key = localStorage.key(i);
                 if (key.startsWith(`nota_${grado}-`)) { 
                     let valObj = localStorage.getItem(key);
-                    try { let parseado = JSON.parse(valObj); totalNotas += parseFloat(parseado.nota || valObj); } catch(e) { totalNotas += parseFloat(valObj); }
+                    try { 
+                        let parseado = JSON.parse(valObj); 
+                        totalNotas += parseFloat(parseado.nota || valObj); 
+                    } catch(e) { 
+                        totalNotas += parseFloat(valObj); 
+                    }
                     count++; 
                 }
             }
@@ -210,11 +280,15 @@ window.renderDashboardDocente = function(filtroGrado = null) {
             const btnEstado = act.estado === 'Activa' ? 'Desactivar' : 'Activar';
             const seguroId = window.escapeHTML(act.id);
             const labelLab = act.requiereLaboratorio ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Sí</span>' : '<span class="text-[10px] text-slate-400">No</span>';
+            const claseNombre = act.clase ? window.escapeHTML(act.clase) : '<span class="text-slate-400 italic">General</span>';
+            const intentosTxt = (act.evaluacion && act.evaluacion.intentosPermitidos >= 999) ? 'Ilimitados' : ((act.evaluacion && act.evaluacion.intentosPermitidos) || 1);
 
             tabla.innerHTML += `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-4 sm:px-5 py-3 font-extrabold text-slate-900">${window.escapeHTML(act.grados.join(', '))}</td>
+                    <td class="px-4 sm:px-5 py-3 font-bold text-indigo-700">${claseNombre}</td>
                     <td class="px-4 sm:px-5 py-3 font-bold text-slate-800">${window.escapeHTML(act.titulo)}</td>
+                    <td class="px-4 sm:px-5 py-3 text-center font-bold text-slate-600">${intentosTxt}</td>
                     <td class="px-4 sm:px-5 py-3 text-center">${labelLab}</td>
                     <td class="px-4 sm:px-5 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${badge}">${window.escapeHTML(act.estado)}</span></td>
                     <td class="px-4 sm:px-5 py-3 text-right space-x-1 whitespace-nowrap">
@@ -278,8 +352,10 @@ window.prepararNuevaActividad = function() {
     document.getElementById('toggle-laboratorio').checked = false;
     document.getElementById('lab-fields-config').classList.add('hidden');
     document.getElementById('contenedor-campos-lab').innerHTML = '';
+    document.getElementById('intentos-permitidos').value = "1";
 
     window.renderSelectoresGradosDestino([]);
+    window.actualizarSelectClasesFormulario('');
     window.crearBloquePregunta(); 
     window.mostrarVistaDocente('vista-actividad'); 
 };
@@ -292,10 +368,13 @@ window.editarActividad = function(idActividad) {
     document.getElementById('btn-submit-actividad').innerText = "Actualizar Actividad";
 
     window.renderSelectoresGradosDestino(act.grados || []);
+    window.actualizarSelectClasesFormulario(act.clase || '');
+    
     document.getElementById('url-video').value = `https://youtube.com/watch?v=${act.video.id}`;
     document.getElementById('titulo-clase').value = act.titulo;
     document.getElementById('objetivo-actividad').value = act.pedagogia.objetivo || "";
     document.getElementById('descripcion-actividad').value = act.pedagogia.descripcion || "";
+    document.getElementById('intentos-permitidos').value = (act.evaluacion && act.evaluacion.intentosPermitidos) ? act.evaluacion.intentosPermitidos.toString() : "1";
     
     const checkLab = document.getElementById('toggle-laboratorio');
     checkLab.checked = act.requiereLaboratorio || false;
@@ -319,7 +398,6 @@ window.editarActividad = function(idActividad) {
     window.mostrarVistaDocente('vista-actividad'); 
 };
 
-// Creación de bloques con soporte riguroso de selección correcta
 window.crearBloquePregunta = function(t='', p='', oArr=[], c='1', f='') {
     const contPreguntas = document.getElementById('contenedor-preguntas');
     if(!contPreguntas) return;
@@ -331,7 +409,6 @@ window.crearBloquePregunta = function(t='', p='', oArr=[], c='1', f='') {
     const opt3 = window.escapeHTML(oArr[2] || ''); 
     const opt4 = window.escapeHTML(oArr[3] || '');
     
-    // Normalización para 1, 2, 3, 4 o A, B, C, D o "Opción X"
     let rawC = String(c).trim().toUpperCase();
     let selC = '1';
     if (rawC === '2' || rawC === 'B' || rawC === 'OPCIÓN 2' || rawC === 'OPCION 2') selC = '2';
@@ -420,10 +497,18 @@ window.guardarActividad = async function(e) {
         }
         if (gradosSeleccionados.length === OPCIONES_DESTINO.length) gradosSeleccionados = ['Todos', ...OPCIONES_DESTINO];
 
+        let nombreClaseFinal = document.getElementById('input-nueva-clase').value.trim();
+        if (!nombreClaseFinal) {
+            const selClase = document.getElementById('select-clase-existente').value;
+            if (selClase !== '__NUEVA__') nombreClaseFinal = selClase;
+        }
+        if (!nombreClaseFinal) nombreClaseFinal = "General";
+
         const inputTitulo = document.getElementById('titulo-clase').value;
         const inputUrl = document.getElementById('url-video').value;
         const inputObjetivo = document.getElementById('objetivo-actividad').value;
         const inputDescripcion = document.getElementById('descripcion-actividad').value;
+        const intentosPerm = parseInt(document.getElementById('intentos-permitidos').value) || 1;
         const reqLaboratorio = document.getElementById('toggle-laboratorio').checked;
         
         let labCampos = [];
@@ -457,9 +542,11 @@ window.guardarActividad = async function(e) {
             const idx = window.baseActividades.findIndex(a => a.id === idActividadEditando);
             if(idx !== -1) {
                 window.baseActividades[idx].grados = gradosSeleccionados;
+                window.baseActividades[idx].clase = nombreClaseFinal;
                 window.baseActividades[idx].titulo = inputTitulo;
                 window.baseActividades[idx].video = { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) };
                 window.baseActividades[idx].pedagogia = { objetivo: inputObjetivo, descripcion: inputDescripcion };
+                window.baseActividades[idx].evaluacion = { intentosPermitidos: intentosPerm, notaMinima: 3.0 };
                 window.baseActividades[idx].requiereLaboratorio = reqLaboratorio;
                 window.baseActividades[idx].laboratorioCampos = labCampos;
                 window.baseActividades[idx].preguntas = arregloPreguntas;
@@ -469,11 +556,11 @@ window.guardarActividad = async function(e) {
             const nuevoId = "ACT_" + Date.now().toString(36).toUpperCase();
             const d = new Date();
             const nuevaActividad = {
-                id: nuevoId, version: 1, titulo: inputTitulo, grados: gradosSeleccionados, estado: "Activa",
+                id: nuevoId, version: 1, clase: nombreClaseFinal, titulo: inputTitulo, grados: gradosSeleccionados, estado: "Activa",
                 fechaCreacion: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
                 video: { provider: 'youtube', id: extraerIdYouTubeFront(inputUrl) },
                 pedagogia: { objetivo: inputObjetivo, descripcion: inputDescripcion },
-                evaluacion: { intentosPermitidos: 1, notaMinima: 3.0 },
+                evaluacion: { intentosPermitidos: intentosPerm, notaMinima: 3.0 },
                 requiereLaboratorio: reqLaboratorio, laboratorioCampos: labCampos,
                 preguntas: arregloPreguntas
             };
@@ -492,7 +579,7 @@ window.guardarActividad = async function(e) {
     }
 };
 
-/* MODAL Y PARSER CSV MEJORADO */
+/* MODAL Y PARSER CSV */
 window.abrirModalPegarCSV = function() {
     const modal = document.getElementById('modal-pegar-csv');
     const txtArea = document.getElementById('texto-pegar-csv');
@@ -565,17 +652,19 @@ window.procesarTextoCSV = function(csvText) {
 
     const primera = filas[1];
     
-    // Metadatos
     document.getElementById('titulo-clase').value = getVal(primera, 'titulo');
     document.getElementById('url-video').value = getVal(primera, 'youtube_url');
     document.getElementById('objetivo-actividad').value = getVal(primera, 'objetivo');
     document.getElementById('descripcion-actividad').value = getVal(primera, 'descripcion');
 
-    // Grados
+    const claseCSV = getVal(primera, 'clase') || 'General';
+    const intentosCSV = parseInt(getVal(primera, 'intentos')) || 1;
+    document.getElementById('intentos-permitidos').value = intentosCSV.toString();
+
     const rawGrados = getVal(primera, 'grados').split(';').map(g => g.trim()).filter(Boolean);
     window.renderSelectoresGradosDestino(rawGrados);
+    window.actualizarSelectClasesFormulario(claseCSV);
 
-    // Laboratorio
     const reqLab = getVal(primera, 'requiere_lab').toUpperCase() === 'SI';
     const checkLab = document.getElementById('toggle-laboratorio');
     checkLab.checked = reqLab;
@@ -588,7 +677,6 @@ window.procesarTextoCSV = function(csvText) {
         campos.forEach(c => window.agregarCampoLabConfig(c));
     }
 
-    // Preguntas
     const contPreguntas = document.getElementById('contenedor-preguntas');
     contPreguntas.innerHTML = '';
 
@@ -734,7 +822,7 @@ window.generarReporteGlobal = function() {
             if(estObj) nombreEst = estObj.nombre;
 
             let valObj = localStorage.getItem(key);
-            let val = 0.0, labData = null, refData = "", respData = [], fechaData = "";
+            let val = 0.0, labData = null, refData = "", respData = [], fechaData = "", numIntento = 1;
             try { 
                 let parseado = JSON.parse(valObj);
                 val = parseFloat(parseado.nota || valObj); 
@@ -742,10 +830,13 @@ window.generarReporteGlobal = function() {
                 refData = parseado.reflexion || "";
                 respData = parseado.respuestas || [];
                 fechaData = parseado.fecha || "";
+                numIntento = parseado.numeroIntento || 1;
             } catch(e) { val = parseFloat(valObj); }
             
-            const nombreAct = window.baseActividades.find(a => a.id === actId)?.titulo || actId;
-            window.datosReporteGlobal.push({ estId: estIdRaw, grado: gradoDetectado, nombreEst, actId, nombreAct, nota: val, lab: labData, reflexion: refData, respuestas: respData, fecha: fechaData });
+            const actObj = window.baseActividades.find(a => a.id === actId);
+            const nombreAct = actObj?.titulo || actId;
+            const claseAct = actObj?.clase || 'General';
+            window.datosReporteGlobal.push({ estId: estIdRaw, grado: gradoDetectado, nombreEst, actId, nombreAct, clase: claseAct, nota: val, numIntento, lab: labData, reflexion: refData, respuestas: respData, fecha: fechaData });
         }
     }
     
@@ -768,7 +859,7 @@ window.actualizarFiltrosReporte = function() {
     let totalNotas = 0, aprobados = 0;
 
     if(filtrados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 font-bold text-xs">Sin registros.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400 font-bold text-xs">Sin registros.</td></tr>`;
         document.getElementById('kpis-reporte').innerHTML = '';
         document.getElementById('contenedor-grafico-reporte').style.display = 'none';
         return;
@@ -778,15 +869,20 @@ window.actualizarFiltrosReporte = function() {
         totalNotas += d.nota;
         if(d.nota >= 3.0) aprobados++;
         const color = d.nota >= 3.0 ? 'text-emerald-600' : 'text-rose-600';
-        const entregaObj = { nota: d.nota.toFixed(1), fecha: d.fecha, laboratorio: d.lab, reflexion: d.reflexion, respuestas: d.respuestas };
+        const entregaObj = { nota: d.nota.toFixed(1), fecha: d.fecha, laboratorio: d.lab, reflexion: d.reflexion, respuestas: d.respuestas, numeroIntento: d.numIntento };
         const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
-        const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-lg border border-indigo-200">Ver Evidencias</button>`;
+        // En vista docente siempre se permite ver evidencias completas
+        const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}', true)" class="text-xs bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-lg border border-indigo-200">Ver Evidencias</button>`;
 
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50 transition-colors">
                 <td class="px-4 sm:px-5 py-2.5 font-black">${window.escapeHTML(d.grado)}</td>
                 <td class="px-4 sm:px-5 py-2.5 font-bold text-slate-800">${window.escapeHTML(d.nombreEst)}</td>
-                <td class="px-4 sm:px-5 py-2.5 text-slate-600">${window.escapeHTML(d.nombreAct)}</td>
+                <td class="px-4 sm:px-5 py-2.5 text-slate-600">
+                    <span class="block text-[10px] text-indigo-600 font-bold uppercase">${window.escapeHTML(d.clase)}</span>
+                    <strong class="text-slate-800">${window.escapeHTML(d.nombreAct)}</strong>
+                </td>
+                <td class="px-4 sm:px-5 py-2.5 text-center font-bold text-slate-600">#${d.numIntento || 1}</td>
                 <td class="px-4 sm:px-5 py-2.5 text-center">${labBtn}</td>
                 <td class="px-4 sm:px-5 py-2.5 text-center font-black ${color}">${d.nota.toFixed(1)}</td>
                 <td class="px-4 sm:px-5 py-2.5 text-right">
@@ -857,7 +953,7 @@ window.generarReporteActividad = function(idActividad) {
             if(estObj) nombreEst = estObj.nombre;
 
             let valObj = localStorage.getItem(key);
-            let val = 0.0, labData = null, refData = "", respData = [], fechaData = "";
+            let val = 0.0, labData = null, refData = "", respData = [], fechaData = "", numIntento = 1;
             try {
                 let parseado = JSON.parse(valObj);
                 val = parseFloat(parseado.nota || valObj);
@@ -865,29 +961,31 @@ window.generarReporteActividad = function(idActividad) {
                 refData = parseado.reflexion || "";
                 respData = parseado.respuestas || [];
                 fechaData = parseado.fecha || "";
+                numIntento = parseado.numeroIntento || 1;
             } catch(e) { val = parseFloat(valObj); }
 
-            notas.push({ estId: estIdRaw, grado: gradoDetectado, nombre: nombreEst, val: val, valStr: val.toFixed(1), lab: labData, reflexion: refData, respuestas: respData, fecha: fechaData });
+            notas.push({ estId: estIdRaw, grado: gradoDetectado, nombre: nombreEst, val: val, valStr: val.toFixed(1), numIntento, lab: labData, reflexion: refData, respuestas: respData, fecha: fechaData });
             totalNotas += val;
             if (val >= 3.0) aprobados++;
         }
     }
 
     if(notas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 font-bold text-xs">Sin entregas para esta actividad.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400 font-bold text-xs">Sin entregas para esta actividad.</td></tr>`;
         document.getElementById('kpis-reporte').innerHTML = '';
     } else {
         notas.forEach(n => {
             const color = n.val >= 3.0 ? 'text-emerald-600' : 'text-rose-600';
-            const entregaObj = { nota: n.valStr, fecha: n.fecha, laboratorio: n.lab, reflexion: n.reflexion, respuestas: n.respuestas };
+            const entregaObj = { nota: n.valStr, fecha: n.fecha, laboratorio: n.lab, reflexion: n.reflexion, respuestas: n.respuestas, numeroIntento: n.numIntento };
             const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
-            const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-lg border border-indigo-200">Ver Evidencias</button>`;
+            const labBtn = `<button type="button" onclick="window.verDetalleEntrega('${safeEntrega}', true)" class="text-xs bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-lg border border-indigo-200">Ver Evidencias</button>`;
 
             tbody.innerHTML += `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-4 sm:px-5 py-2.5 font-black">${window.escapeHTML(n.grado)}</td>
                     <td class="px-4 sm:px-5 py-2.5 font-bold text-slate-800">${window.escapeHTML(n.nombre)}</td>
                     <td class="px-4 sm:px-5 py-2.5 text-slate-600">${window.escapeHTML(act?.titulo || idActividad)}</td>
+                    <td class="px-4 sm:px-5 py-2.5 text-center font-bold text-slate-600">#${n.numIntento || 1}</td>
                     <td class="px-4 sm:px-5 py-2.5 text-center">${labBtn}</td>
                     <td class="px-4 sm:px-5 py-2.5 text-center font-black ${color}">${n.valStr}</td>
                     <td class="px-4 sm:px-5 py-2.5 text-right">
@@ -909,9 +1007,10 @@ window.generarReporteActividad = function(idActividad) {
 };
 
 window.reiniciarActividadEstudiante = async function(estudianteId, actividadId, nombreEstudiante) {
-    if(confirm(`¿Reiniciar actividad para ${nombreEstudiante}?`)) {
+    if(confirm(`¿Reiniciar actividad para ${nombreEstudiante}? Se restablecerán todos los intentos y progreso.`)) {
         localStorage.removeItem(`nota_${estudianteId}_${actividadId}`);
         localStorage.removeItem(`estado_${actividadId}_${estudianteId}`);
+        localStorage.removeItem(`progreso_sesion_${estudianteId}_${actividadId}`);
         fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'reiniciarEntregaEstudiante', estudianteId, actividadId }) }).catch(()=>{});
         window.mostrarToast(`Actividad reiniciada para ${nombreEstudiante}`, "success");
         if (window.reporteActividadActualId) window.generarReporteActividad(window.reporteActividadActualId);
@@ -930,6 +1029,7 @@ window.reiniciarGrupoActual = async function() {
                 if (targetGrado === 'Todos' || rawEstId.startsWith(targetGrado + '-')) {
                     localStorage.removeItem(key);
                     localStorage.removeItem(`estado_${window.reporteActividadActualId}_${rawEstId}`);
+                    localStorage.removeItem(`progreso_sesion_${rawEstId}_${window.reporteActividadActualId}`);
                 }
             }
         }
@@ -1000,12 +1100,29 @@ window.iniciarSesionEstudianteLocal = function(grado, codigo, nombre) {
     }).catch(()=>{}); 
 };
 
+// Pausar y guardar estado exacto de segundo visto y avance
 window.volverDashboardEstudiante = function() {
-    if(player && typeof player.pauseVideo === 'function') {
-        try { player.pauseVideo(); } catch(e) {}
+    let tiempoPausa = 0;
+    if(player && typeof player.getCurrentTime === 'function') {
+        try { 
+            tiempoPausa = player.getCurrentTime();
+            player.pauseVideo(); 
+        } catch(e) {}
     }
     if(intervaloVideo) clearInterval(intervaloVideo);
     
+    // Guardar progreso de sesión parcial
+    if(actividadActual && estudianteIdActual) {
+        const sesionGuardada = {
+            tiempoGuardado: Math.max(tiempoPausa, maxTiempoVisto),
+            maxTiempoVisto: Math.max(tiempoPausa, maxTiempoVisto),
+            intentoActual: intentoActual,
+            preguntas: actividadActual.preguntas || []
+        };
+        localStorage.setItem(`progreso_sesion_${estudianteIdActual}_${actividadActual.id}`, JSON.stringify(sesionGuardada));
+        window.mostrarToast("Progreso guardado. Podrás reanudar donde quedaste.", "info");
+    }
+
     document.getElementById('vista-reproductor').classList.add('hidden');
     document.getElementById('vista-reproductor').classList.remove('flex');
     document.getElementById('vista-bienvenida-estudiante').classList.remove('hidden');
@@ -1026,86 +1143,252 @@ window.cerrarSesion = function() {
     window.toggleSidebarDocente(false);
 };
 
+/* CONSTRUCCIÓN DEL DASHBOARD ESTUDIANTE: CARPETAS CON GRADIENTES Y ATAJOS */
 window.construirDashboardEstudiante = function(grado) {
-    const listaP = document.getElementById('lista-pendientes'), listaR = document.getElementById('lista-realizadas');
-    if(!listaP || !listaR) return;
-    listaP.innerHTML = ''; listaR.innerHTML = ''; let pCount = 0, rCount = 0;
-    
-    window.baseActividades.forEach(act => {
-        if(!act || !act.grados || !Array.isArray(act.grados)) return;
-        const esVisible = act.grados.includes(grado) || act.grados.includes('Todos');
+    const contenedorAtajos = document.getElementById('lista-pendientes-atajos');
+    const badgeAtajos = document.getElementById('badge-pendientes-count');
+    const contenedorClases = document.getElementById('contenedor-carpetas-clases');
+    if(!contenedorAtajos || !contenedorClases) return;
 
-        if(esVisible) {
-            const notaGuardadaObj = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
-            const seguroTitulo = window.escapeHTML(act.titulo);
+    contenedorAtajos.innerHTML = '';
+    contenedorClases.innerHTML = '';
+
+    const actividadesAccesibles = window.baseActividades.filter(act => {
+        if(!act || !act.grados || !Array.isArray(act.grados)) return false;
+        return act.grados.includes(grado) || act.grados.includes('Todos');
+    });
+
+    let countPendientesTotal = 0;
+    const mapaClases = {};
+
+    actividadesAccesibles.forEach(act => {
+        const nombreClase = (act.clase && act.clase.trim()) ? act.clase.trim() : "General";
+        if (!mapaClases[nombreClase]) mapaClases[nombreClase] = [];
+        
+        const notaObj = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
+        let entrega = null;
+        if(notaObj) {
+            try { entrega = JSON.parse(notaObj); } catch(e) { entrega = { nota: notaObj, numeroIntento: 1 }; }
+        }
+
+        const maxIntentos = (act.evaluacion && act.evaluacion.intentosPermitidos) ? parseInt(act.evaluacion.intentosPermitidos) : 1;
+        const intentosRealizados = entrega ? (parseInt(entrega.numeroIntento) || 1) : 0;
+        const puedeReintentar = intentosRealizados < maxIntentos;
+        const esPendiente = !entrega || (puedeReintentar && parseFloat(entrega.nota || 0) < 3.0);
+
+        if (esPendiente && act.estado === 'Activa') {
+            countPendientesTotal++;
+            const txtIntentosAtajo = maxIntentos >= 999 ? 'Ilimitados' : `${intentosRealizados} de ${maxIntentos}`;
+            contenedorAtajos.innerHTML += `
+                <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3 shadow-xs hover:border-indigo-300 transition-all">
+                    <div class="min-w-0">
+                        <span class="text-[9px] font-black uppercase text-indigo-600 tracking-wider">${window.escapeHTML(nombreClase)}</span>
+                        <h4 class="font-bold text-slate-900 text-xs truncate">${window.escapeHTML(act.titulo)}</h4>
+                        <span class="text-[10px] text-slate-400 font-semibold">Intentos: ${txtIntentosAtajo}</span>
+                    </div>
+                    <button type="button" onclick="window.iniciarActividadPorId('${window.escapeHTML(act.id)}')" class="histudy-btn px-3 py-1.5 rounded-lg text-xs font-bold shrink-0">
+                        ${intentosRealizados > 0 ? 'Reintentar' : 'Iniciar'}
+                    </button>
+                </div>
+            `;
+        }
+
+        mapaClases[nombreClase].push({ act, entrega, maxIntentos, intentosRealizados, puedeReintentar });
+    });
+
+    if (badgeAtajos) badgeAtajos.innerText = `${countPendientesTotal} pendientes`;
+    if (countPendientesTotal === 0) {
+        contenedorAtajos.innerHTML = `<div class="col-span-full p-4 text-center text-slate-400 font-bold text-xs bg-white rounded-xl border border-slate-100">🎉 ¡Estás al día! No tienes actividades pendientes urgentes.</div>`;
+    }
+
+    const nombresClases = Object.keys(mapaClases);
+    if (nombresClases.length === 0) {
+        contenedorClases.innerHTML = `<div class="glass-card p-6 text-center text-slate-400 font-bold text-xs">No hay clases asignadas para tu grado actualmente.</div>`;
+        window.renderLucide();
+        return;
+    }
+
+    nombresClases.forEach((nombreClase, index) => {
+        const items = mapaClases[nombreClase];
+        const idCarpeta = `carpeta-clase-${index}`;
+        const totalActs = items.length;
+        const completadas = items.filter(it => it.entrega).length;
+        
+        // Asignación de gradiente diferenciador según índice
+        const estiloClase = CLASE_GRADIENTES[index % CLASE_GRADIENTES.length];
+
+        let actividadesHTML = '';
+        items.forEach(it => {
+            const { act, entrega, maxIntentos, intentosRealizados, puedeReintentar } = it;
             const seguroId = window.escapeHTML(act.id);
-            const fechaCreacionAct = window.escapeHTML(act.fechaCreacion || act.fecha || 'Sin fecha');
-
-            if (notaGuardadaObj) {
-                rCount++;
-                let entregaObj = {};
-                try { entregaObj = JSON.parse(notaGuardadaObj); } catch(e) { entregaObj = { nota: notaGuardadaObj }; }
-                const val = entregaObj.nota != null ? entregaObj.nota : '0.0';
+            const intentosMaxTxt = maxIntentos >= 999 ? '∞' : maxIntentos;
+            
+            if (entrega) {
+                const val = entrega.nota != null ? entrega.nota : '0.0';
                 const esGanada = parseFloat(val) >= 3.0;
                 const badgeColor = esGanada ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200';
                 const notaBoxColor = esGanada ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-rose-50 text-rose-700 border-rose-300';
-                const safeEntrega = encodeURIComponent(JSON.stringify(entregaObj));
+                
+                // Determinar si puede ver retroalimentación completa: último intento o nota > 4.0
+                const permitirVerRespuestas = (intentosRealizados >= maxIntentos) || (parseFloat(val) > 4.0);
+                const safeEntrega = encodeURIComponent(JSON.stringify(entrega));
 
-                listaR.innerHTML += `
-                    <div class="p-3.5 sm:p-4 bg-white rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border border-slate-200 shadow-sm">
-                        <div>
-                            <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${seguroTitulo}</h4>
-                            <div class="flex items-center gap-2 mt-1 text-[11px] font-bold">
+                const btnReintentar = (puedeReintentar && act.estado === 'Activa')
+                    ? `<button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg shadow-xs transition-all">Reintentar</button>`
+                    : `<span class="text-[10px] text-slate-400 font-bold px-2 py-1 bg-slate-100 rounded-lg">Intentos agotados</span>`;
+
+                actividadesHTML += `
+                    <div class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="p-1 rounded-md bg-purple-100 text-purple-700"><i data-lucide="play-circle" class="w-3.5 h-3.5"></i></span>
+                                <h5 class="font-bold text-slate-900 text-xs sm:text-sm">${window.escapeHTML(act.titulo)}</h5>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 text-[11px] font-bold text-slate-500">
                                 <span class="px-2 py-0.5 rounded-full border ${badgeColor}">${esGanada ? 'Aprobada' : 'Reprobada'}</span>
-                                <span class="text-slate-400 font-medium">${window.escapeHTML(entregaObj.fecha || '')}</span>
+                                <span class="text-slate-400">Intento: <strong>${intentosRealizados}/${intentosMaxTxt}</strong></span>
+                                <span class="text-slate-400 font-normal">Entregado: ${window.escapeHTML(entrega.fecha || '')}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 self-end sm:self-center">
-                            <button type="button" onclick="window.verDetalleEntrega('${safeEntrega}')" class="text-xs bg-indigo-50 text-indigo-700 font-bold px-3 py-1.5 rounded-lg border border-indigo-200">Ver Detalle</button>
-                            <div class="px-3 py-1 rounded-lg border-2 font-black text-sm ${notaBoxColor}">${val}</div>
+                            <button type="button" onclick="window.verDetalleEntrega('${safeEntrega}', ${permitirVerRespuestas})" class="text-xs bg-white text-indigo-700 font-bold px-2.5 py-1.5 rounded-lg border border-indigo-200 hover:bg-indigo-50">Ver Evidencias</button>
+                            ${btnReintentar}
+                            <div class="px-3 py-1 rounded-lg border-2 font-black text-sm ${notaBoxColor}" title="Última Calificación">${val}</div>
                         </div>
                     </div>
                 `;
-            } else if (act.estado === 'Activa') { 
-                pCount++;
-                listaP.innerHTML += `
-                    <div class="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm relative overflow-hidden">
-                        <div class="absolute left-0 top-0 w-1 h-full bg-indigo-600"></div>
-                        <div class="pl-2">
-                            <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${seguroTitulo}</h4>
-                            <span class="text-[11px] text-slate-400">📅 ${fechaCreacionAct}</span>
+            } else if (act.estado === 'Activa') {
+                actividadesHTML += `
+                    <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-xs">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="p-1 rounded-md bg-indigo-100 text-indigo-700"><i data-lucide="play-circle" class="w-3.5 h-3.5"></i></span>
+                                <h5 class="font-bold text-slate-900 text-xs sm:text-sm">${window.escapeHTML(act.titulo)}</h5>
+                            </div>
+                            <div class="flex items-center gap-2 text-[11px] font-bold text-slate-400">
+                                <span>Intentos permitidos: ${intentosMaxTxt}</span>
+                                <span>•</span>
+                                <span>📅 ${window.escapeHTML(act.fechaCreacion || 'Activo')}</span>
+                            </div>
                         </div>
-                        <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="histudy-btn px-4 py-2 rounded-lg text-xs w-full sm:w-auto">Iniciar</button>
+                        <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="histudy-btn px-4 py-2 rounded-lg text-xs font-bold w-full sm:w-auto">
+                            Comenzar Actividad
+                        </button>
                     </div>
                 `;
             }
-        }
+        });
+
+        contenedorClases.innerHTML += `
+            <div class="glass-card overflow-hidden border border-slate-200/80 shadow-sm transition-all">
+                <div onclick="document.getElementById('${idCarpeta}').classList.toggle('hidden'); document.getElementById('${idCarpeta}-icon').classList.toggle('rotate-180');" class="p-4 sm:p-5 flex items-center justify-between cursor-pointer bg-white hover:bg-slate-50/70 select-none">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr ${estiloClase.bg} text-white flex items-center justify-center shadow-md shrink-0">
+                            <i data-lucide="folder" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${estiloClase.badge}">Clase ${index + 1}</span>
+                            </div>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mt-0.5">${window.escapeHTML(nombreClase)}</h4>
+                            <span class="text-xs font-semibold text-slate-400">${completadas} de ${totalActs} actividades realizadas</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full ${completadas === totalActs && totalActs > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'}">
+                            ${completadas === totalActs && totalActs > 0 ? 'Completada' : 'En progreso'}
+                        </span>
+                        <i id="${idCarpeta}-icon" data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform duration-200"></i>
+                    </div>
+                </div>
+                <div id="${idCarpeta}" class="p-4 pt-0 space-y-2.5 border-t border-slate-100">
+                    <div class="pt-3 flex flex-col gap-2.5">
+                        ${actividadesHTML || '<p class="text-xs text-slate-400 italic">No hay actividades activas en esta clase.</p>'}
+                    </div>
+                </div>
+            </div>
+        `;
     });
-    if(pCount===0) listaP.innerHTML = `<div class="p-6 text-center text-slate-400 font-bold text-xs">¡Sin actividades pendientes!</div>`;
-    if(rCount===0) listaR.innerHTML = `<div class="p-6 text-center text-slate-400 font-bold text-xs">Aún no hay calificaciones.</div>`;
+
     window.renderLucide();
 };
 
+/* INICIAR O REANUDAR ACTIVIDAD */
 window.iniciarActividadPorId = function(idActividad) {
     const act = window.baseActividades.find(a => a.id === idActividad);
     if(!act) return;
     actividadActual = JSON.parse(JSON.stringify(act));
+
+    // Determinar número de intento
+    const notaGuardada = localStorage.getItem(`nota_${estudianteIdActual}_${act.id}`);
+    let intentoNum = 1;
+    if (notaGuardada) {
+        try {
+            const p = JSON.parse(notaGuardada);
+            intentoNum = (parseInt(p.numeroIntento) || 1) + 1;
+        } catch(e) { intentoNum = 2; }
+    }
+
+    // Verificar si hay sesión previa guardada para reanudar tiempo y preguntas
+    let tiempoInicio = 0;
+    const sesionPreviaStr = localStorage.getItem(`progreso_sesion_${estudianteIdActual}_${act.id}`);
+    if (sesionPreviaStr) {
+        try {
+            const sesionPrevia = JSON.parse(sesionPreviaStr);
+            tiempoInicio = Math.floor(sesionPrevia.tiempoGuardado || 0);
+            maxTiempoVisto = sesionPrevia.maxTiempoVisto || tiempoInicio;
+            intentoActual = sesionPrevia.intentoActual || { correctas: 0, resueltas: 0, respuestas: [], numeroIntento: intentoNum };
+            
+            // Rehidratar preguntas contestadas
+            if (sesionPrevia.preguntas && Array.isArray(sesionPrevia.preguntas)) {
+                actividadActual.preguntas = sesionPrevia.preguntas;
+            }
+            window.mostrarToast(`Reanudando clase desde el segundo ${tiempoInicio}`, "info");
+        } catch(e) {
+            tiempoInicio = 0;
+            maxTiempoVisto = 0;
+            intentoActual = { correctas: 0, resueltas: 0, respuestas: [], numeroIntento: intentoNum };
+        }
+    } else {
+        intentoActual = { correctas: 0, resueltas: 0, respuestas: [], numeroIntento: intentoNum };
+        maxTiempoVisto = 0;
+    }
+
     document.getElementById('vista-bienvenida-estudiante').classList.add('hidden');
     document.getElementById('vista-reproductor').classList.remove('hidden');
     document.getElementById('vista-reproductor').classList.add('flex');
     document.getElementById('titulo-reproductor').innerText = window.escapeHTML(actividadActual.titulo);
-    intentoActual = { correctas: 0, resueltas: 0, respuestas: [] }; 
-    document.getElementById('progreso-text').innerText = "0%";
-    maxTiempoVisto = 0; 
+    document.getElementById('reproductor-clase-nombre').innerText = window.escapeHTML(actividadActual.clase || 'Clase');
+    document.getElementById('intento-num-text').innerText = intentoNum;
+
+    const totalP = actividadActual.preguntas ? actividadActual.preguntas.length : 1;
+    const porcAvance = Math.round((intentoActual.resueltas / (totalP === 0 ? 1 : totalP)) * 100);
+    document.getElementById('progreso-text').innerText = `${porcAvance}%`;
     
     const vId = actividadActual.video ? actividadActual.video.id : actividadActual.videoId; 
     if (player && typeof player.loadVideoById === 'function') { 
-        player.loadVideoById({videoId: vId, startSeconds: 0}); 
+        player.loadVideoById({ videoId: vId, startSeconds: tiempoInicio }); 
     } else {
         player = new YT.Player('youtube-player', { 
-            videoId: vId, host: 'https://www.youtube-nocookie.com',
-            playerVars: { 'autoplay': 1, 'controls': 0, 'rel': 0, 'modestbranding': 1, 'origin': window.location.origin || 'https://cafelab.co' }, 
-            events: { 'onStateChange': (e) => { if (e.data == YT.PlayerState.PLAYING) { intervaloVideo = setInterval(window.verificarTiempo, 1000); } else { clearInterval(intervaloVideo); } } } 
+            videoId: vId, 
+            host: 'https://www.youtube-nocookie.com',
+            playerVars: { 
+                'autoplay': 1, 
+                'controls': 0, 
+                'rel': 0, 
+                'modestbranding': 1, 
+                'start': tiempoInicio,
+                'origin': window.location.origin || 'https://cafelab.co' 
+            }, 
+            events: { 
+                'onStateChange': (e) => { 
+                    if (e.data == YT.PlayerState.PLAYING) { 
+                        intervaloVideo = setInterval(window.verificarTiempo, 1000); 
+                    } else { 
+                        clearInterval(intervaloVideo); 
+                    } 
+                } 
+            } 
         });
     }
     window.renderLucide();
@@ -1116,7 +1399,9 @@ window.verificarTiempo = function() {
     const tAct = player.getCurrentTime();
 
     if (tAct > maxTiempoVisto + 3) { 
-        player.seekTo(maxTiempoVisto); window.mostrarToast("⚠️ Debes ver la clase completa sin adelantar.", "warning"); return;
+        player.seekTo(maxTiempoVisto); 
+        window.mostrarToast("⚠️ Debes ver la clase completa sin adelantar.", "warning"); 
+        return;
     }
     if(tAct > maxTiempoVisto) maxTiempoVisto = tAct;
 
@@ -1124,7 +1409,8 @@ window.verificarTiempo = function() {
 
     actividadActual.preguntas.forEach((pregunta, index) => {
         if (!pregunta.respondida && tAct >= pregunta.tiempo && tAct < (pregunta.tiempo + 2)) {
-            player.pauseVideo(); clearInterval(intervaloVideo);
+            player.pauseVideo(); 
+            clearInterval(intervaloVideo);
             const qBox = document.getElementById('question-box');
             qBox.innerHTML = `
                 <h3 class="text-sm sm:text-base md:text-lg mb-4 font-extrabold text-slate-900">${window.escapeHTML(pregunta.texto)}</h3>
@@ -1144,21 +1430,36 @@ window.verificarTiempo = function() {
                     if (esCorrecta) intentoActual.correctas++;
                     
                     const optCorrectaTexto = pregunta.opciones[parseInt(pregunta.correcta) - 1] || 'Opción ' + pregunta.correcta;
-                    intentoActual.respuestas.push({ textoPregunta: pregunta.texto, opcionSeleccionada: opcion, opcionCorrecta: optCorrectaTexto, esCorrecta: esCorrecta, feedback: pregunta.feedback || "" });
+                    intentoActual.respuestas.push({ 
+                        textoPregunta: pregunta.texto, 
+                        opcionSeleccionada: opcion, 
+                        opcionCorrecta: optCorrectaTexto, 
+                        esCorrecta: esCorrecta, 
+                        feedback: pregunta.feedback || "" 
+                    });
+                    
                     document.getElementById('progreso-text').innerText = `${Math.round((intentoActual.resueltas / actividadActual.preguntas.length) * 100)}%`;
                     
+                    // Condición: en intento en curso, solo dar feedback formativo sin revelar respuesta correcta
                     const boxColor = esCorrecta ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-rose-50 border-rose-300 text-rose-800';
+                    const mensajeRetro = esCorrecta 
+                        ? (pregunta.feedback || '¡Excelente trabajo! Has comprendido el concepto.')
+                        : 'Tu respuesta no es correcta. Recuerda analizar bien cada detalle antes de responder.';
+
                     qBox.innerHTML = `
                         <div class="p-3 sm:p-4 rounded-xl border ${boxColor} mb-4">
                             <h4 class="text-xs sm:text-sm font-black mb-1">${esCorrecta ? '¡Respuesta Correcta! ✅' : 'Respuesta Incorrecta ❌'}</h4>
-                            <p class="text-xs">${window.escapeHTML(pregunta.feedback || (esCorrecta ? '¡Muy bien!' : 'Presta atención al video.'))}</p>
+                            <p class="text-xs">${window.escapeHTML(mensajeRetro)}</p>
                         </div>
                         <button type="button" id="btn-continuar-video" class="w-full histudy-btn py-2.5 rounded-xl text-xs uppercase">Continuar Clase ▶</button>
                     `;
                     document.getElementById('btn-continuar-video').onclick = () => {
                         document.getElementById('question-overlay').classList.add('hidden');
-                        if (intentoActual.resueltas === actividadActual.preguntas.length) window.mostrarPantallaFinalizacion();
-                        else player.playVideo();
+                        if (intentoActual.resueltas === actividadActual.preguntas.length) {
+                            window.mostrarPantallaFinalizacion();
+                        } else {
+                            player.playVideo();
+                        }
                     };
                 };
                 contO.appendChild(btn);
@@ -1206,36 +1507,55 @@ window.guardarEvidenciasYFinalizar = function() {
 };
 
 window.finalizarActividad = async function() {
+    // Al finalizar completamente, se limpia el progreso en pausa
+    localStorage.removeItem(`progreso_sesion_${estudianteIdActual}_${actividadActual.id}`);
     localStorage.removeItem(`estado_${actividadActual.id}_${estudianteIdActual}`);
+    
     const totalP = actividadActual.preguntas ? actividadActual.preguntas.length : 1;
     const notaFinal = (((intentoActual.correctas / (totalP === 0 ? 1 : totalP)) * 4) + 1).toFixed(1);
     
     const entrega = {
         idEntrega: "ENT_" + Date.now().toString(36).toUpperCase(),
-        estudianteId: estudianteIdActual, actividadId: actividadActual.id, versionActividad: actividadActual.version || 1,
-        correctas: intentoActual.correctas, resueltas: intentoActual.resueltas, nota: notaFinal,
-        fecha: new Date().toLocaleString(), laboratorio: intentoActual.laboratorio || null,
-        reflexion: intentoActual.reflexion || "", respuestas: intentoActual.respuestas || [],
+        estudianteId: estudianteIdActual, 
+        actividadId: actividadActual.id, 
+        versionActividad: actividadActual.version || 1,
+        correctas: intentoActual.correctas, 
+        resueltas: intentoActual.resueltas, 
+        nota: notaFinal,
+        numeroIntento: intentoActual.numeroIntento || 1,
+        fecha: new Date().toLocaleString(), 
+        laboratorio: intentoActual.laboratorio || null,
+        reflexion: intentoActual.reflexion || "", 
+        respuestas: intentoActual.respuestas || [],
         validador: btoa(notaFinal + "_" + estudianteIdActual + "_CafeLab")
     };
     
     localStorage.setItem(`nota_${estudianteIdActual}_${actividadActual.id}`, JSON.stringify(entrega));
     window.volverDashboardEstudiante(); 
-    window.mostrarToast(`¡Completado! Nota: ${notaFinal}`, "success");
+    window.mostrarToast(`¡Completado! Última nota registrada: ${notaFinal}`, "success");
     fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) }).catch(()=>{});
 };
 
-window.verDetalleEntrega = function(encodedData) {
+/* VISOR DE DETALLES CON REVELACIÓN CONDICIONAL DE RESPUESTAS */
+window.verDetalleEntrega = function(encodedData, permitirVerCorrectas = false) {
     if (!encodedData || encodedData === 'null') return;
     let data;
     try { data = JSON.parse(decodeURIComponent(encodedData)); } catch(e) { return; }
 
     const notaNum = parseFloat(data.nota || 0);
     const notaColor = notaNum >= 3.0 ? 'text-emerald-600' : 'text-rose-600';
+    
+    // Regla pedagógica: revela respuestas correctas si docente lo abre, si es el último intento o si nota > 4.0
+    const puedeVerCorrectas = permitirVerCorrectas || (notaNum > 4.0);
+
     document.getElementById('view-detalle-resumen').innerHTML = `
         <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
-            <span class="block text-[10px] font-bold text-slate-500 uppercase">Nota Final</span>
+            <span class="block text-[10px] font-bold text-slate-500 uppercase">Última Nota</span>
             <span class="text-xl sm:text-2xl font-black ${notaColor}">${window.escapeHTML(data.nota != null ? data.nota : '--')} / 5.0</span>
+        </div>
+        <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+            <span class="block text-[10px] font-bold text-slate-500 uppercase">Intento Registrado</span>
+            <span class="text-base sm:text-lg font-black text-slate-800 block mt-1">#${window.escapeHTML(data.numeroIntento || 1)}</span>
         </div>
         <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
             <span class="block text-[10px] font-bold text-slate-500 uppercase">Fecha Entrega</span>
@@ -1245,24 +1565,42 @@ window.verDetalleEntrega = function(encodedData) {
 
     const pregContainer = document.getElementById('view-detalle-preguntas-container');
     const pregList = document.getElementById('view-detalle-preguntas-list');
+    
     if (data.respuestas && Array.isArray(data.respuestas) && data.respuestas.length > 0) {
         pregList.innerHTML = '';
         data.respuestas.forEach((r, idx) => {
             const esOk = r.esCorrecta;
+            
+            let bloqueOpcionCorrecta = '';
+            let bloqueFeedback = '';
+
+            if (puedeVerCorrectas) {
+                if (!esOk) {
+                    bloqueOpcionCorrecta = `<p class="text-emerald-700 font-bold bg-emerald-50 p-1.5 rounded border border-emerald-300">Opción correcta: ${window.escapeHTML(r.opcionCorrecta)}</p>`;
+                }
+                if (r.feedback) {
+                    bloqueFeedback = `<p class="text-slate-500 italic mt-1">💡 ${window.escapeHTML(r.feedback)}</p>`;
+                }
+            } else if (!esOk) {
+                bloqueOpcionCorrecta = `<p class="text-slate-500 italic text-[11px] bg-slate-100 p-1.5 rounded">🔒 La respuesta correcta y retroalimentación completa estarán disponibles en tu último intento o al obtener una nota superior a 4.0.</p>`;
+            }
+
             pregList.innerHTML += `
                 <div class="p-3 rounded-xl border ${esOk ? 'border-emerald-200 bg-white' : 'border-rose-200 bg-rose-50/30'} text-xs space-y-1">
                     <div class="flex justify-between font-bold text-slate-900">
                         <span>${idx + 1}. ${window.escapeHTML(r.textoPregunta)}</span>
                         <span class="${esOk ? 'text-emerald-700' : 'text-rose-700'}">${esOk ? 'Correcta ✅' : 'Incorrecta ❌'}</span>
                     </div>
-                    <p class="${esOk ? 'text-emerald-700 font-semibold' : 'text-rose-700 font-semibold'}">Respuesta: ${window.escapeHTML(r.opcionSeleccionada)}</p>
-                    ${!esOk ? `<p class="text-emerald-700 font-bold bg-emerald-50 p-1.5 rounded border border-emerald-300">Opción correcta: ${window.escapeHTML(r.opcionCorrecta)}</p>` : ''}
-                    ${r.feedback ? `<p class="text-slate-500 italic mt-1">💡 ${window.escapeHTML(r.feedback)}</p>` : ''}
+                    <p class="${esOk ? 'text-emerald-700 font-semibold' : 'text-rose-700 font-semibold'}">Tu Respuesta: ${window.escapeHTML(r.opcionSeleccionada)}</p>
+                    ${bloqueOpcionCorrecta}
+                    ${bloqueFeedback}
                 </div>
             `;
         });
         pregContainer.classList.remove('hidden');
-    } else { pregContainer.classList.add('hidden'); }
+    } else { 
+        pregContainer.classList.add('hidden'); 
+    }
 
     const labContainer = document.getElementById('view-detalle-lab-container');
     const labGrid = document.getElementById('view-detalle-lab-grid');

@@ -19,8 +19,6 @@
         .badge-gradient { background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(192, 38, 211, 0.12)); color: #6D28D9; border: 1px solid rgba(124, 58, 237, 0.2); }
         .toggle-checkbox:checked { right: 0; border-color: #6366F1; }
         .toggle-checkbox:checked + .toggle-label { background: linear-gradient(135deg, #4F46E5, #7C3AED); }
-        
-        /* Smooth scrolling y soporte responsive de tablas */
         .table-container { -webkit-overflow-scrolling: touch; }
     </style>
 </head>
@@ -224,7 +222,9 @@
                             <thead class="text-[10px] text-slate-400 uppercase font-black bg-slate-50/70 border-b border-slate-100">
                                 <tr>
                                     <th class="px-4 sm:px-5 py-3">Grados / Destinos</th>
-                                    <th class="px-4 sm:px-5 py-3">Título</th>
+                                    <th class="px-4 sm:px-5 py-3">Clase / Unidad</th>
+                                    <th class="px-4 sm:px-5 py-3">Título Actividad</th>
+                                    <th class="px-4 sm:px-5 py-3 text-center">Intentos</th>
                                     <th class="px-4 sm:px-5 py-3 text-center">Laboratorio</th>
                                     <th class="px-4 sm:px-5 py-3 text-center">Estado</th>
                                     <th class="px-4 sm:px-5 py-3 text-right">Acciones</th>
@@ -247,7 +247,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                    <!-- Videos Interactivos (ACTIVO) -->
                     <div onclick="window.prepararNuevaActividad()" class="glass-card p-5 sm:p-6 border-2 border-indigo-200 hover:border-indigo-600 cursor-pointer transition-all hover:-translate-y-1 group">
                         <div class="flex items-start justify-between mb-4">
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-md">
@@ -262,7 +261,6 @@
                         </div>
                     </div>
 
-                    <!-- Quizzes (FUTURO) -->
                     <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
                         <div class="flex items-start justify-between mb-4">
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-fuchsia-500 to-pink-600 text-white flex items-center justify-center opacity-70">
@@ -274,7 +272,6 @@
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">Pruebas tipo Saber con tiempo límite y banco de preguntas automatizado.</p>
                     </div>
 
-                    <!-- Lectura (FUTURO) -->
                     <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
                         <div class="flex items-start justify-between mb-4">
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center opacity-70">
@@ -286,7 +283,6 @@
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">Entrenador de velocidad y comprensión lectora con textos científicos de café.</p>
                     </div>
 
-                    <!-- Prácticas (FUTURO) -->
                     <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
                         <div class="flex items-start justify-between mb-4">
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center opacity-70">
@@ -346,12 +342,27 @@
                             <div id="contenedor-grados-destino" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200"></div>
                         </div>
 
+                        <!-- SELECCIÓN Y CREACIÓN DE CLASE / UNIDAD (CARPETA) -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                            <label class="block text-xs font-bold text-slate-700 uppercase flex items-center gap-1.5">
+                                <i data-lucide="folder-plus" class="w-4 h-4 text-indigo-600"></i>
+                                <span>Clase / Unidad de Aprendizaje (Carpeta de Contenido)</span>
+                            </label>
+                            
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <select id="select-clase-existente" onchange="window.gestionarCambioClase()" class="w-full sm:w-1/2 p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="__NUEVA__">+ Crear Nueva Clase...</option>
+                                </select>
+                                <input type="text" id="input-nueva-clase" placeholder="Ej: Ley 1014 - Fomento al Emprendimiento" class="w-full sm:w-1/2 p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Enlace de YouTube</label>
                             <input type="url" id="url-video" placeholder="https://www.youtube.com/watch?v=..." class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 outline-none text-xs font-semibold focus:ring-2 focus:ring-indigo-500" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Título de la Clase</label>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Título de la Actividad / Video</label>
                             <input type="text" id="titulo-clase" placeholder="Ej: Fundamentos de la Molienda" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 outline-none text-xs font-semibold focus:ring-2 focus:ring-indigo-500" required>
                         </div>
                         <div>
@@ -361,6 +372,26 @@
                         <div>
                             <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Descripción e Instrucciones</label>
                             <textarea id="descripcion-actividad" rows="2" placeholder="Instrucciones para los estudiantes..." class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 outline-none text-xs font-semibold focus:ring-2 focus:ring-indigo-500" required></textarea>
+                        </div>
+
+                        <!-- INTENTOS PERMITIDOS -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-indigo-50/40 rounded-xl border border-indigo-100">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                    <span>Intentos Permitidos</span>
+                                </label>
+                                <select id="intentos-permitidos" class="w-full p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="1">1 intento (Estándar)</option>
+                                    <option value="2">2 intentos</option>
+                                    <option value="3">3 intentos</option>
+                                    <option value="5">5 intentos</option>
+                                    <option value="999">Ilimitados</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center text-[11px] text-slate-500 font-medium leading-tight">
+                                El sistema registrará los reintentos y conservará la última nota entregada por el estudiante.
+                            </div>
                         </div>
                         
                         <div class="bg-indigo-50/50 border border-indigo-100 p-4 rounded-xl flex flex-col gap-3">
@@ -437,8 +468,9 @@
                                     <th class="px-4 sm:px-5 py-3">Grado / Rol</th>
                                     <th class="px-4 sm:px-5 py-3">Integrante</th>
                                     <th class="px-4 sm:px-5 py-3">Actividad</th>
+                                    <th class="px-4 sm:px-5 py-3 text-center">Intento</th>
                                     <th class="px-4 sm:px-5 py-3 text-center">Evidencias</th>
-                                    <th class="px-4 sm:px-5 py-3 text-center">Nota</th>
+                                    <th class="px-4 sm:px-5 py-3 text-center">Última Nota</th>
                                     <th class="px-4 sm:px-5 py-3 text-right">Acciones</th>
                                 </tr>
                             </thead>
@@ -527,30 +559,47 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                <div class="glass-card p-4 sm:p-6 border-t-4 border-t-indigo-600">
-                    <h3 class="text-sm font-extrabold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2 border-b pb-2">
-                        <i data-lucide="hourglass" class="w-4 h-4 text-indigo-600"></i><span>Actividades Pendientes</span>
+            <!-- ATAJOS RÁPIDOS: ACTIVIDADES PENDIENTES (SIEMPRE VISIBLE) -->
+            <div class="glass-card p-4 sm:p-5 border-l-4 border-l-indigo-600">
+                <div class="flex items-center justify-between mb-3 border-b pb-2">
+                    <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="bell" class="w-4 h-4 text-indigo-600"></i>
+                        <span>Atajos Rápidos: Actividades Pendientes por Entregar</span>
                     </h3>
-                    <div id="lista-pendientes" class="flex flex-col gap-3"></div>
+                    <span id="badge-pendientes-count" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">0 pendientes</span>
                 </div>
-                <div class="glass-card p-4 sm:p-6 border-t-4 border-t-teal-600">
-                    <h3 class="text-sm font-extrabold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2 border-b pb-2">
-                        <i data-lucide="check-check" class="w-4 h-4 text-teal-600"></i><span>Mis Calificaciones</span>
+                <div id="lista-pendientes-atajos" class="grid grid-cols-1 md:grid-cols-2 gap-2.5"></div>
+            </div>
+
+            <!-- CONTENEDOR DE CLASES AGRUPADAS (CARPETAS DE CONTENIDO) -->
+            <div>
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <h3 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                        <i data-lucide="folder-tree" class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600"></i>
+                        <span>Mis Clases y Unidades de Aprendizaje</span>
                     </h3>
-                    <div id="lista-realizadas" class="flex flex-col gap-3"></div>
+                    <span class="text-xs text-slate-500 font-medium">Contenido modular por carpetas</span>
                 </div>
+                <div id="contenedor-carpetas-clases" class="flex flex-col gap-3.5"></div>
             </div>
         </div>
 
         <!-- REPRODUCTOR INTERACTIVO -->
         <div id="vista-reproductor" class="hidden w-full max-w-5xl glass-card p-3 sm:p-6 flex-col min-h-[75vh] md:h-[85vh] mt-1 sm:mt-2">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3 sm:mb-4">
-                <h2 class="text-base sm:text-xl font-black text-slate-900 flex items-center gap-2 line-clamp-1" id="titulo-reproductor">
-                    <i data-lucide="play" class="w-5 h-5 text-indigo-600 shrink-0"></i><span>Actividad Interactiva</span>
-                </h2>
-                <div class="text-xs font-black badge-gradient px-3 py-1 rounded-full self-start sm:self-auto">
-                    Progreso: <span id="progreso-text">0%</span>
+                <div>
+                    <span id="reproductor-clase-nombre" class="text-[10px] font-extrabold uppercase text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200 block mb-1">Clase</span>
+                    <h2 class="text-base sm:text-xl font-black text-slate-900 flex items-center gap-2 line-clamp-1" id="titulo-reproductor">
+                        <i data-lucide="play" class="w-5 h-5 text-indigo-600 shrink-0"></i><span>Actividad Interactiva</span>
+                    </h2>
+                </div>
+                <div class="flex items-center gap-2 self-start sm:self-auto">
+                    <div id="reproductor-intento-badge" class="text-xs font-black bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 rounded-full">
+                        Intento: <span id="intento-num-text">1</span>
+                    </div>
+                    <div class="text-xs font-black badge-gradient px-3 py-1 rounded-full">
+                        Progreso: <span id="progreso-text">0%</span>
+                    </div>
                 </div>
             </div>
             
@@ -563,7 +612,7 @@
                 </div>
             </div>
             <div class="mt-3 sm:mt-4 flex justify-center">
-                <button type="button" onclick="window.volverDashboardEstudiante()" class="w-full sm:w-auto justify-center text-slate-700 border border-slate-200 px-4 sm:px-5 py-2.5 rounded-xl bg-white text-xs font-bold flex items-center gap-2 shadow-sm">
+                <button type="button" onclick="window.volverDashboardEstudiante()" class="w-full sm:w-auto justify-center text-slate-700 border border-slate-200 px-4 sm:px-5 py-2.5 rounded-xl bg-white text-xs font-bold flex items-center gap-2 shadow-sm hover:bg-slate-50 transition-colors">
                     <i data-lucide="pause-circle" class="w-4 h-4"></i><span>Pausar y regresar al Dashboard</span>
                 </button>
             </div>
@@ -573,7 +622,7 @@
     <!-- MODAL FINALIZACIÓN -->
     <div id="final-overlay" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-6 z-50 overflow-y-auto">
         <div class="glass-card p-5 sm:p-8 rounded-2xl max-w-xl w-full text-center shadow-2xl text-slate-900 my-auto">
-            <h3 class="text-lg sm:text-xl font-black mb-1 text-slate-900">¡Video Completado!</h3>
+            <h3 class="text-lg sm:text-xl font-black mb-1 text-slate-900">¡Actividad Completada!</h3>
             <p class="text-slate-500 mb-4 text-xs font-semibold">Completa la siguiente información para registrar tu entrega</p>
             
             <div id="estudiante-lab-section" class="hidden text-left mb-4 bg-indigo-50/50 p-3 sm:p-4 rounded-xl border border-indigo-100">
@@ -600,7 +649,7 @@
                 <button type="button" onclick="document.getElementById('view-detalle-overlay').classList.add('hidden')" class="text-slate-400 hover:text-rose-600 font-bold p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             
-            <div id="view-detalle-resumen" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4"></div>
+            <div id="view-detalle-resumen" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4"></div>
             <div id="view-detalle-preguntas-container" class="mb-4 hidden">
                 <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-2">Preguntas Respondidas y Retroalimentación</h4>
                 <div id="view-detalle-preguntas-list" class="space-y-3"></div>
@@ -637,7 +686,6 @@
 
     <div id="toast-container" class="fixed bottom-4 right-4 left-4 sm:left-auto z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- Carga del controlador JavaScript externo -->
     <script src="script.js"></script>
 </body>
 </html>
