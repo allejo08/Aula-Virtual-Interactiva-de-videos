@@ -21,7 +21,6 @@
         .toggle-checkbox:checked + .toggle-label { background: linear-gradient(135deg, #4F46E5, #7C3AED); }
         .table-container { -webkit-overflow-scrolling: touch; }
         
-        /* Estilos ergonómicos de lectura por renglón */
         .fuente-lectura { font-family: 'Merriweather', Georgia, serif; }
         .linea-lectura {
             display: block;
@@ -36,14 +35,8 @@
             opacity: 1 !important;
             transform: translateX(4px);
         }
-        .linea-leida {
-            opacity: 0.65;
-        }
-        .palabra-glosario {
-            border-bottom: 2px dashed #818CF8;
-            cursor: pointer;
-            font-weight: 600;
-        }
+        .linea-leida { opacity: 0.65; }
+        .palabra-glosario { border-bottom: 2px dashed #818CF8; cursor: pointer; font-weight: 600; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen antialiased">
@@ -268,7 +261,8 @@
                     <p class="text-xs text-slate-500 font-medium">Selecciona el tipo de experiencia interactiva para configurar</p>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                    <!-- Módulo 1: Videos Interactivos -->
                     <div onclick="window.prepararNuevaActividad()" class="glass-card p-5 sm:p-6 border-2 border-indigo-200 hover:border-indigo-600 cursor-pointer transition-all hover:-translate-y-1 group">
                         <div class="flex items-start justify-between mb-4">
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-md">
@@ -283,6 +277,7 @@
                         </div>
                     </div>
 
+                    <!-- Módulo 2: Lectura y Fluidez -->
                     <div onclick="window.prepararNuevaActividadLectura()" class="glass-card p-5 sm:p-6 border-2 border-emerald-200 hover:border-emerald-600 cursor-pointer transition-all hover:-translate-y-1 group">
                         <div class="flex items-start justify-between mb-4">
                             <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center shadow-md">
@@ -297,26 +292,19 @@
                         </div>
                     </div>
 
-                    <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
+                    <!-- Módulo 3: Juegos Pedagógicos y RPG (ACTIVADO) -->
+                    <div onclick="window.prepararNuevaActividadJuego()" class="glass-card p-5 sm:p-6 border-2 border-amber-200 hover:border-amber-600 cursor-pointer transition-all hover:-translate-y-1 group">
                         <div class="flex items-start justify-between mb-4">
-                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-fuchsia-500 to-pink-600 text-white flex items-center justify-center opacity-70">
-                                <i data-lucide="help-circle" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md">
+                                <i data-lucide="gamepad-2" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                             </div>
-                            <span class="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">Próximamente</span>
+                            <span class="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">Activo</span>
                         </div>
-                        <h3 class="text-sm sm:text-base font-extrabold text-slate-800 mb-1.5">Evaluaciones y Quizzes</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Pruebas tipo Saber con tiempo límite y banco de preguntas automatizado.</p>
-                    </div>
-
-                    <div class="glass-card p-5 sm:p-6 border border-slate-200 bg-white/70">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center opacity-70">
-                                <i data-lucide="sprout" class="w-5 h-5 sm:w-6 sm:h-6"></i>
-                            </div>
-                            <span class="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">Próximamente</span>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 mb-1.5 group-hover:text-amber-600">Juegos Pedagógicos y RPG</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Misiones interactivas con tableros de crecimiento, intentos formativos y combate de preguntas.</p>
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-amber-600">
+                            <span>Configurar juego / HTML</span><i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                         </div>
-                        <h3 class="text-sm sm:text-base font-extrabold text-slate-800 mb-1.5">Talleres y Prácticas de Campo</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Fichas de recolección en campo, protocolos de fermentación y catación SCA.</p>
                     </div>
                 </div>
             </div>
@@ -448,7 +436,7 @@
                 </div>
             </div>
 
-            <!-- VISTA: FORMULARIO ACTIVIDAD LECTURA (CON IMPORTADOR CSV Y MOMENTO DE PARADA) -->
+            <!-- VISTA: FORMULARIO ACTIVIDAD LECTURA -->
             <div id="vista-actividad-lectura" class="view-docente hidden max-w-4xl mx-auto">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                     <button type="button" onclick="window.mostrarVistaDocente('vista-hub-actividades')" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-all">
@@ -457,7 +445,6 @@
                     <span class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">Módulo: Lectura y Fluidez</span>
                 </div>
 
-                <!-- IMPORTACIÓN CSV / GEMS DE LECTURA DIRECTA -->
                 <div class="mb-5 p-4 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/50 flex flex-col md:flex-row items-center justify-between gap-3">
                     <div class="flex items-center gap-2.5">
                         <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
@@ -514,7 +501,7 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Velocidad Meta (Palabras por minuto - WPM)</label>
+                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Velocidad Meta (WPM)</label>
                                 <input type="number" id="lec-wpm" value="165" min="60" max="400" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500" required>
                             </div>
                             <div>
@@ -529,7 +516,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Texto de la Lectura (Separa párrafos con doble Enter)</label>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Texto de la Lectura</label>
                             <textarea id="lec-texto" rows="7" placeholder="Pega el texto formativo completo aquí..." oninput="window.actualizarConteoPalabrasDocente(this.value)" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 text-xs leading-relaxed outline-none focus:ring-2 focus:ring-emerald-500" required></textarea>
                             <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1">
                                 <span>El visor segmenta renglones y resalta términos automáticamente.</span>
@@ -540,7 +527,7 @@
                         <div class="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 space-y-2">
                             <label class="block text-xs font-bold text-emerald-950 uppercase flex items-center gap-1.5">
                                 <i data-lucide="bookmark" class="w-3.5 h-3.5 text-emerald-700"></i>
-                                <span>Glosario Técnico (Definiciones flotantes en el texto)</span>
+                                <span>Glosario Técnico</span>
                             </label>
                             <div id="contenedor-items-glosario" class="space-y-2"></div>
                             <button type="button" onclick="window.agregarFilaGlosarioDocente()" class="text-xs text-emerald-700 font-bold hover:underline flex items-center gap-1">+ Añadir término y definición</button>
@@ -549,7 +536,7 @@
                         <div class="border-t border-slate-100 pt-4">
                             <div class="flex items-center justify-between mb-2">
                                 <h3 class="text-xs font-extrabold text-slate-900 uppercase">Preguntas y Momentos de Parada</h3>
-                                <span class="text-[10px] font-semibold text-slate-400">Tú eliges en qué párrafo pausar o si sale al final</span>
+                                <span class="text-[10px] font-semibold text-slate-400">Tú eliges en qué párrafo pausar</span>
                             </div>
                             <div id="contenedor-preguntas-lectura" class="space-y-3 mb-3"></div>
                             <button type="button" onclick="window.crearBloquePreguntaLecturaDocente()" class="w-full bg-emerald-50 text-emerald-700 border-2 border-dashed border-emerald-200 p-3 rounded-xl text-xs font-bold hover:bg-emerald-100/50 flex items-center justify-center gap-1.5">
@@ -564,12 +551,65 @@
                 </div>
             </div>
 
+            <!-- VISTA: FORMULARIO ACTIVIDAD JUEGO / RPG (NUEVO) -->
+            <div id="vista-actividad-juego" class="view-docente hidden max-w-4xl mx-auto">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                    <button type="button" onclick="window.mostrarVistaDocente('vista-hub-actividades')" class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl transition-all">
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Volver a Módulos</span>
+                    </button>
+                    <span class="text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200">Módulo: Juegos Pedagógicos y RPG</span>
+                </div>
+
+                <div class="glass-card p-5 sm:p-8">
+                    <h2 class="text-lg sm:text-xl font-black text-slate-900 mb-1" id="titulo-formulario-juego">Vincular Juego / RPG Interactivo</h2>
+                    <p class="text-xs text-slate-500 mb-5">Configura la URL de GitHub Pages y grados destino para la experiencia gamificada.</p>
+                    
+                    <form id="form-crear-juego" onsubmit="window.guardarActividadJuego(event)" class="space-y-4">
+                        <div>
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
+                                <label class="block text-xs font-bold text-slate-600 uppercase">Grados Destino</label>
+                                <button type="button" onclick="window.toggleTodosGradosDestinoJuego()" class="text-xs text-amber-600 font-bold hover:underline text-left sm:text-right">Marcar / Desmarcar Todos</button>
+                            </div>
+                            <div id="contenedor-grados-destino-juego" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200"></div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                            <label class="block text-xs font-bold text-slate-700 uppercase flex items-center gap-1.5">
+                                <i data-lucide="folder-plus" class="w-4 h-4 text-amber-600"></i>
+                                <span>Clase / Unidad de Aprendizaje</span>
+                            </label>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <select id="select-clase-existente-juego" onchange="window.gestionarCambioClaseJuego()" class="w-full sm:w-1/2 p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-amber-500">
+                                    <option value="__NUEVA__">+ Crear Nueva Clase...</option>
+                                </select>
+                                <input type="text" id="input-nueva-clase-juego" placeholder="Ej: Ley 1014 - Emprendimiento" class="w-full sm:w-1/2 p-2.5 border border-slate-200 rounded-xl bg-white text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Título del Juego</label>
+                            <input type="text" id="juego-titulo" placeholder="Ej: El Árbol del Emprendimiento · Misión RPG" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 outline-none text-xs font-semibold focus:ring-2 focus:ring-amber-500" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Enlace / URL de GitHub Pages o Archivo HTML</label>
+                            <input type="text" id="juego-url" placeholder="https://tu-usuario.github.io/tu-repo/arbol_juego.html o arbol_juego.html" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 outline-none text-xs font-semibold focus:ring-2 focus:ring-amber-500" required>
+                            <span class="text-[10px] text-slate-400 mt-1 block">El sistema integrará el juego en pantalla completa y registrará los intentos y notas automáticamente.</span>
+                        </div>
+
+                        <button type="submit" id="btn-submit-juego" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md">
+                            <i data-lucide="save" class="w-4 h-4"></i><span>Guardar y Publicar Juego</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
             <!-- VISTA: REPORTES -->
             <div id="vista-reportes" class="view-docente hidden max-w-[1300px] mx-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-5">
                     <div>
                         <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight" id="titulo-vista-reporte">Reporte de Calificaciones</h2>
-                        <p class="text-xs text-slate-500 font-medium">Inspección de evidencias y administración de intentos</p>
+                        <p class="text-xs text-slate-500 font-medium">Inspección de evidencias y administración de intentos formativos</p>
                     </div>
                     <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                         <button type="button" id="btn-reiniciar-grupo" onclick="window.reiniciarGrupoActual()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1">
@@ -779,7 +819,6 @@
 
     <!-- VISOR INMERSIVO PANTALLA COMPLETA: LECTURA Y FLUIDEZ -->
     <div id="vista-lector-inmersivo" class="hidden fixed inset-0 z-[80] flex-col bg-[#FBF0D9] text-[#292524] transition-colors duration-200">
-        <!-- HEADER ERGONÓMICO -->
         <header class="w-full px-4 sm:px-8 py-3.5 flex items-center justify-between border-b border-black/10 bg-white/40 backdrop-blur-md shrink-0">
             <div class="flex items-center gap-3">
                 <span id="inmersivo-clase-badge" class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">Lectura</span>
@@ -806,17 +845,14 @@
             </div>
         </header>
 
-        <!-- LIENZO DE LECTURA (RENGLONES COMPLETOS) -->
         <main class="flex-1 w-full overflow-y-auto px-4 sm:px-6 py-6 sm:py-10 flex justify-center relative">
             <div id="inmersivo-columna-texto" class="w-full max-w-3xl fuente-lectura text-lg sm:text-xl leading-relaxed tracking-wide select-none space-y-5 pb-20"></div>
 
-            <!-- OVERLAY DE PREGUNTA INTERMEDIA POR PÁRRAFO -->
             <div id="overlay-pregunta-intermedia" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-4 z-50 text-slate-900">
                 <div class="glass-card p-6 sm:p-8 rounded-2xl max-w-lg w-full text-center shadow-2xl my-auto" id="caja-pregunta-intermedia-activa"></div>
             </div>
         </main>
 
-        <!-- FOOTER INMERSIVO (MÉTRICAS Y CONTROL) -->
         <footer class="w-full px-4 sm:px-8 py-3 bg-white/60 backdrop-blur-md border-t border-black/10 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
             <div class="flex items-center gap-4 text-xs font-bold">
                 <span>Progreso: <strong id="inmersivo-progreso" class="text-indigo-600">0%</strong></span>
@@ -834,6 +870,22 @@
                 </button>
             </div>
         </footer>
+    </div>
+
+    <!-- VISOR INMERSIVO PARA JUEGOS PEDAGÓGICOS Y RPG (NUEVO) -->
+    <div id="vista-juego-inmersivo" class="hidden fixed inset-0 z-[80] flex flex-col bg-slate-900">
+        <header class="w-full px-4 py-2.5 flex items-center justify-between bg-slate-950 text-white border-b border-white/10 shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md bg-amber-500 text-slate-950">Juego RPG</span>
+                <h3 id="juego-inmersivo-titulo" class="text-xs sm:text-sm font-bold truncate max-w-xs sm:max-w-md">Título del Juego</h3>
+            </div>
+            <button type="button" onclick="window.salirModoJuego()" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i><span>Regresar al Dashboard</span>
+            </button>
+        </header>
+        <main class="flex-1 w-full h-full relative bg-amber-50">
+            <iframe id="iframe-juego" src="" class="w-full h-full border-0" allow="fullscreen"></iframe>
+        </main>
     </div>
 
     <!-- MODAL EVALUACIÓN Y COMPRENSIÓN DE LECTURA (FINAL) -->
@@ -877,7 +929,7 @@
                 <div id="view-detalle-preguntas-list" class="space-y-3"></div>
             </div>
             <div id="view-detalle-lab-container" class="mb-4 hidden">
-                <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-2">Datos de Laboratorio</h4>
+                <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-2">Datos de Laboratorio / Juego</h4>
                 <div id="view-detalle-lab-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
             </div>
             <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 mb-4">

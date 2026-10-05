@@ -18,7 +18,7 @@ window.filtroGradoActual = null;
 window.reporteActividadActualId = null;
 window.datosReporteGlobal = [];
 
-/* VARIABLES MOTOR DE LECTURA POR RENGLÓN Y PARADAS SELECTIVAS */
+/* VARIABLES MOTOR DE LECTURA */
 let lineasLecturaArray = [];
 let palabrasLecturaArray = [];
 let indiceLineaLector = 0;
@@ -110,7 +110,7 @@ window.mostrarVistaDocente = function(idVista) {
     
     let btnId = null;
     if (idVista === 'vista-dashboard') btnId = 'nav-dashboard';
-    else if (idVista === 'vista-hub-actividades' || idVista === 'vista-actividad' || idVista === 'vista-actividad-lectura') btnId = 'nav-actividad';
+    else if (idVista === 'vista-hub-actividades' || idVista === 'vista-actividad' || idVista === 'vista-actividad-lectura' || idVista === 'vista-actividad-juego') btnId = 'nav-actividad';
     else if (idVista === 'vista-estudiantes') btnId = 'nav-estudiantes';
 
     if(btnId) {
@@ -130,7 +130,11 @@ window.renderSelectoresGradosDestino = function(seleccionados = [], containerId 
         const isChecked = todosMarcados || seleccionados.includes(opt);
         const isDocente = opt === 'Docente';
         const labelColor = isDocente ? 'text-purple-700 bg-purple-50 border-purple-200' : 'text-slate-800 bg-white border-slate-200';
-        const fnChange = containerId === 'contenedor-grados-destino' ? 'window.actualizarSelectClasesFormulario()' : 'window.actualizarSelectClasesLectura()';
+        
+        let fnChange = 'window.actualizarSelectClasesFormulario()';
+        if (containerId === 'contenedor-grados-destino-lectura') fnChange = 'window.actualizarSelectClasesLectura()';
+        if (containerId === 'contenedor-grados-destino-juego') fnChange = 'window.actualizarSelectClasesJuego()';
+
         cont.innerHTML += `
             <label class="flex items-center gap-1.5 p-2 rounded-lg border ${labelColor} cursor-pointer hover:border-indigo-400 text-xs font-bold select-none">
                 <input type="checkbox" value="${opt}" onchange="${fnChange}" class="checkbox-grado-${containerId} rounded text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5" ${isChecked ? 'checked' : ''}>
@@ -152,6 +156,13 @@ window.toggleTodosGradosDestinoLectura = function() {
     const algunDesmarcado = Array.from(boxes).some(b => !b.checked);
     boxes.forEach(b => b.checked = algunDesmarcado);
     window.actualizarSelectClasesLectura();
+};
+
+window.toggleTodosGradosDestinoJuego = function() {
+    const boxes = document.querySelectorAll('.checkbox-grado-contenedor-grados-destino-juego');
+    const algunDesmarcado = Array.from(boxes).some(b => !b.checked);
+    boxes.forEach(b => b.checked = algunDesmarcado);
+    window.actualizarSelectClasesJuego();
 };
 
 window.actualizarSelectClasesFormulario = function(claseSeleccionada = '') {
@@ -239,6 +250,53 @@ window.actualizarSelectClasesLectura = function(claseSeleccionada = '') {
 window.gestionarCambioClaseLectura = function() {
     const select = document.getElementById('select-clase-existente-lec');
     const inputNueva = document.getElementById('input-nueva-clase-lec');
+    if (!select || !inputNueva) return;
+    if (select.value === '__NUEVA__') {
+        inputNueva.classList.remove('hidden');
+        inputNueva.value = '';
+        inputNueva.focus();
+    } else {
+        inputNueva.classList.add('hidden');
+        inputNueva.value = select.value;
+    }
+};
+
+/* GESTIÓN CLASES FORMULARIO JUEGO (NUEVO) */
+window.actualizarSelectClasesJuego = function(claseSeleccionada = '') {
+    const select = document.getElementById('select-clase-existente-juego');
+    const inputNueva = document.getElementById('input-nueva-clase-juego');
+    if(!select || !inputNueva) return;
+
+    const checkedBoxes = document.querySelectorAll('.checkbox-grado-contenedor-grados-destino-juego:checked');
+    const grados = Array.from(checkedBoxes).map(cb => cb.value);
+
+    const clasesSet = new Set();
+    window.baseActividades.forEach(act => {
+        if (!act.clase || !act.clase.trim()) return;
+        const coincide = act.grados && act.grados.some(g => grados.includes(g) || grados.includes('Todos') || g === 'Todos');
+        if (coincide || grados.length === 0) clasesSet.add(act.clase.trim());
+    });
+
+    select.innerHTML = '<option value="__NUEVA__">+ Crear Nueva Clase...</option>';
+    clasesSet.forEach(cl => {
+        const sel = (cl === claseSeleccionada) ? 'selected' : '';
+        select.innerHTML += `<option value="${window.escapeHTML(cl)}" ${sel}>Clase: ${window.escapeHTML(cl)}</option>`;
+    });
+
+    if (claseSeleccionada && clasesSet.has(claseSeleccionada)) {
+        select.value = claseSeleccionada;
+        inputNueva.classList.add('hidden');
+        inputNueva.value = claseSeleccionada;
+    } else {
+        select.value = '__NUEVA__';
+        inputNueva.classList.remove('hidden');
+        inputNueva.value = claseSeleccionada || '';
+    }
+};
+
+window.gestionarCambioClaseJuego = function() {
+    const select = document.getElementById('select-clase-existente-juego');
+    const inputNueva = document.getElementById('input-nueva-clase-juego');
     if (!select || !inputNueva) return;
     if (select.value === '__NUEVA__') {
         inputNueva.classList.remove('hidden');
@@ -340,10 +398,13 @@ window.renderDashboardDocente = function(filtroGrado = null) {
             const seguroId = window.escapeHTML(act.id);
             const claseNombre = act.clase ? window.escapeHTML(act.clase) : '<span class="text-slate-400 italic">General</span>';
             const intentosTxt = (act.evaluacion && act.evaluacion.intentosPermitidos >= 999) ? 'Ilimitados' : ((act.evaluacion && act.evaluacion.intentosPermitidos) || 1);
-            const esLectura = act.tipo === 'lectura';
-            const tipoBadge = esLectura 
-                ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">📖 Lectura</span>'
-                : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">🎬 Video</span>';
+            
+            let tipoBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">🎬 Video</span>';
+            if (act.tipo === 'lectura') {
+                tipoBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">📖 Lectura</span>';
+            } else if (act.tipo === 'juego') {
+                tipoBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">🎮 RPG / Juego</span>';
+            }
 
             tabla.innerHTML += `
                 <tr class="hover:bg-slate-50 transition-colors">
@@ -426,6 +487,17 @@ window.prepararNuevaActividad = function() {
 window.editarActividad = function(idActividad) {
     const act = window.baseActividades.find(a => a.id === idActividad);
     if(!act) return;
+
+    if (act.tipo === 'juego') {
+        idActividadEditando = act.id;
+        document.getElementById('titulo-formulario-juego').innerText = "Editar Juego Pedagógico / RPG";
+        document.getElementById('juego-titulo').value = act.titulo || '';
+        document.getElementById('juego-url').value = act.urlJuego || '';
+        window.renderSelectoresGradosDestino(act.grados || [], 'contenedor-grados-destino-juego');
+        window.actualizarSelectClasesJuego(act.clase || '');
+        window.mostrarVistaDocente('vista-actividad-juego');
+        return;
+    }
 
     if (act.tipo === 'lectura') {
         idActividadEditando = act.id;
@@ -670,20 +742,15 @@ window.guardarActividad = async function(e) {
     }
 };
 
-/* GESTIÓN DOCENTE: LECTURA Y FLUIDEZ CON PARADA SELECTIVA */
+/* GESTIÓN DOCENTE: LECTURA */
 window.prepararNuevaActividadLectura = function() {
     idActividadEditando = null;
     const form = document.getElementById('form-crear-lectura');
     if (form) form.reset();
     
-    const tit = document.getElementById('titulo-formulario-lectura');
-    if (tit) tit.innerText = "Crear Nueva Lectura Interactiva";
-    
-    const contGlo = document.getElementById('contenedor-items-glosario');
-    if (contGlo) contGlo.innerHTML = '';
-    
-    const contPreg = document.getElementById('contenedor-preguntas-lectura');
-    if (contPreg) contPreg.innerHTML = '';
+    document.getElementById('titulo-formulario-lectura').innerText = "Crear Nueva Lectura Interactiva";
+    document.getElementById('contenedor-items-glosario').innerHTML = '';
+    document.getElementById('contenedor-preguntas-lectura').innerHTML = '';
     
     window.actualizarConteoPalabrasDocente('');
     window.renderSelectoresGradosDestino([], 'contenedor-grados-destino-lectura');
@@ -731,7 +798,6 @@ window.crearBloquePreguntaLecturaDocente = function(texto='', opts=[], corr='1',
 
     div.innerHTML = `
         <button type="button" class="absolute top-2 right-2 text-rose-600 font-bold p-1 text-xs" onclick="this.parentElement.remove()">✕ Quitar</button>
-        
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-2 mt-4 sm:mt-1">
             <div class="col-span-1">
                 <label class="block text-[10px] font-bold text-emerald-800 uppercase mb-0.5">Momento de Parada</label>
@@ -875,7 +941,135 @@ window.guardarActividadLectura = async function(e) {
     }
 };
 
-/* MODAL Y PARSER CSV CON COLUMNA DE PARADA DE PÁRRAFO */
+/* GESTIÓN DOCENTE: JUEGOS PEDAGÓGICOS Y RPG (NUEVO) */
+window.prepararNuevaActividadJuego = function() {
+    idActividadEditando = null;
+    const form = document.getElementById('form-crear-juego');
+    if (form) form.reset();
+    document.getElementById('titulo-formulario-juego').innerText = "Vincular Juego / RPG Interactivo";
+    window.renderSelectoresGradosDestino([], 'contenedor-grados-destino-juego');
+    window.actualizarSelectClasesJuego('');
+    window.mostrarVistaDocente('vista-actividad-juego');
+};
+
+window.guardarActividadJuego = async function(e) {
+    e.preventDefault();
+    const btnSubmit = document.getElementById('btn-submit-juego');
+    if(btnSubmit) btnSubmit.disabled = true;
+
+    try {
+        const checkedBoxes = document.querySelectorAll('.checkbox-grado-contenedor-grados-destino-juego:checked');
+        let gradosSeleccionados = Array.from(checkedBoxes).map(cb => cb.value);
+        if (gradosSeleccionados.length === 0) {
+            window.mostrarToast("Selecciona al menos un grado o Docente", "warning");
+            if(btnSubmit) btnSubmit.disabled = false;
+            return;
+        }
+        if (gradosSeleccionados.length === OPCIONES_DESTINO.length) gradosSeleccionados = ['Todos', ...OPCIONES_DESTINO];
+
+        let nombreClaseFinal = document.getElementById('input-nueva-clase-juego').value.trim();
+        if (!nombreClaseFinal) {
+            const selClase = document.getElementById('select-clase-existente-juego').value;
+            if (selClase !== '__NUEVA__') nombreClaseFinal = selClase;
+        }
+        if (!nombreClaseFinal) nombreClaseFinal = "General";
+
+        const titulo = document.getElementById('juego-titulo').value.trim();
+        const urlJuego = document.getElementById('juego-url').value.trim();
+
+        let payload = null;
+        if (idActividadEditando) {
+            const idx = window.baseActividades.findIndex(a => a.id === idActividadEditando);
+            if(idx !== -1) {
+                window.baseActividades[idx].grados = gradosSeleccionados;
+                window.baseActividades[idx].clase = nombreClaseFinal;
+                window.baseActividades[idx].titulo = titulo;
+                window.baseActividades[idx].urlJuego = urlJuego;
+                payload = window.baseActividades[idx];
+            }
+        } else {
+            const nuevoId = "ACT_JUEGO_" + Date.now().toString(36).toUpperCase();
+            const d = new Date();
+            const nueva = {
+                id: nuevoId,
+                tipo: "juego",
+                version: 1,
+                clase: nombreClaseFinal,
+                titulo: titulo,
+                urlJuego: urlJuego,
+                grados: gradosSeleccionados,
+                estado: "Activa",
+                fechaCreacion: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
+                evaluacion: { intentosPermitidos: 999, notaMinima: 3.0 }
+            };
+            window.baseActividades.push(nueva);
+            payload = nueva;
+        }
+
+        localStorage.setItem('cafelab_actividades', JSON.stringify(window.baseActividades));
+        window.mostrarToast("Juego educativo publicado con éxito", "success");
+        document.getElementById('nav-dashboard').click();
+        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'crearActividad', payload }) }).catch(()=>{});
+    } catch(err) {
+        window.mostrarToast("Error al guardar juego", "error");
+    } finally {
+        if(btnSubmit) btnSubmit.disabled = false;
+    }
+};
+
+/* LANZADOR Y VISOR DE JUEGOS INMERSIVOS */
+window.iniciarJuegoInmersivo = function(actividad) {
+    actividadActual = actividad;
+    document.getElementById('juego-inmersivo-titulo').innerText = actividad.titulo;
+    const iframe = document.getElementById('iframe-juego');
+    
+    const sep = actividad.urlJuego.includes('?') ? '&' : '?';
+    iframe.src = `${actividad.urlJuego}${sep}estudianteId=${encodeURIComponent(estudianteIdActual)}&actividadId=${encodeURIComponent(actividad.id)}`;
+
+    document.getElementById('vista-juego-inmersivo').classList.remove('hidden');
+    document.getElementById('vista-juego-inmersivo').classList.add('flex');
+    window.renderLucide();
+};
+
+window.salirModoJuego = function() {
+    const iframe = document.getElementById('iframe-juego');
+    iframe.src = '';
+    document.getElementById('vista-juego-inmersivo').classList.add('hidden');
+    document.getElementById('vista-juego-inmersivo').classList.remove('flex');
+    window.volverDashboardEstudiante();
+};
+
+/* RECEPTOR DE ENTREGAS GAMIFICADAS (POSTMESSAGE) */
+window.addEventListener('message', function(event) {
+    if (event.data && event.data.action === 'guardarEntregaJuego') {
+        const d = event.data;
+        const totalIntentos = d.intentosTotales || 1;
+        const notaFinal = d.nota || "5.0";
+
+        const entrega = {
+            idEntrega: "ENT_RPG_" + Date.now().toString(36).toUpperCase(),
+            estudianteId: estudianteIdActual || d.estudianteId,
+            actividadId: d.actividadId,
+            versionActividad: 1,
+            correctas: d.correctas || 5,
+            resueltas: 5,
+            nota: notaFinal,
+            numeroIntento: totalIntentos,
+            fecha: new Date().toLocaleString(),
+            laboratorio: { "Mundos Superados": "5/5", "Intentos Utilizados": `#${totalIntentos}` },
+            reflexion: d.reflexion || `Completó el recorrido pedagógico en ${totalIntentos} intento(s).`,
+            respuestas: d.respuestas || [],
+            validador: btoa("RPG_" + estudianteIdActual + "_CafeLab")
+        };
+
+        localStorage.setItem(`nota_${entrega.estudianteId}_${entrega.actividadId}`, JSON.stringify(entrega));
+        window.mostrarToast(`¡Misión cumplida en ${totalIntentos} intento(s)! Calificación: ${notaFinal}`, "success");
+        window.salirModoJuego();
+        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) }).catch(()=>{});
+    }
+});
+
+/* CSV PARSER */
 window.abrirModalPegarCSV = function() {
     const modal = document.getElementById('modal-pegar-csv');
     const txtArea = document.getElementById('texto-pegar-csv');
@@ -949,7 +1143,6 @@ window.procesarTextoCSV = function(csvText) {
     const primera = filas[1];
     const tipo = getVal(primera, 'tipo').toLowerCase();
 
-    // RUTA 1: IMPORTAR LECTURA INTERACTIVA
     if (tipo === 'lectura' || headers.includes('texto')) {
         const rawGlosario = getVal(primera, 'glosario');
         const glosarioArray = [];
@@ -1008,7 +1201,6 @@ window.procesarTextoCSV = function(csvText) {
         return;
     }
 
-    // RUTA 2: IMPORTAR VIDEO INTERACTIVO
     document.getElementById('titulo-clase').value = getVal(primera, 'titulo');
     document.getElementById('url-video').value = getVal(primera, 'youtube_url');
     document.getElementById('objetivo-actividad').value = getVal(primera, 'objetivo');
@@ -1059,7 +1251,7 @@ window.procesarTextoCSV = function(csvText) {
     window.renderLucide();
 };
 
-/* AUTENTICACIÓN Y ROLES: LOGIN DOCENTE */
+/* AUTENTICACIÓN */
 window.loginDocente = async function(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
     const btnSubmit = document.getElementById('btn-submit-docente');
@@ -1167,7 +1359,7 @@ window.renderEstudiantesLocales = function() {
     });
 };
 
-/* REPORTES Y CALIFICACIONES */
+/* REPORTES */
 window.generarReporteGlobal = function() {
     window.reporteActividadActualId = null;
     document.getElementById('titulo-vista-reporte').innerText = "Reporte Global";
@@ -1184,9 +1376,12 @@ window.generarReporteGlobal = function() {
         const key = localStorage.key(i);
         if (key.startsWith('nota_')) {
             const raw = key.replace('nota_', '');
-            const separator = raw.includes('_ACT_LEC_') ? '_ACT_LEC_' : '_ACT_';
+            let separator = '_ACT_';
+            if (raw.includes('_ACT_LEC_')) separator = '_ACT_LEC_';
+            else if (raw.includes('_ACT_JUEGO_')) separator = '_ACT_JUEGO_';
+
             const estIdRaw = raw.split(separator)[0]; 
-            const actId = (separator === '_ACT_LEC_' ? 'ACT_LEC_' : 'ACT_') + raw.split(separator)[1];
+            const actId = separator.substring(1) + raw.split(separator)[1];
             
             let gradoDetectado = "Desconocido", codigoDetectado = estIdRaw;
             for(let g of LISTA_GRADOS) {
@@ -1315,7 +1510,10 @@ window.generarReporteActividad = function(idActividad) {
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key.startsWith('nota_') && key.includes(idActividad)) {
-            const separator = idActividad.startsWith('ACT_LEC_') ? '_ACT_LEC_' : '_ACT_';
+            let separator = '_ACT_';
+            if (idActividad.startsWith('ACT_LEC_')) separator = '_ACT_LEC_';
+            else if (idActividad.startsWith('ACT_JUEGO_')) separator = '_ACT_JUEGO_';
+
             const estIdRaw = key.replace('nota_', '').split(separator)[0];
             if (window.filtroGradoActual && !estIdRaw.startsWith(window.filtroGradoActual + '-')) continue; 
 
@@ -1388,6 +1586,7 @@ window.reiniciarActividadEstudiante = async function(estudianteId, actividadId, 
         localStorage.removeItem(`nota_${estudianteId}_${actividadId}`);
         localStorage.removeItem(`estado_${actividadId}_${estudianteId}`);
         localStorage.removeItem(`progreso_sesion_${estudianteId}_${actividadId}`);
+        localStorage.removeItem(`rpg_state_${estudianteId}_${actividadId}`);
         fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'reiniciarEntregaEstudiante', estudianteId, actividadId }) }).catch(()=>{});
         window.mostrarToast(`Actividad reiniciada para ${nombreEstudiante}`, "success");
         if (window.reporteActividadActualId) window.generarReporteActividad(window.reporteActividadActualId);
@@ -1402,12 +1601,16 @@ window.reiniciarGrupoActual = async function() {
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (key.startsWith('nota_') && key.includes(window.reporteActividadActualId)) {
-                const separator = window.reporteActividadActualId.startsWith('ACT_LEC_') ? '_ACT_LEC_' : '_ACT_';
+                let separator = '_ACT_';
+                if (window.reporteActividadActualId.startsWith('ACT_LEC_')) separator = '_ACT_LEC_';
+                else if (window.reporteActividadActualId.startsWith('ACT_JUEGO_')) separator = '_ACT_JUEGO_';
+
                 const rawEstId = key.replace('nota_', '').split(separator)[0];
                 if (targetGrado === 'Todos' || rawEstId.startsWith(targetGrado + '-')) {
                     localStorage.removeItem(key);
                     localStorage.removeItem(`estado_${window.reporteActividadActualId}_${rawEstId}`);
                     localStorage.removeItem(`progreso_sesion_${rawEstId}_${window.reporteActividadActualId}`);
+                    localStorage.removeItem(`rpg_state_${rawEstId}_${window.reporteActividadActualId}`);
                 }
             }
         }
@@ -1417,7 +1620,7 @@ window.reiniciarGrupoActual = async function() {
     }
 };
 
-/* INGRESO Y SESIÓN DE ESTUDIANTE */
+/* SESIÓN DE ESTUDIANTE */
 window.loginEstudiante = async function(e) {
     e.preventDefault();
     const btnSubmit = document.getElementById('btn-submit-estudiante');
@@ -1489,7 +1692,7 @@ window.volverDashboardEstudiante = function() {
     }
     if(intervaloVideo) clearInterval(intervaloVideo);
     
-    if(actividadActual && actividadActual.tipo !== 'lectura' && estudianteIdActual) {
+    if(actividadActual && actividadActual.tipo !== 'lectura' && actividadActual.tipo !== 'juego' && estudianteIdActual) {
         const sesionGuardada = {
             tiempoGuardado: Math.max(tiempoPausa, maxTiempoVisto),
             maxTiempoVisto: Math.max(tiempoPausa, maxTiempoVisto),
@@ -1512,6 +1715,7 @@ window.cerrarSesion = function() {
     }
     if(intervaloVideo) clearInterval(intervaloVideo);
     window.salirModoLecturaInmersiva();
+    window.salirModoJuego();
 
     document.getElementById('panel-docente').classList.add('hidden');
     document.getElementById('panel-docente').classList.remove('flex');
@@ -1521,7 +1725,7 @@ window.cerrarSesion = function() {
     window.toggleSidebarDocente(false);
 };
 
-/* CONSTRUCCIÓN DASHBOARD ESTUDIANTE: CARPETAS Y ATAJOS */
+/* CONSTRUCCIÓN DASHBOARD ESTUDIANTE */
 window.construirDashboardEstudiante = function(grado) {
     const contenedorAtajos = document.getElementById('lista-pendientes-atajos');
     const badgeAtajos = document.getElementById('badge-pendientes-count');
@@ -1557,15 +1761,20 @@ window.construirDashboardEstudiante = function(grado) {
         if (esPendiente && act.estado === 'Activa') {
             countPendientesTotal++;
             const txtIntentosAtajo = maxIntentos >= 999 ? 'Ilimitados' : `${intentosRealizados} de ${maxIntentos}`;
-            const esLec = act.tipo === 'lectura';
+            
+            let iconAtajo = '🎬 ';
+            let btnClass = 'histudy-btn';
+            if (act.tipo === 'lectura') { iconAtajo = '📖 '; btnClass = 'bg-emerald-600 hover:bg-emerald-700 text-white'; }
+            else if (act.tipo === 'juego') { iconAtajo = '🎮 '; btnClass = 'bg-amber-600 hover:bg-amber-700 text-white'; }
+
             contenedorAtajos.innerHTML += `
                 <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3 shadow-xs hover:border-indigo-300 transition-all">
                     <div class="min-w-0">
-                        <span class="text-[9px] font-black uppercase ${esLec ? 'text-emerald-700' : 'text-indigo-600'} tracking-wider">${window.escapeHTML(nombreClase)}</span>
-                        <h4 class="font-bold text-slate-900 text-xs truncate">${esLec ? '📖 ' : '🎬 '}${window.escapeHTML(act.titulo)}</h4>
+                        <span class="text-[9px] font-black uppercase text-indigo-600 tracking-wider">${window.escapeHTML(nombreClase)}</span>
+                        <h4 class="font-bold text-slate-900 text-xs truncate">${iconAtajo}${window.escapeHTML(act.titulo)}</h4>
                         <span class="text-[10px] text-slate-400 font-semibold">Intentos: ${txtIntentosAtajo}</span>
                     </div>
-                    <button type="button" onclick="window.iniciarActividadPorId('${window.escapeHTML(act.id)}')" class="${esLec ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'histudy-btn'} px-3 py-1.5 rounded-lg text-xs font-bold shrink-0">
+                    <button type="button" onclick="window.iniciarActividadPorId('${window.escapeHTML(act.id)}')" class="${btnClass} px-3 py-1.5 rounded-lg text-xs font-bold shrink-0">
                         ${intentosRealizados > 0 ? 'Reintentar' : 'Iniciar'}
                     </button>
                 </div>
@@ -1599,9 +1808,23 @@ window.construirDashboardEstudiante = function(grado) {
             const { act, entrega, maxIntentos, intentosRealizados, puedeReintentar } = it;
             const seguroId = window.escapeHTML(act.id);
             const intentosMaxTxt = maxIntentos >= 999 ? '∞' : maxIntentos;
-            const esLec = act.tipo === 'lectura';
-            const iconTipo = esLec ? 'book-open' : 'play-circle';
-            const bgIcon = esLec ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-700';
+            
+            let iconTipo = 'play-circle';
+            let bgIcon = 'bg-purple-100 text-purple-700';
+            let btnIniciarColor = 'histudy-btn';
+            let btnIniciarTxt = 'Comenzar Actividad';
+
+            if (act.tipo === 'lectura') {
+                iconTipo = 'book-open';
+                bgIcon = 'bg-emerald-100 text-emerald-800';
+                btnIniciarColor = 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold';
+                btnIniciarTxt = 'Iniciar Lectura';
+            } else if (act.tipo === 'juego') {
+                iconTipo = 'gamepad-2';
+                bgIcon = 'bg-amber-100 text-amber-800';
+                btnIniciarColor = 'bg-amber-600 hover:bg-amber-700 text-white font-bold';
+                btnIniciarTxt = 'Jugar Misión RPG';
+            }
 
             if (entrega) {
                 const val = entrega.nota != null ? entrega.nota : '0.0';
@@ -1613,8 +1836,8 @@ window.construirDashboardEstudiante = function(grado) {
                 const safeEntrega = encodeURIComponent(JSON.stringify(entrega));
 
                 const btnReintentar = (puedeReintentar && act.estado === 'Activa')
-                    ? `<button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="text-xs ${esLec ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white font-bold px-3 py-1.5 rounded-lg shadow-xs transition-all">Reintentar</button>`
-                    : `<span class="text-[10px] text-slate-400 font-bold px-2 py-1 bg-slate-100 rounded-lg">Intentos agotados</span>`;
+                    ? `<button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="text-xs ${btnIniciarColor} font-bold px-3 py-1.5 rounded-lg shadow-xs transition-all">Reintentar</button>`
+                    : `<span class="text-[10px] text-slate-400 font-bold px-2 py-1 bg-slate-100 rounded-lg">Completada</span>`;
 
                 actividadesHTML += `
                     <div class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -1625,7 +1848,7 @@ window.construirDashboardEstudiante = function(grado) {
                             </div>
                             <div class="flex flex-wrap items-center gap-2 text-[11px] font-bold text-slate-500">
                                 <span class="px-2 py-0.5 rounded-full border ${badgeColor}">${esGanada ? 'Aprobada' : 'Reprobada'}</span>
-                                <span class="text-slate-400">Intento: <strong>${intentosRealizados}/${intentosMaxTxt}</strong></span>
+                                <span class="text-slate-400">Intento: <strong>#${intentosRealizados}</strong></span>
                                 <span class="text-slate-400 font-normal">Entregado: ${window.escapeHTML(entrega.fecha || '')}</span>
                             </div>
                         </div>
@@ -1641,7 +1864,7 @@ window.construirDashboardEstudiante = function(grado) {
                     <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-xs">
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <span class="p-1 rounded-md ${esLec ? 'bg-emerald-50 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}"><i data-lucide="${iconTipo}" class="w-3.5 h-3.5"></i></span>
+                                <span class="p-1 rounded-md ${bgIcon}"><i data-lucide="${iconTipo}" class="w-3.5 h-3.5"></i></span>
                                 <h5 class="font-bold text-slate-900 text-xs sm:text-sm">${window.escapeHTML(act.titulo)}</h5>
                             </div>
                             <div class="flex items-center gap-2 text-[11px] font-bold text-slate-400">
@@ -1650,8 +1873,8 @@ window.construirDashboardEstudiante = function(grado) {
                                 <span>📅 ${window.escapeHTML(act.fechaCreacion || 'Activo')}</span>
                             </div>
                         </div>
-                        <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="${esLec ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold' : 'histudy-btn'} px-4 py-2 rounded-lg text-xs w-full sm:w-auto">
-                            ${esLec ? 'Iniciar Lectura' : 'Comenzar Actividad'}
+                        <button type="button" onclick="window.iniciarActividadPorId('${seguroId}')" class="${btnIniciarColor} px-4 py-2 rounded-lg text-xs w-full sm:w-auto">
+                            ${btnIniciarTxt}
                         </button>
                     </div>
                 `;
@@ -1692,10 +1915,15 @@ window.construirDashboardEstudiante = function(grado) {
     window.renderLucide();
 };
 
-/* ENRUTADOR POLIMÓRFICO: INICIAR VIDEO O LECTURA INMERSIVA */
+/* ENRUTADOR POLIMÓRFICO: VIDEO / LECTURA / JUEGO */
 window.iniciarActividadPorId = function(idActividad) {
     const act = window.baseActividades.find(a => a.id === idActividad);
     if(!act) return;
+
+    if (act.tipo === 'juego') {
+        window.iniciarJuegoInmersivo(act);
+        return;
+    }
 
     if (act.tipo === 'lectura') {
         window.iniciarLectorInmersivo(act);
@@ -1779,7 +2007,7 @@ window.verificarTiempo = function() {
 
     if (tAct > maxTiempoVisto + 3) { 
         player.seekTo(maxTiempoVisto); 
-        window.mostrarToast("⚠️ Debes ver la clase completa sin adelantar.", "warning"); 
+        window.mostrarToast("⚠️️ Debes ver la clase completa sin adelantar.", "warning"); 
         return;
     }
     if(tAct > maxTiempoVisto) maxTiempoVisto = tAct;
@@ -1913,7 +2141,7 @@ window.finalizarActividad = async function() {
     fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) }).catch(()=>{});
 };
 
-/* MOTOR DEL LECTOR INMERSIVO POR RENGLÓN COMPLETO CON PARADAS SELECTIVAS */
+/* LECTOR INMERSIVO */
 window.iniciarLectorInmersivo = function(actividad) {
     actividadActual = JSON.parse(JSON.stringify(actividad));
     
@@ -2048,14 +2276,13 @@ window.reanudarRitmoLectura = function() {
             const duracionMs = Math.max((lineaActual.conteoPalabras / wpm) * 60 * 1000, 1200);
 
             timeoutLineaPacer = setTimeout(() => {
-                // Solo si la línea es el fin de un párrafo, comprobar si hay una pregunta asignada a ESE párrafo específico
                 if (lineaActual.esFinDeParrafo) {
                     const pregPausa = actividadActual.preguntas?.find(p => !p.respondida && parseInt(p.parrafoPausa || 0) === lineaActual.parrafo);
                     
                     if (pregPausa) {
                         window.pausarRitmoLectura();
                         window.mostrarPreguntaIntermediaLectura(pregPausa);
-                        return; // Se detiene hasta que el estudiante conteste
+                        return;
                     }
                 }
                 
@@ -2066,7 +2293,6 @@ window.reanudarRitmoLectura = function() {
             }, duracionMs);
 
         } else {
-            // Fin de la lectura completa
             window.pausarRitmoLectura();
             document.getElementById('btn-inmersivo-evaluar').classList.remove('hidden');
             window.mostrarToast("🎉 ¡Lectura finalizada! Realiza tu síntesis y preguntas finales.", "success");
@@ -2088,7 +2314,6 @@ window.pausarRitmoLectura = function() {
     }
 };
 
-/* MOSTRAR PREGUNTA INTERMEDIA EN EL PÁRRAFO ASIGNADO */
 window.mostrarPreguntaIntermediaLectura = function(pregunta) {
     const overlay = document.getElementById('overlay-pregunta-intermedia');
     const caja = document.getElementById('caja-pregunta-intermedia-activa');
@@ -2187,7 +2412,6 @@ window.cambiarTamanoTexto = function(delta) {
     if (contenedor) contenedor.style.fontSize = `${tamanoFuenteLectura}px`;
 };
 
-/* EVALUACIÓN FINAL DE COMPRENSIÓN (PREGUNTAS RESTANTES Y SÍNTESIS) */
 window.pasarAEvaluacionLectura = function() {
     window.pausarRitmoLectura();
     const totalPalabras = palabrasLecturaArray.length;
@@ -2285,7 +2509,7 @@ window.finalizarEvaluacionLectura = async function() {
     fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarNota', payload: entrega }) }).catch(()=>{});
 };
 
-/* VISOR DE DETALLES CON REVELACIÓN CONDICIONAL */
+/* VISOR DE DETALLES */
 window.verDetalleEntrega = function(encodedData, permitirVerCorrectas = false) {
     if (!encodedData || encodedData === 'null') return;
     let data;
